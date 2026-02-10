@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"/>
+<meta name="theme-color" content="#FC8019"/>
+<title>WorkIndex - Professional Services Marketplace</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overscroll-behavior:none}
+body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;-webkit-font-smoothing:antialiased;transition:background .3s,color .3s}
+:root{--primary:#FC8019;--primary-dark:#E67417;--bg:#FFF;--bg-gray:#F9FAFB;--border:#E9E9EB;--text:#3D4152;--text-light:#686B78;--text-muted:#93959F;--green:#48C479;--red:#E74C3C;--yellow:#F5C518;--blue:#4A90E2;--safe-top:env(safe-area-inset-top,44px);--safe-bot:env(safe-area-inset-bottom,34px)}
+[data-theme="dark"]{--bg:#1A1A1A;--bg-gray:#2A2A2A;--border:#3A3A3A;--text:#FFFFFF;--text-light:#B0B0B0;--text-muted:#808080}
+.page{display:none;min-height:100vh;animation:fadeIn .25s ease}
+.page.active{display:block}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+.btn{padding:12px 24px;border-radius:8px;border:none;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s;font-family:inherit}
+.btn-primary{background:var(--primary);color:#fff}
+.btn-primary:hover{background:var(--primary-dark);transform:translateY(-2px)}
+.btn-outline{background:transparent;border:1.5px solid var(--border);color:var(--text)}
+.submit-btn{width:100%;padding:14px;border-radius:10px;border:none;background:var(--primary);color:#fff;font-size:16px;font-weight:700;cursor:pointer;font-family:inherit}
+.submit-btn:active{opacity:.85}
+.field{margin-bottom:16px}
+.field label{font-size:13px;font-weight:600;color:var(--text);display:block;margin-bottom:6px}
+.field input,.field select,.field textarea{width:100%;padding:12px 14px;background:var(--bg-gray);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:15px;outline:none;font-family:inherit}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--primary);background:var(--bg)}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(2px);z-index:100;display:none;align-items:flex-end}
+.modal-overlay.open{display:flex;animation:fadeIn .2s ease}
+.modal-sheet{background:var(--bg);border-radius:20px 20px 0 0;width:100%;max-height:85vh;overflow-y:auto;padding:0 20px calc(24px + var(--safe-bot));animation:slideUp .25s ease}
+.modal-handle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:12px auto 20px}
+.modal-title{font-size:20px;font-weight:700;color:var(--text);margin-bottom:8px}
+.modal-subtitle{font-size:14px;color:var(--text-muted);margin-bottom:20px}
+.empty-state{text-align:center;padding:60px 20px}
+.empty-state .icon{font-size:64px;margin-bottom:16px;opacity:.3}
+.empty-state h3{font-size:18px;font-weight:700;color:var(--text);margin-bottom:8px}
+.empty-state p{font-size:14px;color:var(--text-muted)}
+.avatar{width:40px;height:40px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:#fff;cursor:pointer;overflow:hidden}
+.avatar img{width:100%;height:100%;object-fit:cover}
+.star-rating{display:flex;gap:4px}
+.star{font-size:20px;cursor:pointer;color:var(--text-muted)}
+.star.filled{color:var(--yellow)}
+
+/* LANDING PAGE */
+#landing{background:linear-gradient(135deg,#FFFAF6 0%,#FFF 100%);padding-top:var(--safe-top)}
+.land-nav{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;position:sticky;top:0;background:rgba(255,255,255,.95);backdrop-filter:blur(10px);z-index:50}
+.logo{display:flex;align-items:center;gap:8px}
+.logo-icon{width:36px;height:36px;background:var(--primary);border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:18px;color:#fff}
+.logo-text{font-size:20px;font-weight:800;color:var(--text)}
+.land-btns{display:flex;gap:8px}
+.hero{text-align:center;padding:60px 24px 40px}
+.hero h1{font-size:clamp(32px,7vw,52px);font-weight:800;line-height:1.15;letter-spacing:-.5px;color:var(--text);margin-bottom:14px}
+.hero .highlight{color:var(--primary)}
+.hero p{font-size:16px;color:var(--text-light);line-height:1.6;max-width:500px;margin:0 auto 32px}
+.hero-actions{display:grid;grid-template-columns:1fr 1fr;gap:12px;max-width:600px;margin:0 auto}
+.hero-btn{padding:20px;border-radius:12px;border:none;font-size:15px;font-weight:700;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:8px;transition:transform .15s;font-family:inherit;background:#fff;border:2px solid var(--border);color:var(--text)}
+.hero-btn:active{transform:scale(.97)}
+.hero-btn.primary{background:var(--primary);color:#fff;border-color:var(--primary)}
+.stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;padding:40px 20px;max-width:800px;margin:0 auto}
+.stat-card{text-align:center;padding:20px;background:#fff;border:1px solid var(--border);border-radius:12px}
+.stat-number{font-size:32px;font-weight:800;color:var(--primary);margin-bottom:4px}
+.stat-label{font-size:12px;color:var(--text-muted)}
+.section{padding:40px 20px}
+.section-title{font-size:24px;font-weight:700;text-align:center;margin-bottom:24px;color:var(--text)}
+.features-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.feature-card{padding:20px;background:#fff;border:1px solid var(--border);border-radius:12px;text-align:center}
+.feature-card .icon{font-size:36px;margin-bottom:12px}
+.feature-card h4{font-size:15px;font-weight:700;margin-bottom:6px;color:var(--text)}
+.feature-card p{font-size:13px;color:var(--text-muted);line-height:1.4}
+.footer{background:var(--bg-gray);padding:40px 20px;border-top:1px solid var(--border)}
+.footer-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-bottom:24px}
+.footer-col h5{font-size:14px;font-weight:700;margin-bottom:12px;color:var(--text)}
+.footer-col ul{list-style:none}
+.footer-col ul li{margin-bottom:8px}
+.footer-col ul li a{color:var(--text-light);text-decoration:none;font-size:13px}
+.footer-copy{text-align:center;padding-top:20px;border-top:1px solid var(--border);font-size:12px;color:var(--text-muted)}
+
+/* DASHBOARD */
+.dash-header{background:var(--bg);border-bottom:1px solid var(--border);padding:14px 20px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:40}
+.credit-badge{display:flex;align-items:center;gap:5px;padding:6px 12px;border-radius:18px;background:#FFF4ED;border:1px solid var(--primary);color:var(--primary);font-size:13px;font-weight:700;cursor:pointer}
+.tab-content{padding:18px 20px;padding-bottom:calc(70px + var(--safe-bot))}
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:var(--bg);border-top:1px solid var(--border);display:flex;padding-bottom:var(--safe-bot);z-index:50}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 0;background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:11px;font-weight:600;font-family:inherit}
+.nav-item svg{width:22px;height:22px}
+.nav-item.active{color:var(--primary)}
+.card{background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px}
+.card-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px}
+.card h4{font-size:16px;font-weight:700;color:var(--text);margin-bottom:8px}
+.card p{font-size:14px;color:var(--text-light);line-height:1.5}
+.badge{padding:4px 10px;border-radius:12px;font-size:11px;font-weight:600}
+.badge.success{background:#E8F5E9;color:#2E7D32}
+.badge.warning{background:#FFF4ED;color:var(--primary)}
+.badge.info{background:#E3F2FD;color:#1976D2}
+</style>
+</head>
+<body>
+
+<!-- LANDING PAGE -->
+<div id="landing" class="page active">
+  <nav class="land-nav">
+    <div class="logo">
+      <div class="logo-icon">W</div>
+      <div class="logo-text">WorkIndex</div>
+    </div>
+    <div class="land-btns">
+      <button class="btn btn-outline" onclick="goAuth('login')">Login</button>
+      <button class="btn btn-primary" onclick="goAuth('signup')">Sign Up</button>
+    </div>
+  </nav>
+
+  <div class="hero">
+    <h1>Find the <span class="highlight">right professional</span> for your needs</h1>
+    <p>Connect with verified experts for ITR filing, GST services, accounting, development, and more.</p>
+    <div class="hero-actions">
+      <button class="hero-btn primary" onclick="goAuth('signup','client')">
+        <span style="font-size:32px">📋</span>
+        <span>I need help</span>
+        <span style="font-size:11px;opacity:.8">Post requirement</span>
+      </button>
+      <button class="hero-btn" onclick="goAuth('signup','expert')">
+        <span style="font-size:32px">💼</span>
+        <span>I'm a professional</span>
+        <span style="font-size:11px;opacity:.7">Find clients</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-number">500+</div>
+      <div class="stat-label">Professionals</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number">1.2K+</div>
+      <div class="stat-label">Projects</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number">98%</div>
+      <div class="stat-label">Satisfaction</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">How it works</div>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="icon">📝</div>
+        <h4>Post Your Need</h4>
+        <p>Answer a few questions</p>
+      </div>
+      <div class="feature-card">
+        <div class="icon">👥</div>
+        <h4>Get Approaches</h4>
+        <p>Experts reach out</p>
+      </div>
+      <div class="feature-card">
+        <div class="icon">✅</div>
+        <h4>Choose Expert</h4>
+        <p>Review & select</p>
+      </div>
+      <div class="feature-card">
+        <div class="icon">🤝</div>
+        <h4>Get It Done</h4>
+        <p>Work together</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div class="footer-grid">
+      <div class="footer-col">
+        <h5>For Customers</h5>
+        <ul>
+          <li><a href="#" onclick="showBrowseProfessionals();return false">Find Professionals</a></li>
+          <li><a href="#" onclick="showHowItWorks('client');return false">How it Works</a></li>
+          <li><a href="#" onclick="goAuth('login');return false">Login</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h5>For Professionals</h5>
+        <ul>
+          <li><a href="#" onclick="goAuth('signup','expert');return false">Join as Professional</a></li>
+          <li><a href="#" onclick="showPricing();return false">Pricing</a></li>
+          <li><a href="#" onclick="showHowItWorks('expert');return false">How it Works</a></li>
+          <li><a href="#" onclick="showHelp();return false">Help Center</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h5>About</h5>
+        <ul>
+          <li><a href="#">About WorkIndex</a></li>
+          <li><a href="#">Contact Us</a></li>
+          <li><a href="#">Privacy</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-copy">© 2026 WorkIndex. All rights reserved.</div>
+  </div>
+</div>
+
+<!-- AUTH PAGE -->
+<div id="auth" class="page" style="background:var(--bg);padding-top:var(--safe-top)">
+  <button onclick="goPage('landing')" style="margin:14px 20px;display:flex;align-items:center;gap:5px;background:none;border:none;color:var(--text-light);font-size:14px;font-weight:600;cursor:pointer">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>Back
+  </button>
+  <div style="padding:32px 20px">
+    <div style="text-align:center;margin-bottom:32px">
+      <div class="logo"><div class="logo-icon">W</div><div class="logo-text">WorkIndex</div></div>
+    </div>
+    <div style="background:var(--bg);border:1px solid var(--border);border-radius:16px;padding:24px 20px">
+      <div style="display:flex;background:var(--bg-gray);border-radius:10px;padding:4px;margin-bottom:24px">
+        <button id="toggleLogin" class="active" onclick="switchAuth('login')" style="flex:1;padding:10px;border-radius:8px;border:none;background:transparent;color:var(--text-muted);font-size:14px;font-weight:700;cursor:pointer;transition:all .2s">Login</button>
+        <button id="toggleSignup" onclick="switchAuth('signup')" style="flex:1;padding:10px;border-radius:8px;border:none;background:transparent;color:var(--text-muted);font-size:14px;font-weight:700;cursor:pointer;transition:all .2s">Sign Up</button>
+      </div>
+      <label style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:8px;display:block">I am a</label>
+      <div style="display:flex;gap:12px;margin-bottom:24px">
+        <div id="roleClient" onclick="pickRole('client')" style="flex:1;padding:18px 12px;border:2px solid var(--border);border-radius:12px;background:var(--bg);text-align:center;cursor:pointer;transition:all .2s">
+          <div style="font-size:28px;margin-bottom:6px">📋</div>
+          <div style="font-size:14px;font-weight:700;color:var(--text)">Client</div>
+        </div>
+        <div id="roleExpert" onclick="pickRole('expert')" style="flex:1;padding:18px 12px;border:2px solid var(--border);border-radius:12px;background:var(--bg);text-align:center;cursor:pointer;transition:all .2s">
+          <div style="font-size:28px;margin-bottom:6px">💼</div>
+          <div style="font-size:14px;font-weight:700;color:var(--text)">Expert</div>
+        </div>
+      </div>
+      <div id="authError"></div>
+      <div id="nameField" class="field" style="display:none"><label>Full Name</label><input type="text" id="inName" placeholder="Enter your name"></div>
+      <div class="field"><label>Email</label><input type="email" id="inEmail" placeholder="you@example.com"></div>
+      <div class="field"><label>Phone</label><div style="display:flex;gap:8px"><div style="padding:12px;background:var(--bg-gray);border:1px solid var(--border);border-radius:10px;color:var(--text-light);font-size:15px;font-weight:600">+91</div><input type="tel" id="inPhone" placeholder="9876543210" maxlength="10" style="flex:1"></div></div>
+      <div class="field"><label>Password</label><input type="password" id="inPass" placeholder="Create password"></div>
+      <button class="submit-btn disabled" id="authSubmit" onclick="submitAuth()">Continue</button>
+    </div>
+  </div>
+</div>
+
+      { value: "audit", icon: "🔍", label: "Audit Services", desc: "Statutory audit" },
+      { value: "photography", icon: "📸", label: "Photography", desc: "Events, product" },
+      { value: "development", icon: "💻", label: "App/Web Dev", desc: "Build digital products" }
+    ]
+  },
+  
+  // ITR (simplified - showing key questions)
+  itr_for: { condition: { service: "itr" }, title: "Who is the return for?", type: "single", key: "itrFor", options: [{ value: "individual", label: "Individual" }, { value: "freelancer", label: "Freelancer" }, { value: "business", label: "Business" }] },
+  itr_income_source: { condition: { service: "itr" }, title: "Sources of income?", subtitle: "Select all", type: "multi", key: "incomeSource", options: [{ value: "salary", label: "Salary" }, { value: "business", label: "Business" }, { value: "rental", label: "Rental" }, { value: "capital", label: "Capital Gains" }, { value: "other", label: "Other" }] },
+  itr_income_bracket: { condition: { service: "itr" }, title: "Annual income?", type: "single", key: "incomeBracket", options: [{ value: "below5", label: "Below ₹5L" }, { value: "5-10", label: "₹5-10L" }, { value: "10-15", label: "₹10-15L" }, { value: "15-20", label: "₹15-20L" }, { value: "20-25", label: "₹20-25L" }, { value: "25+", label: ">₹25L" }] },
+  
+  // GST (simplified)
+  gst_service: { condition: { service: "gst" }, title: "What GST service?", type: "single", key: "gstService", options: [{ value: "registration", label: "New Registration" }, { value: "monthly", label: "Monthly Filing" }, { value: "annual", label: "Annual Return" }] },
+  gst_turnover: { condition: { service: "gst" }, title: "Annual turnover?", type: "single", key: "turnover", options: [{ value: "below20", label: "< ₹20L" }, { value: "20-1cr", label: "₹20L-1Cr" }, { value: "1-5cr", label: "₹1-5Cr" }, { value: "20cr+", label: "₹20Cr+" }] },
+  
+  // Common
+  timeline: { title: "When do you need this?", type: "single", key: "timeline", options: [{ value: "immediate", icon: "🔴", label: "Immediate" }, { value: "week", icon: "🟠", label: "Within week" }, { value: "month", icon: "🟡", label: "Within month" }, { value: "flexible", icon: "🟢", label: "Flexible" }] },
+  budget: { title: "Budget range?", subtitle: "Select amount", type: "single", key: "budget", options: [
+    { value: "500", label: "₹500" }, { value: "1000", label: "₹1,000" }, { value: "1500", label: "₹1,500" }, 
+    { value: "2000", label: "₹2,000" }, { value: "2500", label: "₹2,500" }, { value: "3000", label: "₹3,000" },
+    { value: "3500", label: "₹3,500" }, { value: "4000", label: "₹4,000" }, { value: "4500", label: "₹4,500" },
+    { value: "5000", label: "₹5,000" }, { value: "6000", label: "₹6,000" }, { value: "7000", label: "₹7,000" },
+    { value: "8000", label: "₹8,000" }, { value: "9000", label: "₹9,000" }, { value: "10000", label: "₹10,000" },
+    { value: "12000", label: "₹12,000" }, { value: "15000", label: "₹15,000" }, { value: "20000", label: "₹20,000" }
+  ] },
+  details: { title: "Additional details", type: "textarea", key: "details", placeholder: "Describe your requirement..." },
+  location: { title: "Your location", type: "input", key: "location", inputType: "text", placeholder: "City, State" }
+};
+
+function buildQuestionSequence() {
+  const service = state.qAnswers.service;
+  let seq = ['service'];
+  
+  if (service === 'itr') seq.push('itr_for', 'itr_income_source', 'itr_income_bracket');
+  else if (service === 'gst') seq.push('gst_service', 'gst_turnover');
+  
+  seq.push('timeline', 'budget', 'details', 'location');
+  return seq;
+}
+
+// HELPERS
+function goPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+function goAuth(mode, role) {
+  state.authMode = mode;
+  if (role) state.role = role;
+  switchAuth(mode);
+  if (role) pickRole(role);
+  goPage('auth');
+}
+
+function switchAuth(mode) {
+  state.authMode = mode;
+  document.getElementById('toggleLogin').classList.toggle('active', mode === 'login');
+  document.getElementById('toggleSignup').classList.toggle('active', mode === 'signup');
+  document.getElementById('nameField').style.display = mode === 'signup' ? 'block' : 'none';
+  document.getElementById('authSubmit').textContent = mode === 'signup' ? 'Create Account' : 'Log In';
+  document.getElementById('authFooter').innerHTML = mode === 'signup' ? 'Already have an account? <a onclick="switchAuth(\'login\')">Log in</a>' : 'No account? <a onclick="switchAuth(\'signup\')">Sign up</a>';
+  document.getElementById('authForm').style.display = 'block';
+  document.getElementById('verifyForm').style.display = 'none';
+}
+
+function pickRole(r) {
+  state.role = r;
+  document.getElementById('roleClient').classList.toggle('active', r === 'client');
+  document.getElementById('roleExpert').classList.toggle('active', r === 'expert');
+  document.getElementById('authSubmit').classList.remove('disabled');
+}
+
+async function submitAuth() {
+  if (!state.role) {
+    alert('Please select your role');
+    return;
+  }
+  
+  const name = document.getElementById('inName').value.trim();
+  const email = document.getElementById('inEmail').value.trim();
+  const phone = document.getElementById('inPhone').value.trim();
+  const password = document.getElementById('inPass').value;
+  
+  if (!email || !phone || !password) {
+    alert('Please fill in all fields');
+    return;
+  }
+  
+  if (state.authMode === 'signup' && !name) {
+    alert('Please enter your name');
+    return;
+  }
+  
+  if (phone.length !== 10) {
+    alert('Phone must be 10 digits');
+    return;
+  }
+  
+  try {
+    if (state.authMode === 'signup') {
+      // Register without OTP
+      const res = await fetch(`${API_URL}/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, phone, password, role: state.role })
+      });
+      
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Registration failed');
+      
+      // Auto-verify and login
+      state.userId = data.userId;
+      state.user = { name, email, phone, role: state.role, credits: 50 };
+      state.token = 'temp_token_' + Date.now(); // Temporary token for demo
+      state.expertCredits = 50;
+      
+      localStorage.setItem('token', state.token);
+      localStorage.setItem('user', JSON.stringify(state.user));
+      
+      alert('✅ Account created successfully!');
+      
+      // Go directly to questionnaire for clients, dashboard for experts
+      if (state.role === 'client') {
+        startQuestionnaire();
+      } else {
+        enterDashboard();
+      }
+    } else {
+      // Login
+      const res = await fetch(`${API_URL}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+      
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Login failed');
+      
+      state.token = data.token;
+      state.user = data.user;
+      state.role = data.user.role;
+      state.expertCredits = data.user.credits || 50;
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify(data.user));
+      
+      enterDashboard();
+    }
+  } catch (error) {
+    alert(error.message);
+  }
+}
+
+function startVerify() {
+  state.verifyStep = 0;
+  document.getElementById('authForm').style.display = 'none';
+  document.getElementById('verifyForm').style.display = 'block';
+  updateVerifyUI();
+}
+
+function updateVerifyUI() {
+  const step = state.verifyStep;
+  document.getElementById('vStep0').classList.toggle('done', true);
+  document.getElementById('vStep1').classList.toggle('done', step > 0);
+  document.getElementById('verifyTitle').textContent = step === 0 ? 'Verify Email' : 'Verify Phone';
+  document.getElementById('verifySub').textContent = step === 0 ? `Code sent to ${state.user.email}` : `Code sent to +91 ${state.user.phone}`;
+  document.getElementById('otpInput').value = '';
+}
+
+async function submitVerify() {
+  const otp = document.getElementById('otpInput').value.trim();
+  
+  if (otp.length !== 6) {
+    alert('Please enter 6-digit code');
+    return;
+  }
+  
+  try {
+    if (state.verifyStep === 0) {
+      const res = await fetch(`${API_URL}/auth/verify-email`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: state.userId, otp })
+      });
+      
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Verification failed');
+      
+      await fetch(`${API_URL}/auth/send-phone-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: state.userId })
+      });
+      
+      state.verifyStep = 1;
+      updateVerifyUI();
+      alert('Email verified! Check Railway logs for phone OTP code.');
+    } else {
+      const res = await fetch(`${API_URL}/auth/verify-phone`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: state.userId, otp })
+      });
+      
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Verification failed');
+      
+      state.token = data.token;
+      state.user = data.user;
+      state.role = data.user.role;
+      state.expertCredits = data.user.credits || 50;
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify(data.user));
+      
+      if (state.role === 'client') startQuestionnaire();
+      else enterDashboard();
+    }
+  } catch (error) {
+    alert(error.message);
+  }
+}
+
+function startQuestionnaire() {
+  state.qStep = 0;
+  state.qAnswers = {};
+  state.qSequence = null;
+  renderQStep();
+  goPage('questionnaire');
+}
+
+function renderQStep() {
+  if (!state.qSequence) state.qSequence = state.qStep === 0 ? ['service'] : buildQuestionSequence();
+  
+  const stepKey = state.qSequence[state.qStep];
+  const step = Q_FORMS[stepKey];
+  
+  if (!step) { completeQuestionnaire(); return; }
+  
+  if (step.condition) {
+    const [key, val] = Object.entries(step.condition)[0];
+    if (state.qAnswers[key] !== val) { state.qStep++; renderQStep(); return; }
+  }
+  
+  const progress = ((state.qStep + 1) / state.qSequence.length) * 100;
+  document.getElementById('qProgressFill').style.width = progress + '%';
+  document.getElementById('qStepText').textContent = `Step ${state.qStep + 1} of ${state.qSequence.length}`;
+  document.getElementById('qBackBtn').style.display = state.qStep > 0 ? 'block' : 'none';
+  
+  const content = document.getElementById('qContent');
+  content.innerHTML = `<div class="q-title">${step.title}</div>${step.subtitle ? `<div class="q-subtitle">${step.subtitle}</div>` : ''}`;
+  
+  if (step.type === 'single') {
+    content.innerHTML += `<div class="q-options">${step.options.map(opt => `<div class="q-option ${state.qAnswers[step.key] === opt.value ? 'selected' : ''}" onclick="selectOption('${step.key}', '${opt.value}')">${opt.icon ? `<div class="opt-icon">${opt.icon}</div>` : ''}<div class="opt-text"><div class="opt-label">${opt.label}</div>${opt.desc ? `<div class="opt-desc">${opt.desc}</div>` : ''}</div></div>`).join('')}</div>`;
+  } else if (step.type === 'multi') {
+    content.innerHTML += `<div class="chip-grid">${step.options.map(opt => `<div class="chip ${state.qAnswers[step.key] && state.qAnswers[step.key].includes(opt.value) ? 'selected' : ''}" onclick="toggleChip(this, '${step.key}', '${opt.value}')">${opt.label}</div>`).join('')}</div>`;
+  } else if (step.type === 'input' || step.type === 'textarea') {
+    const tag = step.type === 'textarea' ? 'textarea' : 'input';
+    const attrs = step.type === 'textarea' ? 'rows="4"' : `type="${step.inputType || 'text'}"`;
+    content.innerHTML += `<div class="field"><${tag} id="qInput" ${attrs} placeholder="${step.placeholder}" oninput="qInputChange()">${state.qAnswers[step.key] || ''}</${tag}></div>`;
+  }
+  
+  document.getElementById('qNextBtn').classList.toggle('disabled', !state.qAnswers[step.key]);
+}
+
+function selectOption(key, value) {
+  state.qAnswers[key] = value;
+  document.querySelectorAll('.q-option').forEach(opt => opt.classList.remove('selected'));
+  event.currentTarget.classList.add('selected');
+  document.getElementById('qNextBtn').classList.remove('disabled');
+  if (key === 'service') state.qSequence = buildQuestionSequence();
+}
+
+function toggleChip(el, key, value) {
+  el.classList.toggle('selected');
+  if (!state.qAnswers[key]) state.qAnswers[key] = [];
+  const idx = state.qAnswers[key].indexOf(value);
+  if (idx > -1) state.qAnswers[key].splice(idx, 1); else state.qAnswers[key].push(value);
+  document.getElementById('qNextBtn').classList.toggle('disabled', state.qAnswers[key].length === 0);
+}
+
+function qInputChange() {
+  const val = document.getElementById('qInput').value.trim();
+  const step = Q_FORMS[state.qSequence[state.qStep]];
+  state.qAnswers[step.key] = val;
+  document.getElementById('qNextBtn').classList.toggle('disabled', !val);
+}
+
+function qNext() {
+  if (document.getElementById('qNextBtn').classList.contains('disabled')) return;
+  state.qStep++;
+  if (state.qStep >= state.qSequence.length) completeQuestionnaire(); else renderQStep();
+}
+
+function qBack() { if (state.qStep > 0) { state.qStep--; renderQStep(); } }
+
+async function completeQuestionnaire() {
+  const service = Q_FORMS.service.options.find(o => o.value === state.qAnswers.service);
+  const credits = calculateCredits(state.qAnswers.service, state.qAnswers);
+  
+  const title = service.label + ' - ' + (state.qAnswers.location || 'India');
+  const description = state.qAnswers.details || 'Details in questionnaire';
+  
+  try {
+    const res = await fetch(`${API_URL}/requests`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${state.token}`
+      },
+      body: JSON.stringify({
+        service: state.qAnswers.service,
+        title,
+        description,
+        answers: state.qAnswers,
+        timeline: state.qAnswers.timeline || 'flexible',
+        budget: state.qAnswers.budget || 'Budget TBD',
+        location: state.qAnswers.location || 'India'
+      })
+    });
+    
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Failed to create request');
+    
+    alert('✅ Request posted successfully!');
+    enterDashboard();
+  } catch (error) {
+    alert(error.message);
+    enterDashboard();
+  }
+}
+
+async function loadClientRequests() {
+  if (!state.token) return;
+  try {
+    const res = await fetch(`${API_URL}/requests`, {
+      headers: { 'Authorization': `Bearer ${state.token}` }
+    });
+    const data = await res.json();
+    if (res.ok && data.requests) {
+      state.clientRequests = data.requests.map(req => ({
+        id: req._id,
+        title: req.title,
+        service: req.service,
+        desc: req.description,
+        timeline: req.timeline,
+        status: req.status,
+        location: req.location,
+        budget: req.budget,
+        posted: new Date(req.createdAt).toLocaleDateString(),
+        responses: [],
+        credits: req.credits,
+        answers: req.answers
+      }));
+    }
+  } catch (error) {
+    console.error('Load error:', error);
+  }
+}
+
+async function loadExpertRequests() {
+  if (!state.token) return;
+  try {
+    const res = await fetch(`${API_URL}/requests`, {
+      headers: { 'Authorization': `Bearer ${state.token}` }
+    });
+    const data = await res.json();
+    if (res.ok && data.requests) {
+      state.clientRequests = data.requests.map(req => ({
+        id: req._id,
+        title: req.title,
+        service: req.service,
+        desc: req.description,
+        timeline: req.timeline,
+        location: req.location,
+        budget: req.budget,
+        credits: req.credits
+      }));
+    }
+  } catch (error) {
+    console.error('Load error:', error);
+  }
+}
+
+async function loadExpertApproaches() {
+  if (!state.token) return;
+  try {
+    const res = await fetch(`${API_URL}/approaches`, {
+      headers: { 'Authorization': `Bearer ${state.token}` }
+    });
+    const data = await res.json();
+    if (res.ok && data.approaches) {
+      state.expertApproaches = data.approaches.map(app => ({
+        reqId: app.request._id,
+        reqTitle: app.request.title,
+        message: app.message,
+        unlocked: app.unlocked,
+        clientEmail: app.clientEmail,
+        clientPhone: app.clientPhone,
+        sentTime: new Date(app.createdAt).toLocaleDateString()
+      }));
+    }
+  } catch (error) {
+    console.error('Load error:', error);
+  }
+}
+
+function enterDashboard() {
+  if (state.role === 'client') { renderClientDash(); goPage('clientDash'); }
+  else { renderExpertDash(); goPage('expertDash'); }
+}
+
+// CLIENT DASHBOARD
+async function renderClientDash() {
+  const initials = state.user.name.split(' ').map(n => n[0]).join('');
+  document.getElementById('clientAvatar').textContent = initials;
+  document.getElementById('clientProfAvatar').textContent = initials;
+  document.getElementById('clientProfName').textContent = state.user.name;
+  document.getElementById('clientProfEmail').textContent = state.user.email;
+  document.getElementById('clientProfPhone').textContent = '+91 ' + state.user.phone;
+  await loadClientRequests();
+  clientSwitchTab('requests');
+}
+
+function clientSwitchTab(tab) {
+  document.getElementById('clientTabRequests').style.display = tab === 'requests' ? 'block' : 'none';
+  document.getElementById('clientTabProfile').style.display = tab === 'profile' ? 'block' : 'none';
+  document.getElementById('clientNavReq').classList.toggle('active', tab === 'requests');
+  document.getElementById('clientNavProf').classList.toggle('active', tab === 'profile');
+  if (tab === 'requests') renderClientRequests();
+}
+
+function renderClientRequests() {
+  const cont = document.getElementById('clientTabRequests');
+  const reqs = state.clientRequests;
+  
+  if (reqs.length === 0) {
+    cont.innerHTML = `
+      <div class="empty-state">
+        <div class="icon">🎯</div>
+        <h3>Ready to get started?</h3>
+        <p style="margin-bottom:24px;">Post your first requirement and get expert help</p>
+        <button onclick="startQuestionnaire()" style="padding:12px 24px;border-radius:8px;border:none;background:var(--primary);color:#fff;font-size:14px;font-weight:700;cursor:pointer;">
+          📝 Post Your First Request
+        </button>
+      </div>
+      
+      <div style="padding:20px;">
+        <h4 style="font-size:16px;font-weight:700;margin-bottom:16px;color:var(--text);">Popular Services</h4>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div onclick="startQuestionnaire()" style="padding:16px;background:#fff;border:1px solid var(--border);border-radius:12px;cursor:pointer;">
+            <div style="font-size:24px;margin-bottom:8px;">📄</div>
+            <div style="font-size:13px;font-weight:600;color:var(--text);">ITR Filing</div>
+            <div style="font-size:11px;color:var(--text-muted);">From ₹500</div>
+          </div>
+          <div onclick="startQuestionnaire()" style="padding:16px;background:#fff;border:1px solid var(--border);border-radius:12px;cursor:pointer;">
+            <div style="font-size:24px;margin-bottom:8px;">🏢</div>
+            <div style="font-size:13px;font-weight:600;color:var(--text);">GST Services</div>
+            <div style="font-size:11px;color:var(--text-muted);">From ₹1,000</div>
+          </div>
+          <div onclick="startQuestionnaire()" style="padding:16px;background:#fff;border:1px solid var(--border);border-radius:12px;cursor:pointer;">
+            <div style="font-size:24px;margin-bottom:8px;">📊</div>
+            <div style="font-size:13px;font-weight:600;color:var(--text);">Accounting</div>
+            <div style="font-size:11px;color:var(--text-muted);">From ₹2,000</div>
+          </div>
+          <div onclick="startQuestionnaire()" style="padding:16px;background:#fff;border:1px solid var(--border);border-radius:12px;cursor:pointer;">
+            <div style="font-size:24px;margin-bottom:8px;">💻</div>
+            <div style="font-size:13px;font-weight:600;color:var(--text);">Development</div>
+            <div style="font-size:11px;color:var(--text-muted);">From ₹5,000</div>
+          </div>
+        </div>
+      </div>
+    `;
+    return;
+  }
+  
+  cont.innerHTML = reqs.map(req => {
+    const tLabels = { immediate: 'Urgent', week: 'High', month: 'Medium', flexible: 'Low' };
+    const tColors = { immediate: 'var(--red)', week: 'var(--primary)', month: 'var(--yellow)', flexible: 'var(--text-muted)' };
+    
+    const responsesHTML = req.responses && req.responses.length > 0 ? req.responses.map(resp => `
+      <div class="response-card">
+        <div class="resp-header">
+          <div class="resp-avatar">E</div>
+          <div class="resp-info"><h5>${resp.expert}</h5><div class="rating">⭐ ${resp.rating}</div></div>
+        </div>
+        <div class="resp-body">${resp.message}</div>
+      </div>
+    `).join('') : '<div style="margin-top:12px; text-align:center; font-size:13px; color:var(--text-muted)">Waiting for experts...</div>';
+    
+    return `
+      <div class="req-card">
+        <div class="req-top">
+          <div class="req-left">
+            <h4>${req.title}</h4>
+            <div class="meta">${req.posted} • ${req.location}</div>
+          </div>
+          <span class="status-badge ${req.status}">${req.status}</span>
+        </div>
+        <div class="req-desc">${req.desc}</div>
+        <div class="req-footer">
+<script>
+const API_URL='https://workindex-production.up.railway.app/api';
+let state={role:null,user:null,userId:null,token:null,authMode:'login',qStep:0,qAnswers:{},qSequence:null,clientRequests:[],expertApproaches:[],expertCredits:50,unlockedRequests:[],theme:'light'};
+
+// INITIALIZE
+window.addEventListener('load',async()=>{
+  const token=localStorage.getItem('token');
+  const user=localStorage.getItem('user');
+  if(token&&user){
+    state.token=token;
+    state.user=JSON.parse(user);
+    state.role=state.user.role;
+    state.expertCredits=state.user.credits||50;
+    state.unlockedRequests=JSON.parse(localStorage.getItem('unlockedRequests')||'[]');
+    state.theme=localStorage.getItem('theme')||'light';
+    document.documentElement.setAttribute('data-theme',state.theme);
+    await loadInitialData();
+    enterDashboard();
+  }
+});
+
+async function loadInitialData(){
+  if(state.role==='expert'){
+    await loadExpertRequests();
+    await loadExpertApproaches();
+  }else if(state.role==='client'){
+    await loadClientRequests();
+  }
+}
+
+async function loadExpertRequests(){
+  const stored=localStorage.getItem('requests');
+  if(stored){
+    state.clientRequests=JSON.parse(stored);
+  }
+}
+
+async function loadExpertApproaches(){
+  const stored=localStorage.getItem('approaches');
+  if(stored){
+    state.expertApproaches=JSON.parse(stored);
+  }
+}
+
+async function loadClientRequests(){
+  const stored=localStorage.getItem('requests');
+  if(stored){
+    const allReqs=JSON.parse(stored);
+    state.clientRequests=allReqs.filter(r=>r.userId===state.user._id);
+  }
+}
+
+function goPage(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+function goAuth(mode,role){
+  state.authMode=mode;
+  if(role)state.role=role;
+  switchAuth(mode);
+  if(role)pickRole(role);
+  goPage('auth');
+}
+
+function switchAuth(mode){
+  state.authMode=mode;
+  document.getElementById('toggleLogin').classList.toggle('active',mode==='login');
+  document.getElementById('toggleSignup').classList.toggle('active',mode==='signup');
+  document.getElementById('toggleLogin').style.background=mode==='login'?'#fff':'transparent';
+  document.getElementById('toggleSignup').style.background=mode==='signup'?'#fff':'transparent';
+  document.getElementById('toggleLogin').style.color=mode==='login'?'var(--text)':'var(--text-muted)';
+  document.getElementById('toggleSignup').style.color=mode==='signup'?'var(--text)':'var(--text-muted)';
+  document.getElementById('nameField').style.display=mode==='signup'?'block':'none';
+  document.getElementById('authSubmit').textContent=mode==='signup'?'Create Account':'Log In';
+}
+
+function pickRole(r){
+  state.role=r;
+  document.getElementById('roleClient').style.borderColor=r==='client'?'var(--primary)':'var(--border)';
+  document.getElementById('roleClient').style.background=r==='client'?'#FFF4ED':'var(--bg)';
+  document.getElementById('roleExpert').style.borderColor=r==='expert'?'var(--primary)':'var(--border)';
+  document.getElementById('roleExpert').style.background=r==='expert'?'#FFF4ED':'var(--bg)';
+  document.getElementById('authSubmit').classList.remove('disabled');
+}
+
+async function submitAuth(){
+  if(!state.role){alert('Please select your role');return}
+  const name=document.getElementById('inName').value.trim();
+  const email=document.getElementById('inEmail').value.trim();
+  const phone=document.getElementById('inPhone').value.trim();
+  const password=document.getElementById('inPass').value;
+  if(!email||!phone||!password){alert('Please fill all fields');return}
+  if(state.authMode==='signup'&&!name){alert('Please enter your name');return}
+  if(phone.length!==10){alert('Phone must be 10 digits');return}
+  try{
+    if(state.authMode==='signup'){
+      const tempToken='temp_'+Date.now();
+      state.userId=email;
+      state.user={_id:email,name,email,phone,role:state.role,credits:50,documents:[],profilePhoto:null,rating:0,reviews:[]};
+      state.token=tempToken;
+      state.expertCredits=50;
+      localStorage.setItem('token',tempToken);
+      localStorage.setItem('user',JSON.stringify(state.user));
+      alert('✅ Account created!');
+      if(state.role==='expert'){
+        showExpertOnboarding();
+      }else{
+        await loadInitialData();
+        goPage('landing');
+        alert('Welcome! Click "I need help" to post your first requirement.');
+      }
+    }else{
+      const users=JSON.parse(localStorage.getItem('allUsers')||'[]');
+      const user=users.find(u=>u.email===email&&u.password===password);
+      if(!user){alert('Invalid credentials');return}
+      state.token='token_'+Date.now();
+      state.user=user;
+      state.role=user.role;
+      state.expertCredits=user.credits||50;
+      localStorage.setItem('token',state.token);
+      localStorage.setItem('user',JSON.stringify(user));
+      await loadInitialData();
+      enterDashboard();
+    }
+  }catch(e){alert(e.message)}
+}
+
+function showExpertOnboarding(){
+  alert('Expert Onboarding:\n\n1. What services do you provide?\n2. Company details\n3. Profile setup\n\n[This will be a full questionnaire - coming in next update]');
+  enterDashboard();
+}
+
+function enterDashboard(){
+  goPage('landing');
+  alert(`Logged in as ${state.role}!\n\n${state.role==='client'?'Click "I need help" to post requirements':'Browse client requirements and start earning!'}`);
+}
+
+function logout(){
+  if(confirm('Logout?')){
+    localStorage.clear();
+    location.reload();
+  }
+}
+
+function toggleDarkMode(){
+  state.theme=state.theme==='light'?'dark':'light';
+  document.documentElement.setAttribute('data-theme',state.theme);
+  localStorage.setItem('theme',state.theme);
+}
+
+function showBrowseProfessionals(){alert('Browse Professionals - Coming soon!')}
+function showHowItWorks(type){alert(`How It Works (${type}) - Coming soon!`)}
+function showPricing(){alert('Credit Pricing:\n\n20 credits - ₹600\n50 credits - ₹1,500\n100 credits - ₹2,700\n200 credits - ₹4,800')}
+function showHelp(){alert('Help Center\n\nEmail: support@workindex.com\n\nFAQ coming soon!')}
+</script>
+</body>
+</html>
