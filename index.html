@@ -388,11 +388,7 @@ body {
 
   <div class="q-content" id="qContent"></div>
 
-  <div class="q-nav">
-    <button class="q-btn-back" id="qBackBtn" onclick="qBack()" style="display:none;">Back</button>
-    <button class="q-btn-next disabled" id="qNextBtn" onclick="qNext()">Continue</button>
-  </div>
-</div>
+<div class="q-nav"> ${state.qStep > 0 ? '<button class="q-btn-back" onclick="handleBack()">← Back</button>' : ''}${q.skip ? '<button class="q-btn-back" id="qSkipBtn" onclick="skipQuestion()">Skip</button>' : ''} <button class="q-btn-next" onclick="handleNext()">${state.qStep === QUESTIONNAIRE_DATA[state.role].length - 1 ? 'Finish' : 'Next'}→</button> </div> `;
 
 <!-- CLIENT DASHBOARD -->
 <div id="clientDash" class="page">
@@ -553,6 +549,96 @@ function calculateCredits(service, answers) {
 }
 
 // QUESTIONNAIRE FORMS
+
+expert: [
+  {
+    id: 'services',
+    title: 'What services do you provide?',
+    subtitle: 'Select all that apply',
+    type: 'multi',
+    options: [
+      { label: 'Income Tax Return (ITR) Filing', icon: '📊' },
+      { label: 'GST Registration & Filing', icon: '🧾' },
+      { label: 'Accounting & Bookkeeping', icon: '💼' },
+      { label: 'Tax Planning & Consulting', icon: '📈' },
+      { label: 'Company Registration', icon: '🏢' },
+      { label: 'Audit Services', icon: '🔍' },
+      { label: 'Payroll Management', icon: '💰' },
+      { label: 'Financial Consulting', icon: '💡' },
+      { label: 'Legal Services', icon: '⚖️' },
+      { label: 'Other Professional Services', icon: '🎯' }
+    ]
+  },
+  {
+    id: 'companyName',
+    title: 'What is your company name?',
+    subtitle: 'Enter your business or firm name',
+    type: 'text',
+    placeholder: 'e.g., ABC Tax Consultants Pvt Ltd'
+  },
+  {
+    id: 'hasWebsite',
+    title: 'Do you have a website?',
+    subtitle: 'This helps us understand your digital presence',
+    type: 'single',
+    options: [
+      { label: 'Yes, I have a website', icon: '🌐' },
+      { label: 'No, I don\'t have a website', icon: '📱' },
+      { label: 'Planning to create one soon', icon: '🚀' }
+    ]
+  },
+  {
+    id: 'websiteUrl',
+    title: 'Enter your website URL',
+    subtitle: 'Optional - Skip if you don\'t have one yet',
+    type: 'text',
+    placeholder: 'https://www.yourwebsite.com',
+    skip: true,
+    condition: (answers) => answers.hasWebsite === 'Yes, I have a website'
+  },
+  {
+    id: 'companySize',
+    title: 'What is your company size?',
+    subtitle: 'Number of team members including you',
+    type: 'single',
+    options: [
+      { label: 'Solo Professional (Just Me)', icon: '👤', desc: '1 person' },
+      { label: 'Small Team', icon: '👥', desc: '2-5 people' },
+      { label: 'Medium Team', icon: '👨‍👩‍👧‍👦', desc: '6-20 people' },
+      { label: 'Large Organization', icon: '🏢', desc: '20+ people' }
+    ]
+  },
+  {
+    id: 'experience',
+    title: 'How many years of experience do you have?',
+    subtitle: 'Your total professional experience',
+    type: 'single',
+    options: [
+      { label: 'Less than 1 year', icon: '🌱' },
+      { label: '1-3 years', icon: '🌿' },
+      { label: '3-5 years', icon: '🌳' },
+      { label: '5-10 years', icon: '🎯' },
+      { label: '10+ years', icon: '🏆' }
+    ]
+  },
+  {
+    id: 'certifications',
+    title: 'Do you have any certifications?',
+    subtitle: 'Professional qualifications (select all that apply)',
+    type: 'multi',
+    options: [
+      { label: 'Chartered Accountant (CA)', icon: '🎓' },
+      { label: 'Company Secretary (CS)', icon: '📜' },
+      { label: 'Cost and Management Accountant (CMA)', icon: '💼' },
+      { label: 'Certified Public Accountant (CPA)', icon: '🌍' },
+      { label: 'MBA - Finance', icon: '🎓' },
+      { label: 'Tax Practitioner', icon: '📊' },
+      { label: 'Legal Practitioner', icon: '⚖️' },
+      { label: 'Other Professional Certification', icon: '✅' },
+      { label: 'No formal certification', icon: '💪' }
+    ]
+  }
+]
 const Q_FORMS = {
   service: {
     title: "What service do you need?",
@@ -801,8 +887,89 @@ function renderQStep() {
   
   if (!step) { completeQuestionnaire(); return; }
   
-  if (step.condition) {
-    const [key, val] = Object.entries(step.condition)[0];
+  function handleNext() {
+  const q = QUESTIONNAIRE_DATA[state.role][state.qStep];
+  let isValid = false;
+
+  // Check if question has skip condition
+  if (q.skip) {
+    const skipBtn = document.getElementById('qSkipBtn');
+    if (skipBtn && skipBtn.style.display !== 'none') {
+      // Allow skipping
+      state.qAnswers[q.id] = '';
+      isValid = true;
+    }
+  }
+
+  if (!isValid) {
+    if (q.type === 'single') {
+      const selected = document.querySelector('.q-option.selected');
+      if (selected) {
+        state.qAnswers[q.id] = selected.dataset.value;
+        isValid = true;
+      }
+    } else if (q.type === 'multi') {
+      const selected = document.querySelectorAll('.chip.selected');
+      if (selected.length > 0) {
+        state.qAnswers[q.id] = Array.from(selected).map(el => el.dataset.value);
+        isValid = true;
+      }
+    } else if (q.type === 'text') {
+      const input = document.getElementById('qTextInput');
+      if (input && input.value.trim()) {
+        state.qAnswers[q.id] = input.value.trim();
+        isValid = true;
+      } else if (q.skip) {
+        // Allow empty if skippable
+        state.qAnswers[q.id] = '';
+        isValid = true;
+      }
+    }
+  }
+
+  if (!isValid) {
+    alert('⚠️ Please answer the question to continue');
+    return;
+  }
+
+  // Move to next question or finish
+  if (state.qStep < QUESTIONNAIRE_DATA[state.role].length - 1) {
+    state.qStep++;
+    checkConditionalSkip();
+    renderQuestion();
+  } else {
+    finishQuestionnaire();
+  }
+} 
+
+function skipQuestion() {
+  const q = QUESTIONNAIRE_DATA[state.role][state.qStep];
+  state.qAnswers[q.id] = '';
+  
+  if (state.qStep < QUESTIONNAIRE_DATA[state.role].length - 1) {
+    state.qStep++;
+    checkConditionalSkip();
+    renderQuestion();
+  } else {
+    finishQuestionnaire();
+  }
+}
+
+if (step.condition) {
+    function checkConditionalSkip() {
+  const q = QUESTIONNAIRE_DATA[state.role][state.qStep];
+  
+  // Check if question has a condition and should be skipped
+  if (q.condition && !q.condition(state.qAnswers)) {
+    // Skip this question
+    if (state.qStep < QUESTIONNAIRE_DATA[state.role].length - 1) {
+      state.qStep++;
+      checkConditionalSkip(); // Recursively check next question
+    } else {
+      finishQuestionnaire(); { // Prepare expert profile data if (state.role === 'expert') { state.user.profile = { services: state.qAnswers.services || [],companyName: state.qAnswers.companyName || '', hasWebsite: state.qAnswers.hasWebsite || '', websiteUrl:state.qAnswers.websiteUrl || '', companySize: state.qAnswers.companySize || '', experience: state.qAnswers.experience || '',certifications: state.qAnswers.certifications || [], bio: `Professional with ${state.qAnswers.experience || 'experience'} in ${(state.qAnswers.services || []).join(', ')}`, specialization: (state.qAnswers.services || [])[0] || 'Professional Services' }; }try {
+    }
+  }
+} const [key, val] = Object.entries(step.condition)[0];
     if (state.qAnswers[key] !== val) { state.qStep++; renderQStep(); return; }
   }
   
@@ -818,13 +985,12 @@ function renderQStep() {
     content.innerHTML += `<div class="q-options">${step.options.map(opt => `<div class="q-option ${state.qAnswers[step.key] === opt.value ? 'selected' : ''}" onclick="selectOption('${step.key}', '${opt.value}')">${opt.icon ? `<div class="opt-icon">${opt.icon}</div>` : ''}<div class="opt-text"><div class="opt-label">${opt.label}</div>${opt.desc ? `<div class="opt-desc">${opt.desc}</div>` : ''}</div></div>`).join('')}</div>`;
   } else if (step.type === 'multi') {
     content.innerHTML += `<div class="chip-grid">${step.options.map(opt => `<div class="chip ${state.qAnswers[step.key] && state.qAnswers[step.key].includes(opt.value) ? 'selected' : ''}" onclick="toggleChip(this, '${step.key}', '${opt.value}')">${opt.label}</div>`).join('')}</div>`;
-  } else if (step.type === 'input' || step.type === 'textarea') {
-    const tag = step.type === 'textarea' ? 'textarea' : 'input';
-    const attrs = step.type === 'textarea' ? 'rows="4"' : `type="${step.inputType || 'text'}"`;
-    content.innerHTML += `<div class="field"><${tag} id="qInput" ${attrs} placeholder="${step.placeholder}" oninput="qInputChange()">${state.qAnswers[step.key] || ''}</${tag}></div>`;
-  }
-  
-  document.getElementById('qNextBtn').classList.toggle('disabled', !state.qAnswers[step.key]);
+ document.getElementById('qNextBtn').classList.toggle('disabled', !state. } else if (q.type === 'text') {
+  html += `
+    <div class="field">
+      <input type="text" id="qTextInput" placeholder="${q.placeholder || 'Type your answer...'}" value="${state.qAnswers[q.id] || ''}" ${q.id === 'websiteUrl' ? 'style="text-transform: lowercase;"' : ''}>
+    </div>
+  `; qAnswers[step.key]);
 }
 
 function selectOption(key, value) {
