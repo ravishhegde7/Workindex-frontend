@@ -602,7 +602,34 @@ function buildQuestionSequence() {
   seq.push('timeline', 'budget', 'details', 'location');
   return seq;
 }
-
+function startExpertQuestionnaire() {
+  state.qStep = 0;
+  state.qSequence = [
+    {
+      id: 'service',
+      title: 'What services do you provide?',
+      type: 'chips-multi',
+      options: [
+        { label: 'ITR Filing', val: 'itr' },
+        { label: 'Accounting', val: 'accounting' },
+        { label: 'GST Services', val: 'gst' },
+        { label: 'Audit', val: 'audit' }
+      ]
+    },
+    {
+      id: 'company',
+      title: 'Business Details',
+      type: 'text-group',
+      fields: [
+        { id: 'exp_company', label: 'Company Name', placeholder: 'Your Firm Name' },
+        { id: 'exp_website', label: 'Website (Optional)', placeholder: 'https://...' },
+        { id: 'exp_size', label: 'Company Size', placeholder: 'e.g. 5-10 members' }
+      ]
+    }
+  ];
+  goPage('questionnaire');
+  renderQuestion();
+}
 // HELPERS
 function goPage(id) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
