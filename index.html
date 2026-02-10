@@ -684,59 +684,43 @@ function renderAuth() {
     `;
   } else {
     content.innerHTML = `
-      ${state.verifyStep === 0 ? `
-        <div class="role-pick">
-          <div class="role-card ${state.role === 'client' ? 'active' : ''}" onclick="state.role='client'; renderAuth()">
-            <div class="r-icon">👤</div>
-            <div class="r-label">Client</div>
-          </div>
-          <div class="role-card ${state.role === 'expert' ? 'active' : ''}" onclick="state.role='expert'; renderAuth()">
-            <div class="r-icon">💼</div>
-            <div class="r-label">Expert</div>
-          </div>
+      <div class="role-pick">
+        <div class="role-card ${state.role === 'client' ? 'active' : ''}" onclick="state.role='client'; renderAuth()">
+          <div class="r-icon">👤</div>
+          <div class="r-label">Client</div>
         </div>
-        
-        <div class="field">
-          <label>Full Name</label>
-          <input type="text" id="signupName" placeholder="Enter your full name">
+        <div class="role-card ${state.role === 'expert' ? 'active' : ''}" onclick="state.role='expert'; renderAuth()">
+          <div class="r-icon">💼</div>
+          <div class="r-label">Expert</div>
         </div>
-        
-        <div class="field">
-          <label>Email</label>
-          <input type="email" id="signupEmail" placeholder="your@email.com">
+      </div>
+      
+      <div class="field">
+        <label>Full Name</label>
+        <input type="text" id="signupName" placeholder="Enter your full name">
+      </div>
+      
+      <div class="field">
+        <label>Email</label>
+        <input type="email" id="signupEmail" placeholder="your@email.com">
+      </div>
+      
+      <div class="field">
+        <label>Phone Number</label>
+        <div class="phone-row">
+          <div class="phone-prefix">+91</div>
+          <input type="tel" id="signupPhone" placeholder="10-digit number" maxlength="10">
         </div>
-        
-        <div class="field">
-          <label>Phone Number</label>
-          <div class="phone-row">
-            <div class="phone-prefix">+91</div>
-            <input type="tel" id="signupPhone" placeholder="10-digit number" maxlength="10">
-          </div>
-        </div>
-        
-        <div class="field">
-          <label>Password</label>
-          <input type="password" id="signupPassword" placeholder="Create a password (min 6 characters)">
-        </div>
-        
-        <button class="submit-btn ${!state.role ? 'disabled' : ''}" onclick="handleSignup()" ${!state.role ? 'disabled' : ''}>
-          Continue
-        </button>
-      ` : state.verifyStep === 1 ? `
-        <div class="verify-steps">
-          <div class="v-step done"></div>
-          <div class="v-step"></div>
-        </div>
-        
-        <div class="verify-title">Verify Your Email</div>
-        <div class="verify-sub">Enter the 6-digit code sent to ${state.user?.email}</div>
-        
-        <input type="text" class="otp-input" id="otpInput" maxlength="6" placeholder="000000">
-        
-        <div class="resend" onclick="resendOTP()">Resend Code</div>
-        
-        <button class="submit-btn" onclick="verifyOTP()">Verify & Continue</button>
-      ` : ''}
+      </div>
+      
+      <div class="field">
+        <label>Password</label>
+        <input type="password" id="signupPassword" placeholder="Create a password (min 6 characters)">
+      </div>
+      
+      <button class="submit-btn ${!state.role ? 'disabled' : ''}" onclick="handleSignup()" ${!state.role ? 'disabled' : ''}>
+        Continue
+      </button>
     `;
     
     footer.innerHTML = `
@@ -772,7 +756,7 @@ async function handleSignup() {
   }
   
   try {
-    const res = await fetch(`${API_URL}/api/auth/signup`, {
+    const res = await fetch(`${API_URL}/auth/signup`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name, email, phone, password, role: state.role })
@@ -785,39 +769,61 @@ async function handleSignup() {
       return;
     }
     
+    // Save user data and token
     state.user = { name, email, phone, role: state.role };
     state.userId = data.userId;
-    state.verifyStep = 1;
-    renderAuth();
+    state.token = data.token;
+    localStorage.setItem('token', data.token);
+    localStorage.setItem('user', JSON.stringify(state.user));
     
-    alert('✅ Verification code sent to your email!');
+    // Go directly to questionnaire (skip OTP)
+    state.qStep = 0;
+    goPage('questionnaire');
+    
+    alert('✅ Signup successful! Let\'s set up your profile');
   } catch (err) {
     console.error('Signup error:', err);
     alert('❌ Network error. Please try again.');
   }
 }
 
-async function verifyOTP() {
-  const otp = document.getElementById('otpInput')?.value.trim();
+async function handleLogin() {
+  const identifier = document.getElementById('loginIdentifier')?.value.trim();
+  const password = document.getElementById('loginPassword')?.value;
   
-  if (!otp || otp.length !== 6) {
-    alert('⚠️ Please enter the 6-digit code');
+  if (!identifier || !password) {
+    alert('⚠️ Please fill all fields');
     return;
   }
   
   try {
-    const res = await fetch(`${API_URL}/api/auth/verify`, {
+    const res = await fetch(`${API_URL}/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userId: state.userId, otp })
+      body: JSON.stringify({ identifier, password })
     });
     
     const data = await res.json();
     
     if (!res.ok) {
-      alert(`❌ ${data.message || 'Verification failed'}`);
+      alert(`❌ ${data.message || 'Login failed'}`);
       return;
     }
+    
+    // Save user data and token
+    state.user = data.user;
+    state.token = data.token;
+    state.role = data.user.role;
+    localStorage.setItem('token', data.token);
+    localStorage.setItem('user', JSON.stringify(data.user));
+    
+    alert('✅ Login successful!');
+    enterDashboard();
+  } catch (err) {
+    console.error('Login error:', err);
+    alert('❌ Network error. Please try again.');
+  }
+}
     
     // CRITICAL FIX: Set token immediately after verification
     state.token = data.token;
