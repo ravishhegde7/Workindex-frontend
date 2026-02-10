@@ -1,0 +1,1968 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"/>
+<meta name="theme-color" content="#FC8019"/>
+<title>WorkIndex</title>
+<style>
+/* ─── RESET ─── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; overscroll-behavior: none; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', system-ui, sans-serif;
+  background: #fff; color: #3D4152;
+  min-height: 100vh; min-height: 100dvh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+:root {
+  --primary: #FC8019;
+  --primary-dark: #E67417;
+  --bg: #FFFFFF;
+  --bg-gray: #F9FAFB;
+  --border: #E9E9EB;
+  --text: #3D4152;
+  --text-light: #686B78;
+  --text-muted: #93959F;
+  --green: #48C479;
+  --red: #E74C3C;
+  --yellow: #F5C518;
+  --safe-top: env(safe-area-inset-top, 44px);
+  --safe-bot: env(safe-area-inset-bottom, 34px);
+}
+
+.page { display: none; min-height: 100vh; animation: fadeIn .25s ease; }
+.page.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+/* ═══ LANDING ═══ */
+#landing { background: linear-gradient(135deg, #FFFAF6 0%, #FFF 100%); padding-top: var(--safe-top); }
+.land-nav { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; }
+.logo { display: flex; align-items: center; gap: 8px; }
+.logo-icon { width: 36px; height: 36px; background: var(--primary); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 18px; color: #fff; }
+.logo-text { font-size: 20px; font-weight: 800; color: var(--text); }
+
+.land-btns { display: flex; gap: 8px; }
+.btn-outline { padding: 8px 16px; border: 1.5px solid var(--border); border-radius: 8px; background: transparent; color: var(--text); font-size: 13px; font-weight: 600; cursor: pointer; }
+.btn-primary { padding: 8px 16px; border: none; border-radius: 8px; background: var(--primary); color: #fff; font-size: 13px; font-weight: 700; cursor: pointer; }
+.btn-primary:active, .btn-outline:active { opacity: 0.8; }
+
+.hero { text-align: center; padding: 60px 24px 40px; }
+.hero-badge { display: inline-flex; align-items: center; gap: 6px; background: #FFF4ED; border: 1px solid #FFDCC7; border-radius: 24px; padding: 6px 14px; margin-bottom: 20px; }
+.hero-badge .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); animation: pulse 2s infinite; }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+.hero-badge span { font-size: 12px; color: var(--primary); font-weight: 600; }
+
+.hero h1 { font-size: clamp(28px, 7vw, 46px); font-weight: 800; line-height: 1.15; letter-spacing: -0.5px; color: var(--text); margin-bottom: 14px; }
+.hero .highlight { color: var(--primary); }
+.hero p { font-size: 15px; color: var(--text-light); line-height: 1.6; max-width: 340px; margin: 0 auto 32px; }
+
+.hero-actions { display: flex; flex-direction: column; gap: 12px; max-width: 360px; margin: 0 auto; }
+.hero-btn { width: 100%; padding: 16px; border-radius: 12px; border: none; font-size: 16px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: transform .15s; }
+.hero-btn:active { transform: scale(0.97); }
+.hero-btn-orange { background: var(--primary); color: #fff; box-shadow: 0 4px 16px rgba(252,128,25,0.25); }
+.hero-btn-white { background: #fff; border: 1.5px solid var(--border) !important; color: var(--text); }
+
+.features { padding: 40px 20px 60px; }
+.features h2 { text-align: center; font-size: 22px; font-weight: 700; color: var(--text); margin-bottom: 24px; }
+.feat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.feat-card { background: #fff; border: 1px solid var(--border); border-radius: 14px; padding: 20px 16px; text-align: center; }
+.feat-card .icon { font-size: 32px; margin-bottom: 10px; }
+.feat-card h4 { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+.feat-card p { font-size: 12px; color: var(--text-muted); line-height: 1.4; }
+
+/* ═══ AUTH ═══ */
+#auth { background: #fff; padding-top: var(--safe-top); min-height: 100vh; }
+.auth-back { margin: 14px 20px 0; display: flex; align-items: center; gap: 5px; background: none; border: none; color: var(--text-light); font-size: 14px; font-weight: 600; cursor: pointer; }
+.auth-wrap { padding: 32px 20px 60px; }
+.auth-logo { text-align: center; margin-bottom: 32px; }
+.auth-logo .logo-icon { width: 44px; height: 44px; font-size: 20px; margin: 0 auto 12px; }
+.auth-card { background: #fff; border: 1px solid var(--border); border-radius: 16px; padding: 24px 20px; }
+
+.auth-toggle { display: flex; background: var(--bg-gray); border-radius: 10px; padding: 4px; margin-bottom: 24px; }
+.auth-toggle button { flex: 1; padding: 10px; border-radius: 8px; border: none; background: transparent; color: var(--text-muted); font-size: 14px; font-weight: 700; cursor: pointer; transition: all .2s; }
+.auth-toggle button.active { background: #fff; color: var(--text); box-shadow: 0 2px 4px rgba(0,0,0,0.06); }
+
+.role-pick { display: flex; gap: 12px; margin-bottom: 24px; }
+.role-card { flex: 1; padding: 18px 12px; border: 2px solid var(--border); border-radius: 12px; background: #fff; text-align: center; cursor: pointer; transition: all .2s; }
+.role-card.active { border-color: var(--primary); background: #FFF4ED; }
+.role-card .r-icon { font-size: 28px; margin-bottom: 6px; }
+.role-card .r-label { font-size: 14px; font-weight: 700; color: var(--text); }
+
+.field { margin-bottom: 16px; }
+.field label { font-size: 13px; font-weight: 600; color: var(--text); display: block; margin-bottom: 6px; }
+.field input, .field select, .field textarea { width: 100%; padding: 12px 14px; background: var(--bg-gray); border: 1px solid var(--border); border-radius: 10px; color: var(--text); font-size: 15px; outline: none; font-family: inherit; }
+.field input:focus, .field select:focus, .field textarea:focus { border-color: var(--primary); background: #fff; }
+.field textarea { resize: none; }
+.phone-row { display: flex; gap: 8px; }
+.phone-prefix { padding: 12px 12px; background: var(--bg-gray); border: 1px solid var(--border); border-radius: 10px; color: var(--text-light); font-size: 15px; font-weight: 600; }
+
+.submit-btn { width: 100%; padding: 14px; border-radius: 10px; border: none; background: var(--primary); color: #fff; font-size: 16px; font-weight: 700; cursor: pointer; margin-top: 8px; font-family: inherit; }
+.submit-btn:active { opacity: 0.85; }
+.submit-btn.disabled { background: #E9E9EB; color: var(--text-muted); cursor: not-allowed; }
+
+.auth-footer { text-align: center; margin-top: 20px; font-size: 13px; color: var(--text-muted); }
+.auth-footer a { color: var(--primary); cursor: pointer; font-weight: 600; text-decoration: none; }
+
+.verify-steps { display: flex; justify-content: center; gap: 8px; margin-bottom: 24px; }
+.v-step { flex: 1; max-width: 100px; height: 4px; border-radius: 2px; background: var(--border); transition: background .3s; }
+.v-step.done { background: var(--primary); }
+.verify-title { text-align: center; font-size: 22px; font-weight: 700; margin-bottom: 8px; color: var(--text); }
+.verify-sub { text-align: center; font-size: 14px; color: var(--text-light); margin-bottom: 24px; }
+.otp-input { width: 100%; padding: 16px; text-align: center; letter-spacing: 8px; font-size: 22px; font-weight: 700; background: var(--bg-gray); border: 1px solid var(--border); border-radius: 12px; color: var(--text); outline: none; font-family: 'Courier New', monospace; }
+.otp-input:focus { border-color: var(--primary); background: #fff; }
+.resend { text-align: center; color: var(--primary); font-size: 14px; font-weight: 600; cursor: pointer; margin: 14px 0 20px; }
+
+/* ═══ PROFILE PHOTO UPLOAD ═══ */
+.photo-upload { display: flex; flex-direction: column; align-items: center; gap: 12px; margin-bottom: 20px; }
+.photo-preview { width: 100px; height: 100px; border-radius: 50%; background: var(--bg-gray); border: 2px dashed var(--border); display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; }
+.photo-preview img { width: 100%; height: 100%; object-fit: cover; }
+.photo-preview .placeholder { font-size: 40px; color: var(--text-muted); }
+.photo-upload-btn { padding: 8px 20px; border: 1.5px solid var(--primary); border-radius: 8px; background: transparent; color: var(--primary); font-size: 13px; font-weight: 600; cursor: pointer; }
+.photo-upload input[type="file"] { display: none; }
+
+/* ═══ QUESTIONNAIRE ═══ */
+#questionnaire { background: #fff; padding-top: var(--safe-top); min-height: 100vh; padding-bottom: 80px; }
+.q-progress { background: var(--bg-gray); padding: 16px 20px; border-bottom: 1px solid var(--border); }
+.q-progress-bar { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+.q-progress-fill { height: 100%; background: var(--primary); border-radius: 3px; transition: width .3s; }
+.q-step-text { font-size: 12px; color: var(--text-muted); margin-top: 6px; }
+
+.q-content { padding: 28px 20px; }
+.q-title { font-size: 20px; font-weight: 700; color: var(--text); margin-bottom: 8px; }
+.q-subtitle { font-size: 14px; color: var(--text-light); margin-bottom: 24px; }
+
+.q-options { display: flex; flex-direction: column; gap: 10px; }
+.q-option { padding: 16px; border: 2px solid var(--border); border-radius: 12px; background: #fff; text-align: left; cursor: pointer; transition: all .2s; display: flex; align-items: center; gap: 12px; }
+.q-option:active { transform: scale(0.98); }
+.q-option.selected { border-color: var(--primary); background: #FFF4ED; }
+.q-option .opt-icon { font-size: 24px; flex-shrink: 0; }
+.q-option .opt-text { flex: 1; }
+.q-option .opt-label { font-size: 15px; font-weight: 700; color: var(--text); }
+.q-option .opt-desc { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+.q-nav { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; border-top: 1px solid var(--border); padding: 12px 20px; padding-bottom: calc(12px + var(--safe-bot)); display: flex; gap: 10px; }
+.q-btn-back { flex: 0 0 auto; padding: 12px 20px; border: 1px solid var(--border); border-radius: 10px; background: #fff; color: var(--text); font-size: 15px; font-weight: 600; cursor: pointer; font-family: inherit; }
+.q-btn-next { flex: 1; padding: 12px; border: none; border-radius: 10px; background: var(--primary); color: #fff; font-size: 15px; font-weight: 700; cursor: pointer; font-family: inherit; }
+.q-btn-next:active { opacity: 0.85; }
+.q-btn-next.disabled { background: #E9E9EB; color: var(--text-muted); cursor: not-allowed; }
+
+.chip-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { padding: 10px 16px; border: 1.5px solid var(--border); border-radius: 20px; background: #fff; color: var(--text); font-size: 14px; font-weight: 600; cursor: pointer; transition: all .2s; }
+.chip.selected { border-color: var(--primary); background: #FFF4ED; color: var(--primary); }
+
+/* ═══ DASHBOARDS ═══ */
+#clientDash, #expertDash { background: var(--bg-gray); padding-top: var(--safe-top); min-height: 100vh; padding-bottom: calc(70px + var(--safe-bot)); }
+.dash-header { background: #fff; border-bottom: 1px solid var(--border); padding: 14px 20px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 40; }
+.avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; color: #fff; cursor: pointer; overflow: hidden; }
+.avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+.tab-content { padding: 18px 20px; }
+
+.tabs { display: flex; background: #fff; border-bottom: 1px solid var(--border); overflow-x: auto; }
+.tab { flex: 1; min-width: 80px; padding: 14px 12px; text-align: center; border: none; background: transparent; color: var(--text-muted); font-size: 14px; font-weight: 600; cursor: pointer; position: relative; }
+.tab.active { color: var(--primary); }
+.tab.active::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 2px; background: var(--primary); }
+
+.empty-state { text-align: center; padding: 60px 20px; }
+.empty-state .icon { font-size: 64px; margin-bottom: 16px; opacity: 0.3; }
+.empty-state h3 { font-size: 18px; font-weight: 700; color: var(--text); margin-bottom: 8px; }
+.empty-state p { font-size: 14px; color: var(--text-muted); line-height: 1.5; }
+
+.req-card { background: #fff; border: 1px solid var(--border); border-radius: 14px; padding: 16px; margin-bottom: 12px; }
+.req-header { display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px; }
+.req-user { display: flex; align-items: center; gap: 10px; }
+.req-user-avatar { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 700; color: #fff; overflow: hidden; }
+.req-user-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.req-user-info h4 { font-size: 14px; font-weight: 700; color: var(--text); }
+.req-user-info p { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+.req-badge { padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 700; }
+.badge-new { background: #E7F5FF; color: #1971C2; }
+.badge-active { background: #FFF4ED; color: var(--primary); }
+.badge-completed { background: #E7F5E7; color: var(--green); }
+
+.req-cat { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; background: var(--bg-gray); border-radius: 8px; font-size: 12px; color: var(--text-light); font-weight: 600; margin-bottom: 8px; }
+.req-title { font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 8px; }
+.req-desc { font-size: 14px; color: var(--text-light); line-height: 1.5; margin-bottom: 12px; }
+.req-meta { display: flex; flex-wrap: wrap; gap: 12px; font-size: 12px; color: var(--text-muted); }
+.req-meta-item { display: flex; align-items: center; gap: 4px; }
+
+.req-actions { display: flex; gap: 8px; margin-top: 12px; }
+.req-btn { flex: 1; padding: 10px; border-radius: 8px; border: none; font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit; }
+.req-btn-primary { background: var(--primary); color: #fff; }
+.req-btn-outline { background: transparent; border: 1px solid var(--border) !important; color: var(--text); }
+
+.fab { position: fixed; bottom: calc(80px + var(--safe-bot)); right: 20px; width: 56px; height: 56px; border-radius: 50%; background: var(--primary); box-shadow: 0 4px 16px rgba(252,128,25,0.35); border: none; color: #fff; font-size: 24px; cursor: pointer; z-index: 30; }
+.fab:active { transform: scale(0.95); }
+
+.stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+.stat-card { background: #fff; border: 1px solid var(--border); border-radius: 14px; padding: 16px; text-align: center; }
+.stat-value { font-size: 28px; font-weight: 800; color: var(--primary); margin-bottom: 4px; }
+.stat-label { font-size: 12px; color: var(--text-muted); font-weight: 600; }
+
+.section-title { font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 12px; }
+
+.bottomNav { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; border-top: 1px solid var(--border); display: flex; padding-bottom: var(--safe-bot); z-index: 50; }
+.nav-item { flex: 1; padding: 10px 8px; text-align: center; border: none; background: transparent; color: var(--text-muted); cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.nav-item.active { color: var(--primary); }
+.nav-item .icon { font-size: 22px; }
+.nav-item .label { font-size: 11px; font-weight: 600; }
+
+.modal { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: flex-end; justify-content: center; z-index: 100; opacity: 0; pointer-events: none; transition: opacity .25s; }
+.modal.open { opacity: 1; pointer-events: all; }
+.modal-sheet { background: #fff; width: 100%; max-width: 500px; border-radius: 20px 20px 0 0; padding: 24px 20px; padding-bottom: calc(24px + var(--safe-bot)); max-height: 90vh; overflow-y: auto; transform: translateY(100%); transition: transform .3s; }
+.modal.open .modal-sheet { transform: translateY(0); }
+.modal-title { font-size: 20px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+.modal-subtitle { font-size: 14px; color: var(--text-light); margin-bottom: 20px; }
+
+.prof-header { text-align: center; padding: 20px; background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); border-radius: 14px; margin-bottom: 20px; color: #fff; }
+.prof-avatar { width: 80px; height: 80px; border-radius: 50%; background: #fff; margin: 0 auto 12px; display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: 700; color: var(--primary); border: 3px solid rgba(255,255,255,0.3); overflow: hidden; }
+.prof-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.prof-name { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+.prof-spec { font-size: 14px; opacity: 0.9; }
+
+.qual-item { background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: 14px; margin-bottom: 10px; }
+.qual-item h5 { font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px; }
+.qual-item p { font-size: 14px; color: var(--text); line-height: 1.5; }
+
+.credit-card { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 14px; padding: 20px; color: #fff; margin-bottom: 20px; }
+.credit-label { font-size: 12px; opacity: 0.9; margin-bottom: 8px; }
+.credit-value { font-size: 36px; font-weight: 800; margin-bottom: 4px; }
+.credit-desc { font-size: 12px; opacity: 0.8; }
+
+.masked-info { background: var(--bg-gray); border: 1px dashed var(--border); border-radius: 8px; padding: 12px; display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.masked-info .icon { font-size: 24px; color: var(--text-muted); }
+.masked-info .text { flex: 1; }
+.masked-info .label { font-size: 11px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; }
+.masked-info .value { font-size: 14px; color: var(--text); font-weight: 600; margin-top: 2px; }
+
+.unlock-card { background: linear-gradient(135deg, #FFF4ED 0%, #FFE8D5 100%); border: 1px solid #FFDCC7; border-radius: 12px; padding: 16px; margin-bottom: 12px; }
+.unlock-title { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+.unlock-desc { font-size: 13px; color: var(--text-light); line-height: 1.5; margin-bottom: 12px; }
+.unlock-cost { display: inline-flex; align-items: center; gap: 6px; background: #fff; border-radius: 20px; padding: 6px 12px; font-size: 13px; font-weight: 700; color: var(--primary); margin-bottom: 12px; }
+
+.responses-used { display: inline-flex; align-items: center; gap: 6px; background: #E7F5E7; border-radius: 20px; padding: 6px 12px; font-size: 13px; font-weight: 700; color: var(--green); }
+
+/* ═══ DASHBOARD FEATURES ═══ */
+.dashboard-grid { display: grid; gap: 12px; margin-bottom: 20px; }
+.dash-feature-card { background: #fff; border: 1px solid var(--border); border-radius: 14px; padding: 16px; cursor: pointer; transition: all .2s; }
+.dash-feature-card:active { transform: scale(0.98); }
+.dash-feature-card .feature-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px; margin-bottom: 12px; }
+.dash-feature-card .feature-title { font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+.dash-feature-card .feature-desc { font-size: 13px; color: var(--text-muted); line-height: 1.4; }
+
+.insight-card { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 14px; padding: 20px; color: #fff; margin-bottom: 12px; }
+.insight-card h3 { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+.insight-card p { font-size: 14px; opacity: 0.9; line-height: 1.5; }
+
+.quick-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.quick-action-btn { padding: 14px; background: #fff; border: 1px solid var(--border); border-radius: 12px; display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: pointer; transition: all .2s; }
+.quick-action-btn:active { transform: scale(0.95); }
+.quick-action-btn .icon { font-size: 28px; }
+.quick-action-btn .label { font-size: 13px; font-weight: 600; color: var(--text); }
+
+.activity-item { background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: 12px; margin-bottom: 8px; display: flex; align-items: start; gap: 12px; }
+.activity-icon { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+.activity-content { flex: 1; }
+.activity-title { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 2px; }
+.activity-desc { font-size: 12px; color: var(--text-muted); }
+.activity-time { font-size: 11px; color: var(--text-muted); }
+
+@media (max-width: 380px) {
+  .stat-grid { grid-template-columns: 1fr; }
+  .feat-grid { grid-template-columns: 1fr; }
+  .quick-actions { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- ═══ LANDING PAGE ═══ -->
+<div id="landing" class="page active">
+  <nav class="land-nav">
+    <div class="logo">
+      <div class="logo-icon">W</div>
+      <div class="logo-text">WorkIndex</div>
+    </div>
+    <div class="land-btns">
+      <button class="btn-outline" onclick="goPage('auth')">Login</button>
+      <button class="btn-primary" onclick="goPage('auth')">Sign Up</button>
+    </div>
+  </nav>
+
+  <div class="hero">
+    <div class="hero-badge">
+      <div class="dot"></div>
+      <span>Trusted by 10,000+ professionals</span>
+    </div>
+    <h1>Find the <span class="highlight">Right Expert</span> for Your Business</h1>
+    <p>Connect with verified professionals in accounting, tax, legal, and more. Get expert help when you need it.</p>
+    
+    <div class="hero-actions">
+      <button class="hero-btn hero-btn-orange" onclick="startAs('client')">
+        <span>👤</span>
+        <span>I Need an Expert</span>
+      </button>
+      <button class="hero-btn hero-btn-white" onclick="startAs('expert')">
+        <span>💼</span>
+        <span>I'm an Expert</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="features">
+    <h2>Why Choose WorkIndex?</h2>
+    <div class="feat-grid">
+      <div class="feat-card">
+        <div class="icon">✓</div>
+        <h4>Verified Experts</h4>
+        <p>All professionals are thoroughly vetted</p>
+      </div>
+      <div class="feat-card">
+        <div class="icon">⚡</div>
+        <h4>Quick Response</h4>
+        <p>Get responses within 24 hours</p>
+      </div>
+      <div class="feat-card">
+        <div class="icon">🔒</div>
+        <h4>Secure Platform</h4>
+        <p>Your data is protected</p>
+      </div>
+      <div class="feat-card">
+        <div class="icon">💰</div>
+        <h4>Fair Pricing</h4>
+        <p>Transparent credit system</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ AUTH PAGE ═══ -->
+<div id="auth" class="page">
+  <button class="auth-back" onclick="goPage('landing')">
+    <span>←</span>
+    <span>Back</span>
+  </button>
+  
+  <div class="auth-wrap">
+    <div class="auth-logo">
+      <div class="logo-icon">W</div>
+      <div class="logo-text">WorkIndex</div>
+    </div>
+    
+    <div class="auth-card">
+      <div class="auth-toggle">
+        <button class="active" onclick="switchAuthMode('login')">Login</button>
+        <button onclick="switchAuthMode('signup')">Sign Up</button>
+      </div>
+      
+      <div id="authContent"></div>
+    </div>
+    
+    <div class="auth-footer" id="authFooter"></div>
+  </div>
+</div>
+
+<!-- ═══ QUESTIONNAIRE ═══ -->
+<div id="questionnaire" class="page">
+  <div class="q-progress">
+    <div class="q-progress-bar">
+      <div class="q-progress-fill" id="qProgressFill" style="width:0%"></div>
+    </div>
+    <div class="q-step-text" id="qStepText">Step 1 of 5</div>
+  </div>
+  
+  <div class="q-content" id="qContent"></div>
+  
+  <div class="q-nav">
+    <button class="q-btn-back" onclick="qPrev()" id="qBtnBack">Back</button>
+    <button class="q-btn-next" onclick="qNext()" id="qBtnNext">Next</button>
+  </div>
+</div>
+
+<!-- ═══ CLIENT DASHBOARD ═══ -->
+<div id="clientDash" class="page">
+  <div class="dash-header">
+    <div class="logo">
+      <div class="logo-icon" style="width:28px;height:28px;font-size:14px;">W</div>
+      <div class="logo-text" style="font-size:16px;">WorkIndex</div>
+    </div>
+    <div class="avatar" onclick="switchClientTab('profile')" id="clientAvatar">
+      <span id="clientAvatarText">U</span>
+    </div>
+  </div>
+  
+  <div class="tabs">
+    <button class="tab active" onclick="switchClientTab('dashboard')">
+      <div>🏠 Dashboard</div>
+    </button>
+    <button class="tab" onclick="switchClientTab('requests')">
+      <div>📋 Requests</div>
+    </button>
+    <button class="tab" onclick="switchClientTab('profile')">
+      <div>👤 Profile</div>
+    </button>
+  </div>
+  
+  <div id="clientTabContent" class="tab-content"></div>
+  
+  <button class="fab" onclick="createRequest()">+</button>
+  
+  <div class="bottomNav">
+    <button class="nav-item active" onclick="switchClientTab('dashboard')">
+      <div class="icon">🏠</div>
+      <div class="label">Dashboard</div>
+    </button>
+    <button class="nav-item" onclick="switchClientTab('requests')">
+      <div class="icon">📋</div>
+      <div class="label">Requests</div>
+    </button>
+    <button class="nav-item" onclick="switchClientTab('profile')">
+      <div class="icon">👤</div>
+      <div class="label">Profile</div>
+    </button>
+  </div>
+</div>
+
+<!-- ═══ EXPERT DASHBOARD ═══ -->
+<div id="expertDash" class="page">
+  <div class="dash-header">
+    <div class="logo">
+      <div class="logo-icon" style="width:28px;height:28px;font-size:14px;">W</div>
+      <div class="logo-text" style="font-size:16px;">WorkIndex</div>
+    </div>
+    <div class="avatar" onclick="switchExpertTab('profile')" id="expertAvatar">
+      <span id="expertAvatarText">E</span>
+    </div>
+  </div>
+  
+  <div class="tabs">
+    <button class="tab active" onclick="switchExpertTab('marketplace')">
+      <div>🔍 Browse</div>
+    </button>
+    <button class="tab" onclick="switchExpertTab('approaches')">
+      <div>💬 Responses</div>
+    </button>
+    <button class="tab" onclick="switchExpertTab('profile')">
+      <div>👤 Profile</div>
+    </button>
+  </div>
+  
+  <div id="expertTabContent" class="tab-content"></div>
+  
+  <div class="bottomNav">
+    <button class="nav-item active" onclick="switchExpertTab('marketplace')">
+      <div class="icon">🔍</div>
+      <div class="label">Browse</div>
+    </button>
+    <button class="nav-item" onclick="switchExpertTab('approaches')">
+      <div class="icon">💬</div>
+      <div class="label">Responses</div>
+    </button>
+    <button class="nav-item" onclick="switchExpertTab('profile')">
+      <div class="icon">👤</div>
+      <div class="label">Profile</div>
+    </button>
+  </div>
+</div>
+
+<!-- ═══ MODAL ═══ -->
+<div id="modal" class="modal" onclick="if(event.target===this) closeModal()">
+  <div class="modal-sheet" id="modalContent"></div>
+</div>
+
+<script>
+// ═══ CONFIG ═══
+const API_URL = 'https://workindex-production.up.railway.app';
+
+// ═══ STATE ═══
+let state = {
+  role: null,
+  user: null,
+  userId: null,
+  token: null,
+  authMode: 'login',
+  verifyStep: 0,
+  qStep: 0,
+  qAnswers: {},
+  qSequence: null,
+  clientRequests: [],
+  expertApproaches: [],
+  expertCredits: 50,
+  unlockedRequests: [],
+  expertProfile: {},
+  currentClientTab: 'dashboard',
+  currentExpertTab: 'marketplace',
+  profilePhoto: null
+};
+
+// ═══ QUESTIONNAIRES ═══
+const CLIENT_QUESTIONS = [
+  {
+    id: 'category',
+    title: 'What type of service do you need?',
+    subtitle: 'Select the category that best fits your requirement',
+    type: 'single',
+    options: [
+      { value: 'tax', icon: '📊', label: 'Tax & ITR', desc: 'Income tax, returns, planning' },
+      { value: 'accounting', icon: '📚', label: 'Accounting', desc: 'Bookkeeping, financial records' },
+      { value: 'gst', icon: '🧾', label: 'GST', desc: 'GST registration, filing, compliance' },
+      { value: 'legal', icon: '⚖️', label: 'Legal', desc: 'Contracts, compliance, consultation' },
+      { value: 'audit', icon: '🔍', label: 'Audit', desc: 'Internal, statutory audits' },
+      { value: 'other', icon: '💼', label: 'Other', desc: 'Custom business services' }
+    ]
+  },
+  {
+    id: 'urgency',
+    title: 'How urgent is your requirement?',
+    subtitle: 'This helps us prioritize your request',
+    type: 'single',
+    options: [
+      { value: 'immediate', icon: '🔴', label: 'Urgent', desc: 'Need help within 24 hours' },
+      { value: 'soon', icon: '🟡', label: 'This Week', desc: 'Within the next 7 days' },
+      { value: 'flexible', icon: '🟢', label: 'Flexible', desc: 'No immediate deadline' }
+    ]
+  },
+  {
+    id: 'budget',
+    title: 'What is your expected budget?',
+    subtitle: 'Select your comfortable price range',
+    type: 'single',
+    options: [
+      { value: 'low', icon: '💰', label: 'Under ₹5,000', desc: 'Budget-friendly options' },
+      { value: 'medium', icon: '💰💰', label: '₹5,000 - ₹15,000', desc: 'Standard pricing' },
+      { value: 'high', icon: '💰💰💰', label: '₹15,000+', desc: 'Premium services' },
+      { value: 'negotiable', icon: '💬', label: 'Negotiable', desc: 'Open to discussion' }
+    ]
+  },
+  {
+    id: 'location',
+    title: 'Where are you located?',
+    subtitle: 'Enter your city or region',
+    type: 'input',
+    inputType: 'text',
+    placeholder: 'e.g., Mumbai, Maharashtra'
+  },
+  {
+    id: 'description',
+    title: 'Describe your requirement',
+    subtitle: 'Provide details so experts can help you better',
+    type: 'textarea',
+    placeholder: 'Explain what you need help with, any specific requirements, deadlines, etc.'
+  }
+];
+
+const EXPERT_QUESTIONS = [
+  {
+    id: 'services',
+    title: 'What services do you provide?',
+    subtitle: 'Select all that apply',
+    type: 'multi',
+    options: [
+      { value: 'itr', label: 'ITR Filing' },
+      { value: 'accounting', label: 'Accounting' },
+      { value: 'gst', label: 'GST Services' },
+      { value: 'tax_planning', label: 'Tax Planning' },
+      { value: 'audit', label: 'Audit Services' },
+      { value: 'legal', label: 'Legal Consultation' },
+      { value: 'business_setup', label: 'Business Setup' },
+      { value: 'compliance', label: 'Compliance Management' }
+    ]
+  },
+  {
+    id: 'company_name',
+    title: 'What is your company/firm name?',
+    subtitle: 'This will be shown to clients',
+    type: 'input',
+    inputType: 'text',
+    placeholder: 'e.g., ABC Consultants Pvt Ltd'
+  },
+  {
+    id: 'has_website',
+    title: 'Do you have a website?',
+    subtitle: 'This helps build credibility',
+    type: 'single',
+    options: [
+      { value: 'yes', icon: '✅', label: 'Yes, I have a website' },
+      { value: 'no', icon: '❌', label: 'No website yet' }
+    ]
+  },
+  {
+    id: 'website_url',
+    title: 'Enter your website URL',
+    subtitle: 'Include https://',
+    type: 'input',
+    inputType: 'url',
+    placeholder: 'https://www.yourwebsite.com',
+    condition: (answers) => answers.has_website === 'yes'
+  },
+  {
+    id: 'company_size',
+    title: 'What is your company size?',
+    subtitle: 'Select the range that applies',
+    type: 'single',
+    options: [
+      { value: 'solo', icon: '👤', label: 'Solo Professional' },
+      { value: 'small', icon: '👥', label: '2-10 employees' },
+      { value: 'medium', icon: '👨‍👩‍👧‍👦', label: '11-50 employees' },
+      { value: 'large', icon: '🏢', label: '50+ employees' }
+    ]
+  },
+  {
+    id: 'experience',
+    title: 'Years of experience?',
+    subtitle: 'Your professional experience',
+    type: 'single',
+    options: [
+      { value: '0-2', icon: '🌱', label: '0-2 years' },
+      { value: '3-5', icon: '🌿', label: '3-5 years' },
+      { value: '6-10', icon: '🌳', label: '6-10 years' },
+      { value: '10+', icon: '🎯', label: '10+ years' }
+    ]
+  },
+  {
+    id: 'location',
+    title: 'Where is your business located?',
+    subtitle: 'Enter your city or region',
+    type: 'input',
+    inputType: 'text',
+    placeholder: 'e.g., Bangalore, Karnataka'
+  }
+];
+
+// ═══ NAVIGATION ═══
+function goPage(pageId) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(pageId).classList.add('active');
+  
+  if (pageId === 'auth') {
+    renderAuth();
+  }
+}
+
+function startAs(role) {
+  state.role = role;
+  goPage('auth');
+  state.authMode = 'signup';
+  renderAuth();
+}
+
+// ═══ AUTH ═══
+function switchAuthMode(mode) {
+  state.authMode = mode;
+  renderAuth();
+}
+
+function renderAuth() {
+  const isLogin = state.authMode === 'login';
+  const content = document.getElementById('authContent');
+  const footer = document.getElementById('authFooter');
+  
+  document.querySelectorAll('.auth-toggle button').forEach((btn, i) => {
+    btn.classList.toggle('active', (i === 0 && isLogin) || (i === 1 && !isLogin));
+  });
+  
+  if (isLogin) {
+    content.innerHTML = `
+      <div class="field">
+        <label>Email or Phone</label>
+        <input type="text" id="loginIdentifier" placeholder="Enter email or phone number">
+      </div>
+      
+      <div class="field">
+        <label>Password</label>
+        <input type="password" id="loginPassword" placeholder="Enter your password">
+      </div>
+      
+      <button class="submit-btn" onclick="handleLogin()">Login</button>
+    `;
+    
+    footer.innerHTML = `
+      Don't have an account? <a onclick="switchAuthMode('signup')">Sign up</a>
+    `;
+  } else {
+    content.innerHTML = `
+      ${state.verifyStep === 0 ? `
+        <div class="role-pick">
+          <div class="role-card ${state.role === 'client' ? 'active' : ''}" onclick="state.role='client'; renderAuth()">
+            <div class="r-icon">👤</div>
+            <div class="r-label">Client</div>
+          </div>
+          <div class="role-card ${state.role === 'expert' ? 'active' : ''}" onclick="state.role='expert'; renderAuth()">
+            <div class="r-icon">💼</div>
+            <div class="r-label">Expert</div>
+          </div>
+        </div>
+        
+        <div class="field">
+          <label>Full Name</label>
+          <input type="text" id="signupName" placeholder="Enter your full name">
+        </div>
+        
+        <div class="field">
+          <label>Email</label>
+          <input type="email" id="signupEmail" placeholder="your@email.com">
+        </div>
+        
+        <div class="field">
+          <label>Phone Number</label>
+          <div class="phone-row">
+            <div class="phone-prefix">+91</div>
+            <input type="tel" id="signupPhone" placeholder="10-digit number" maxlength="10">
+          </div>
+        </div>
+        
+        <div class="field">
+          <label>Password</label>
+          <input type="password" id="signupPassword" placeholder="Create a password (min 6 characters)">
+        </div>
+        
+        <button class="submit-btn ${!state.role ? 'disabled' : ''}" onclick="handleSignup()" ${!state.role ? 'disabled' : ''}>
+          Continue
+        </button>
+      ` : state.verifyStep === 1 ? `
+        <div class="verify-steps">
+          <div class="v-step done"></div>
+          <div class="v-step"></div>
+        </div>
+        
+        <div class="verify-title">Verify Your Email</div>
+        <div class="verify-sub">Enter the 6-digit code sent to ${state.user?.email}</div>
+        
+        <input type="text" class="otp-input" id="otpInput" maxlength="6" placeholder="000000">
+        
+        <div class="resend" onclick="resendOTP()">Resend Code</div>
+        
+        <button class="submit-btn" onclick="verifyOTP()">Verify & Continue</button>
+      ` : ''}
+    `;
+    
+    footer.innerHTML = `
+      Already have an account? <a onclick="switchAuthMode('login')">Login</a>
+    `;
+  }
+}
+
+async function handleSignup() {
+  if (!state.role) {
+    alert('⚠️ Please select a role (Client or Expert)');
+    return;
+  }
+  
+  const name = document.getElementById('signupName')?.value.trim();
+  const email = document.getElementById('signupEmail')?.value.trim();
+  const phone = document.getElementById('signupPhone')?.value.trim();
+  const password = document.getElementById('signupPassword')?.value;
+  
+  if (!name || !email || !phone || !password) {
+    alert('⚠️ Please fill all fields');
+    return;
+  }
+  
+  if (phone.length !== 10 || !/^\d+$/.test(phone)) {
+    alert('⚠️ Please enter a valid 10-digit phone number');
+    return;
+  }
+  
+  if (password.length < 6) {
+    alert('⚠️ Password must be at least 6 characters');
+    return;
+  }
+  
+  try {
+    const res = await fetch(`${API_URL}/api/auth/signup`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, email, phone, password, role: state.role })
+    });
+    
+    const data = await res.json();
+    
+    if (!res.ok) {
+      alert(`❌ ${data.message || 'Signup failed'}`);
+      return;
+    }
+    
+    state.user = { name, email, phone, role: state.role };
+    state.userId = data.userId;
+    state.verifyStep = 1;
+    renderAuth();
+    
+    alert('✅ Verification code sent to your email!');
+  } catch (err) {
+    console.error('Signup error:', err);
+    alert('❌ Network error. Please try again.');
+  }
+}
+
+async function verifyOTP() {
+  const otp = document.getElementById('otpInput')?.value.trim();
+  
+  if (!otp || otp.length !== 6) {
+    alert('⚠️ Please enter the 6-digit code');
+    return;
+  }
+  
+  try {
+    const res = await fetch(`${API_URL}/api/auth/verify`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: state.userId, otp })
+    });
+    
+    const data = await res.json();
+    
+    if (!res.ok) {
+      alert(`❌ ${data.message || 'Verification failed'}`);
+      return;
+    }
+    
+    // CRITICAL FIX: Set token immediately after verification
+    state.token = data.token;
+    state.user = data.user;
+    state.role = data.user.role;
+    
+    // Save to localStorage immediately
+    localStorage.setItem('token', data.token);
+    localStorage.setItem('user', JSON.stringify(data.user));
+    
+    // Navigate to questionnaire
+    if (state.role === 'client') {
+      state.qSequence = CLIENT_QUESTIONS;
+      goPage('questionnaire');
+      renderQuestion();
+    } else {
+      state.qSequence = EXPERT_QUESTIONS;
+      goPage('questionnaire');
+      renderQuestion();
+    }
+  } catch (err) {
+    console.error('Verification error:', err);
+    alert('❌ Network error. Please try again.');
+  }
+}
+
+async function resendOTP() {
+  try {
+    const res = await fetch(`${API_URL}/api/auth/resend-otp`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: state.userId })
+    });
+    
+    if (res.ok) {
+      alert('✅ New code sent!');
+    } else {
+      alert('❌ Failed to resend code');
+    }
+  } catch (err) {
+    console.error('Resend error:', err);
+    alert('❌ Network error');
+  }
+}
+
+async function handleLogin() {
+  const identifier = document.getElementById('loginIdentifier')?.value.trim();
+  const password = document.getElementById('loginPassword')?.value;
+  
+  if (!identifier || !password) {
+    alert('⚠️ Please enter both fields');
+    return;
+  }
+  
+  try {
+    const res = await fetch(`${API_URL}/api/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ identifier, password })
+    });
+    
+    const data = await res.json();
+    
+    if (!res.ok) {
+      alert(`❌ ${data.message || 'Login failed'}`);
+      return;
+    }
+    
+    state.token = data.token;
+    state.user = data.user;
+    state.role = data.user.role;
+    state.expertCredits = data.user.credits || 50;
+    state.profilePhoto = data.user.profilePhoto || null;
+    
+    localStorage.setItem('token', data.token);
+    localStorage.setItem('user', JSON.stringify(data.user));
+    
+    enterDashboard();
+  } catch (err) {
+    console.error('Login error:', err);
+    alert('❌ Network error. Please try again.');
+  }
+}
+
+// ═══ QUESTIONNAIRE ═══
+function renderQuestion() {
+  const q = state.qSequence[state.qStep];
+  
+  // Check condition if exists
+  if (q.condition && !q.condition(state.qAnswers)) {
+    qNext();
+    return;
+  }
+  
+  const progress = ((state.qStep + 1) / state.qSequence.length) * 100;
+  document.getElementById('qProgressFill').style.width = progress + '%';
+  document.getElementById('qStepText').textContent = `Step ${state.qStep + 1} of ${state.qSequence.length}`;
+  
+  const content = document.getElementById('qContent');
+  
+  let html = `
+    <div class="q-title">${q.title}</div>
+    <div class="q-subtitle">${q.subtitle}</div>
+  `;
+  
+  if (q.type === 'single') {
+    html += '<div class="q-options">';
+    q.options.forEach(opt => {
+      const selected = state.qAnswers[q.id] === opt.value ? 'selected' : '';
+      html += `
+        <div class="q-option ${selected}" onclick="selectOption('${q.id}', '${opt.value}', 'single')">
+          ${opt.icon ? `<div class="opt-icon">${opt.icon}</div>` : ''}
+          <div class="opt-text">
+            <div class="opt-label">${opt.label}</div>
+            ${opt.desc ? `<div class="opt-desc">${opt.desc}</div>` : ''}
+          </div>
+        </div>
+      `;
+    });
+    html += '</div>';
+  } else if (q.type === 'multi') {
+    html += '<div class="chip-grid">';
+    q.options.forEach(opt => {
+      const answers = state.qAnswers[q.id] || [];
+      const selected = answers.includes(opt.value) ? 'selected' : '';
+      html += `
+        <div class="chip ${selected}" onclick="toggleMulti('${q.id}', '${opt.value}')">
+          ${opt.label}
+        </div>
+      `;
+    });
+    html += '</div>';
+  } else if (q.type === 'input') {
+    const value = state.qAnswers[q.id] || '';
+    html += `
+      <div class="field">
+        <input type="${q.inputType || 'text'}" id="qInput" 
+               placeholder="${q.placeholder}" 
+               value="${value}"
+               onchange="state.qAnswers['${q.id}'] = this.value">
+      </div>
+    `;
+  } else if (q.type === 'textarea') {
+    const value = state.qAnswers[q.id] || '';
+    html += `
+      <div class="field">
+        <textarea id="qInput" rows="5" 
+                  placeholder="${q.placeholder}" 
+                  onchange="state.qAnswers['${q.id}'] = this.value">${value}</textarea>
+      </div>
+    `;
+  }
+  
+  content.innerHTML = html;
+  
+  document.getElementById('qBtnBack').style.display = state.qStep === 0 ? 'none' : 'block';
+  updateNextButton();
+}
+
+function selectOption(questionId, value, type) {
+  state.qAnswers[questionId] = value;
+  renderQuestion();
+}
+
+function toggleMulti(questionId, value) {
+  if (!state.qAnswers[questionId]) {
+    state.qAnswers[questionId] = [];
+  }
+  const idx = state.qAnswers[questionId].indexOf(value);
+  if (idx > -1) {
+    state.qAnswers[questionId].splice(idx, 1);
+  } else {
+    state.qAnswers[questionId].push(value);
+  }
+  renderQuestion();
+}
+
+function updateNextButton() {
+  const q = state.qSequence[state.qStep];
+  const btn = document.getElementById('qBtnNext');
+  const hasAnswer = state.qAnswers[q.id] && 
+                    (Array.isArray(state.qAnswers[q.id]) ? state.qAnswers[q.id].length > 0 : state.qAnswers[q.id].trim());
+  
+  btn.classList.toggle('disabled', !hasAnswer);
+  btn.disabled = !hasAnswer;
+  btn.textContent = state.qStep === state.qSequence.length - 1 ? 'Complete' : 'Next';
+}
+
+function qPrev() {
+  if (state.qStep > 0) {
+    state.qStep--;
+    renderQuestion();
+  }
+}
+
+async function qNext() {
+  const q = state.qSequence[state.qStep];
+  
+  // Validate current answer
+  if (!state.qAnswers[q.id] || 
+      (Array.isArray(state.qAnswers[q.id]) && state.qAnswers[q.id].length === 0) ||
+      (typeof state.qAnswers[q.id] === 'string' && !state.qAnswers[q.id].trim())) {
+    return;
+  }
+  
+  // Check if this is the last question
+  if (state.qStep === state.qSequence.length - 1) {
+    await completeQuestionnaire();
+  } else {
+    state.qStep++;
+    renderQuestion();
+  }
+}
+
+async function completeQuestionnaire() {
+  try {
+    const endpoint = state.role === 'client' 
+      ? `${API_URL}/api/client/complete-onboarding`
+      : `${API_URL}/api/expert/complete-onboarding`;
+    
+    const res = await fetch(endpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${state.token}`
+      },
+      body: JSON.stringify({ answers: state.qAnswers })
+    });
+    
+    const data = await res.json();
+    
+    if (!res.ok) {
+      alert(`❌ ${data.message || 'Failed to save answers'}`);
+      return;
+    }
+    
+    // Update user data
+    state.user = { ...state.user, ...data.user };
+    localStorage.setItem('user', JSON.stringify(state.user));
+    
+    enterDashboard();
+  } catch (err) {
+    console.error('Questionnaire error:', err);
+    alert('❌ Network error. Please try again.');
+  }
+}
+
+// ═══ DASHBOARD ═══
+async function enterDashboard() {
+  // CRITICAL FIX: Fetch latest data on dashboard entry
+  if (state.role === 'client') {
+    goPage('clientDash');
+    await loadClientData();
+    switchClientTab('dashboard');
+  } else {
+    goPage('expertDash');
+    await loadExpertData();
+    switchExpertTab('marketplace');
+  }
+  
+  // Update avatar
+  updateAvatars();
+}
+
+function updateAvatars() {
+  const initial = state.user?.name?.charAt(0).toUpperCase() || 'U';
+  const photoURL = state.user?.profilePhoto || state.profilePhoto;
+  
+  if (state.role === 'client') {
+    const avatar = document.getElementById('clientAvatar');
+    if (photoURL) {
+      avatar.innerHTML = `<img src="${photoURL}" alt="Profile">`;
+    } else {
+      document.getElementById('clientAvatarText').textContent = initial;
+    }
+  } else {
+    const avatar = document.getElementById('expertAvatar');
+    if (photoURL) {
+      avatar.innerHTML = `<img src="${photoURL}" alt="Profile">`;
+    } else {
+      document.getElementById('expertAvatarText').textContent = initial;
+    }
+  }
+}
+
+// ═══ CLIENT DASHBOARD ═══
+async function loadClientData() {
+  try {
+    const res = await fetch(`${API_URL}/api/client/requests`, {
+      headers: { 'Authorization': `Bearer ${state.token}` }
+    });
+    
+    if (res.ok) {
+      const data = await res.json();
+      state.clientRequests = data.requests || [];
+    }
+  } catch (err) {
+    console.error('Load client data error:', err);
+  }
+}
+
+function switchClientTab(tab) {
+  state.currentClientTab = tab;
+  
+  document.querySelectorAll('#clientDash .tab').forEach((t, i) => {
+    t.classList.toggle('active', (i === 0 && tab === 'dashboard') || 
+                                  (i === 1 && tab === 'requests') || 
+                                  (i === 2 && tab === 'profile'));
+  });
+  
+  document.querySelectorAll('#clientDash .nav-item').forEach((t, i) => {
+    t.classList.toggle('active', (i === 0 && tab === 'dashboard') || 
+                                  (i === 1 && tab === 'requests') || 
+                                  (i === 2 && tab === 'profile'));
+  });
+  
+  if (tab === 'dashboard') {
+    renderClientDashboard();
+  } else if (tab === 'requests') {
+    renderClientRequests();
+  } else if (tab === 'profile') {
+    renderClientProfile();
+  }
+}
+
+function renderClientDashboard() {
+  const totalRequests = state.clientRequests.length;
+  const activeRequests = state.clientRequests.filter(r => r.status === 'active').length;
+  const completedRequests = state.clientRequests.filter(r => r.status === 'completed').length;
+  
+  const content = `
+    <div class="section-title">Overview</div>
+    <div class="stat-grid">
+      <div class="stat-card">
+        <div class="stat-value">${totalRequests}</div>
+        <div class="stat-label">Total Requests</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">${activeRequests}</div>
+        <div class="stat-label">Active</div>
+      </div>
+    </div>
+    
+    <div class="section-title" style="margin-top:20px;">Quick Actions</div>
+    <div class="quick-actions">
+      <div class="quick-action-btn" onclick="createRequest()">
+        <div class="icon">➕</div>
+        <div class="label">New Request</div>
+      </div>
+      <div class="quick-action-btn" onclick="switchClientTab('requests')">
+        <div class="icon">📋</div>
+        <div class="label">View All</div>
+      </div>
+    </div>
+    
+    ${totalRequests > 0 ? `
+      <div class="section-title" style="margin-top:20px;">Recent Activity</div>
+      ${state.clientRequests.slice(0, 3).map(req => `
+        <div class="activity-item">
+          <div class="activity-icon" style="background:${req.status === 'completed' ? '#E7F5E7' : '#FFF4ED'};color:${req.status === 'completed' ? 'var(--green)' : 'var(--primary)'}">
+            ${req.status === 'completed' ? '✓' : '📋'}
+          </div>
+          <div class="activity-content">
+            <div class="activity-title">${req.category} Request</div>
+            <div class="activity-desc">${req.description.substring(0, 50)}...</div>
+            <div class="activity-time">${formatDate(req.createdAt)}</div>
+          </div>
+        </div>
+      `).join('')}
+    ` : `
+      <div class="insight-card" style="margin-top:20px;">
+        <h3>🚀 Get Started!</h3>
+        <p>Post your first request and connect with verified experts who can help your business grow.</p>
+      </div>
+    `}
+    
+    <div class="section-title" style="margin-top:20px;">Pro Tips</div>
+    <div class="dashboard-grid">
+      <div class="dash-feature-card">
+        <div class="feature-icon" style="background:#E7F5FF;color:#1971C2;">💡</div>
+        <div class="feature-title">Be Specific</div>
+        <div class="feature-desc">Clear requirements get faster, better responses from experts</div>
+      </div>
+      <div class="dash-feature-card">
+        <div class="feature-icon" style="background:#FFF4ED;color:var(--primary);">⚡</div>
+        <div class="feature-title">Quick Responses</div>
+        <div class="feature-desc">Most experts respond within 24 hours</div>
+      </div>
+      <div class="dash-feature-card">
+        <div class="feature-icon" style="background:#E7F5E7;color:var(--green);">🔒</div>
+        <div class="feature-title">Secure Platform</div>
+        <div class="feature-desc">Your information is protected and verified</div>
+      </div>
+    </div>
+  `;
+  
+  document.getElementById('clientTabContent').innerHTML = content;
+}
+
+function renderClientRequests() {
+  if (state.clientRequests.length === 0) {
+    document.getElementById('clientTabContent').innerHTML = `
+      <div class="empty-state">
+        <div class="icon">📋</div>
+        <h3>No Requests Yet</h3>
+        <p>Create your first request to connect with experts</p>
+      </div>
+    `;
+    return;
+  }
+  
+  const content = state.clientRequests.map(req => `
+    <div class="req-card">
+      <div class="req-header">
+        <div class="req-user">
+          <div class="req-user-info">
+            <h4>Request #${req._id.slice(-6)}</h4>
+            <p>${formatDate(req.createdAt)}</p>
+          </div>
+        </div>
+        <span class="req-badge ${
+          req.status === 'active' ? 'badge-active' : 
+          req.status === 'completed' ? 'badge-completed' : 'badge-new'
+        }">${req.status}</span>
+      </div>
+      
+      <div class="req-cat">
+        <span>${getCategoryIcon(req.category)}</span>
+        <span>${req.category}</span>
+      </div>
+      
+      <div class="req-desc">${req.description}</div>
+      
+      <div class="req-meta">
+        <div class="req-meta-item">
+          <span>📍</span>
+          <span>${req.location || 'Remote'}</span>
+        </div>
+        <div class="req-meta-item">
+          <span>⏰</span>
+          <span>${req.urgency}</span>
+        </div>
+        <div class="req-meta-item">
+          <span>💰</span>
+          <span>${req.budget}</span>
+        </div>
+      </div>
+      
+      <div class="req-actions">
+        <button class="req-btn req-btn-outline" onclick="viewRequestDetails('${req._id}')">View Details</button>
+      </div>
+    </div>
+  `).join('');
+  
+  document.getElementById('clientTabContent').innerHTML = content;
+}
+
+function renderClientProfile() {
+  const photoURL = state.user?.profilePhoto || state.profilePhoto;
+  
+  const content = `
+    <div class="prof-header">
+      <div class="prof-avatar" id="clientProfAvatar">
+        ${photoURL ? `<img src="${photoURL}" alt="Profile">` : state.user?.name?.charAt(0).toUpperCase() || 'U'}
+      </div>
+      <div class="prof-name" id="clientProfName">${state.user?.name || 'User'}</div>
+      <div class="prof-spec">Client Account</div>
+    </div>
+    
+    <div class="section-title">Profile Photo</div>
+    <div class="photo-upload">
+      <button class="photo-upload-btn" onclick="document.getElementById('clientPhotoInput').click()">
+        ${photoURL ? 'Change Photo' : 'Upload Photo'}
+      </button>
+      <input type="file" id="clientPhotoInput" accept="image/*" onchange="handlePhotoUpload(event, 'client')">
+    </div>
+    
+    <div class="section-title">Account Information</div>
+    <div class="qual-item">
+      <h5>Email</h5>
+      <p id="clientProfEmail">${state.user?.email || 'N/A'}</p>
+    </div>
+    <div class="qual-item">
+      <h5>Phone</h5>
+      <p id="clientProfPhone">+91 ${state.user?.phone || 'N/A'}</p>
+    </div>
+    <div class="qual-item">
+      <h5>Member Since</h5>
+      <p>${formatDate(state.user?.createdAt)}</p>
+    </div>
+    
+    <div class="section-title" style="margin-top:20px;">Actions</div>
+    <button class="submit-btn" onclick="logout()">Logout</button>
+  `;
+  
+  document.getElementById('clientTabContent').innerHTML = content;
+}
+
+async function createRequest() {
+  state.qStep = 0;
+  state.qAnswers = {};
+  state.qSequence = CLIENT_QUESTIONS;
+  goPage('questionnaire');
+  renderQuestion();
+}
+
+// ═══ EXPERT DASHBOARD ═══
+async function loadExpertData() {
+  try {
+    // Load marketplace requests
+    const reqRes = await fetch(`${API_URL}/api/expert/requests`, {
+      headers: { 'Authorization': `Bearer ${state.token}` }
+    });
+    
+    if (reqRes.ok) {
+      const reqData = await reqRes.json();
+      state.clientRequests = reqData.requests || [];
+    }
+    
+    // Load expert's approaches/responses
+    const approachRes = await fetch(`${API_URL}/api/expert/approaches`, {
+      headers: { 'Authorization': `Bearer ${state.token}` }
+    });
+    
+    if (approachRes.ok) {
+      const approachData = await approachRes.json();
+      state.expertApproaches = approachData.approaches || [];
+    }
+    
+    // Load expert credits
+    state.expertCredits = state.user?.credits || 50;
+    
+    // Load unlocked requests from localStorage
+    const unlocked = localStorage.getItem('unlockedRequests');
+    if (unlocked) {
+      state.unlockedRequests = JSON.parse(unlocked);
+    } else {
+      state.unlockedRequests = [];
+    }
+  } catch (err) {
+    console.error('Load expert data error:', err);
+  }
+}
+
+function switchExpertTab(tab) {
+  state.currentExpertTab = tab;
+  
+  document.querySelectorAll('#expertDash .tab').forEach((t, i) => {
+    t.classList.toggle('active', (i === 0 && tab === 'marketplace') || 
+                                  (i === 1 && tab === 'approaches') || 
+                                  (i === 2 && tab === 'profile'));
+  });
+  
+  document.querySelectorAll('#expertDash .nav-item').forEach((t, i) => {
+    t.classList.toggle('active', (i === 0 && tab === 'marketplace') || 
+                                  (i === 1 && tab === 'approaches') || 
+                                  (i === 2 && tab === 'profile'));
+  });
+  
+  if (tab === 'marketplace') {
+    renderMarketplace();
+  } else if (tab === 'approaches') {
+    renderApproaches();
+  } else if (tab === 'profile') {
+    renderExpertProfile();
+  }
+}
+
+function renderMarketplace() {
+  if (state.clientRequests.length === 0) {
+    document.getElementById('expertTabContent').innerHTML = `
+      <div class="empty-state">
+        <div class="icon">🔍</div>
+        <h3>No Requests Available</h3>
+        <p>Check back soon for new opportunities</p>
+      </div>
+    `;
+    return;
+  }
+  
+  const content = state.clientRequests.map(req => {
+    const isUnlocked = state.unlockedRequests.some(u => u.requestId === req._id);
+    const unlockData = state.unlockedRequests.find(u => u.requestId === req._id);
+    const responsesUsed = unlockData?.responsesUsed || 0;
+    
+    return `
+      <div class="req-card">
+        <div class="req-header">
+          <div class="req-user">
+            <div class="req-user-avatar">
+              ${req.clientPhoto ? `<img src="${req.clientPhoto}" alt="Client">` : (req.clientName?.charAt(0).toUpperCase() || 'C')}
+            </div>
+            <div class="req-user-info">
+              <h4>${isUnlocked ? req.clientName : 'Anonymous Client'}</h4>
+              <p>${isUnlocked && req.location ? req.location : 'Location hidden'}</p>
+            </div>
+          </div>
+          ${isUnlocked ? `
+            <span class="responses-used">
+              <span>✓</span>
+              <span>${responsesUsed}/5 used</span>
+            </span>
+          ` : `
+            <span class="req-badge badge-new">New</span>
+          `}
+        </div>
+        
+        <div class="req-cat">
+          <span>${getCategoryIcon(req.category)}</span>
+          <span>${req.category}</span>
+        </div>
+        
+        <div class="req-desc">${req.description}</div>
+        
+        <div class="req-meta">
+          <div class="req-meta-item">
+            <span>📍</span>
+            <span>${isUnlocked && req.location ? req.location : '***'}</span>
+          </div>
+          <div class="req-meta-item">
+            <span>⏰</span>
+            <span>${req.urgency}</span>
+          </div>
+          <div class="req-meta-item">
+            <span>💰</span>
+            <span>${req.budget}</span>
+          </div>
+        </div>
+        
+        ${!isUnlocked ? `
+          <div class="masked-info">
+            <div class="icon">📧</div>
+            <div class="text">
+              <div class="label">Email</div>
+              <div class="value">••••••@••••.com</div>
+            </div>
+          </div>
+          
+          <div class="masked-info">
+            <div class="icon">📱</div>
+            <div class="text">
+              <div class="label">Phone</div>
+              <div class="value">+91 ••••• •••••</div>
+            </div>
+          </div>
+          
+          <div class="unlock-card">
+            <div class="unlock-title">
+              <span>🔓</span>
+              <span>Unlock Full Details</span>
+            </div>
+            <div class="unlock-desc">
+              Spend 10 credits to see contact information and respond to this request. You'll have 5 total responses available.
+            </div>
+            <div class="unlock-cost">
+              <span>💎</span>
+              <span>10 Credits</span>
+            </div>
+          </div>
+        ` : `
+          <div class="qual-item" style="background:#E7F5FF;border-color:#B3D9FF;">
+            <h5>Contact Information</h5>
+            <p><strong>Email:</strong> ${req.clientEmail}</p>
+            <p><strong>Phone:</strong> +91 ${req.clientPhone}</p>
+          </div>
+        `}
+        
+        <div class="req-actions">
+          <button class="req-btn req-btn-primary" onclick="approachRequest('${req._id}', ${isUnlocked})">
+            ${isUnlocked ? 'Respond Again' : 'Unlock & Respond'}
+          </button>
+        </div>
+      </div>
+    `;
+  }).join('');
+  
+  document.getElementById('expertTabContent').innerHTML = `
+    <div class="credit-card">
+      <div class="credit-label">Available Credits</div>
+      <div class="credit-value">${state.expertCredits}</div>
+      <div class="credit-desc">Use credits to unlock client requests</div>
+    </div>
+    
+    ${content}
+  `;
+}
+
+function renderApproaches() {
+  if (state.expertApproaches.length === 0) {
+    document.getElementById('expertTabContent').innerHTML = `
+      <div class="empty-state">
+        <div class="icon">💬</div>
+        <h3>No Responses Yet</h3>
+        <p>Start responding to requests to see them here</p>
+      </div>
+    `;
+    return;
+  }
+  
+  const content = state.expertApproaches.map(app => `
+    <div class="req-card">
+      <div class="req-header">
+        <div class="req-user">
+          <div class="req-user-info">
+            <h4>Response to: ${app.requestCategory}</h4>
+            <p>${formatDate(app.createdAt)}</p>
+          </div>
+        </div>
+        <span class="req-badge ${
+          app.status === 'accepted' ? 'badge-completed' : 
+          app.status === 'rejected' ? 'badge-new' : 'badge-active'
+        }">${app.status}</span>
+      </div>
+      
+      <div class="req-desc">${app.message}</div>
+      
+      <div class="req-meta">
+        <div class="req-meta-item">
+          <span>💰</span>
+          <span>Quoted: ${app.quotedPrice || 'Not specified'}</span>
+        </div>
+      </div>
+    </div>
+  `).join('');
+  
+  document.getElementById('expertTabContent').innerHTML = content;
+}
+
+function renderExpertProfile() {
+  const profile = state.user?.profile || state.expertProfile || {};
+  const photoURL = state.user?.profilePhoto || state.profilePhoto;
+  
+  const content = `
+    <div class="prof-header">
+      <div class="prof-avatar" id="expertProfAvatar">
+        ${photoURL ? `<img src="${photoURL}" alt="Profile">` : state.user?.name?.charAt(0).toUpperCase() || 'E'}
+      </div>
+      <div class="prof-name" id="expertProfName">${state.user?.name || 'Expert'}</div>
+      <div class="prof-spec" id="expertProfSpec">${profile.specialization || 'Professional'}</div>
+    </div>
+    
+    <div class="section-title">Profile Photo</div>
+    <div class="photo-upload">
+      <button class="photo-upload-btn" onclick="document.getElementById('expertPhotoInput').click()">
+        ${photoURL ? 'Change Photo' : 'Upload Photo'}
+      </button>
+      <input type="file" id="expertPhotoInput" accept="image/*" onchange="handlePhotoUpload(event, 'expert')">
+    </div>
+    
+    <div class="credit-card">
+      <div class="credit-label">Available Credits</div>
+      <div class="credit-value">${state.expertCredits}</div>
+      <div class="credit-desc">10 credits per request unlock</div>
+    </div>
+    
+    <div class="section-title">About</div>
+    <div class="qual-item">
+      <p style="color:var(--text);line-height:1.6;">${profile.bio || 'Add a bio to tell clients about yourself'}</p>
+    </div>
+    
+    <div class="section-title" style="margin-top:16px;">Professional Details</div>
+    <div class="qual-item">
+      <h5>Services</h5>
+      <p>${profile.services?.join(', ') || 'Not specified'}</p>
+    </div>
+    <div class="qual-item">
+      <h5>Company Name</h5>
+      <p>${profile.companyName || 'Not specified'}</p>
+    </div>
+    <div class="qual-item">
+      <h5>Experience</h5>
+      <p>${profile.experience || 'Not specified'}</p>
+    </div>
+    ${profile.websiteUrl ? `
+      <div class="qual-item">
+        <h5>Website</h5>
+        <p><a href="${profile.websiteUrl}" target="_blank" style="color:var(--primary);">${profile.websiteUrl}</a></p>
+      </div>
+    ` : ''}
+    
+    <div class="section-title" style="margin-top:16px;">Contact</div>
+    <div class="qual-item">
+      <h5>Email</h5>
+      <p id="expertProfEmail">${state.user?.email || 'N/A'}</p>
+    </div>
+    <div class="qual-item">
+      <h5>Phone</h5>
+      <p id="expertProfPhone">+91 ${state.user?.phone || 'N/A'}</p>
+    </div>
+    
+    <div class="section-title" style="margin-top:20px;">Actions</div>
+    <button class="submit-btn" style="background:#fff;color:var(--primary);border:1.5px solid var(--primary);" onclick="openEditProfile()">Edit Profile</button>
+    <button class="submit-btn" style="margin-top:10px;" onclick="logout()">Logout</button>
+  `;
+  
+  document.getElementById('expertTabContent').innerHTML = content;
+}
+
+async function approachRequest(requestId, isUnlocked) {
+  // Check if expert needs to unlock
+  if (!isUnlocked) {
+    if (state.expertCredits < 10) {
+      openBuyCredits();
+      return;
+    }
+    
+    if (!confirm('Spend 10 credits to unlock this request and respond?')) {
+      return;
+    }
+  }
+  
+  // Check if already responded 5 times
+  const unlockData = state.unlockedRequests.find(u => u.requestId === requestId);
+  if (unlockData && unlockData.responsesUsed >= 5) {
+    alert('⚠️ You have already used all 5 responses for this request');
+    return;
+  }
+  
+  const message = prompt('Enter your response to the client:');
+  if (!message || !message.trim()) {
+    return;
+  }
+  
+  try {
+    const res = await fetch(`${API_URL}/api/expert/approach`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${state.token}`
+      },
+      body: JSON.stringify({
+        requestId,
+        message: message.trim(),
+        quotedPrice: 'Negotiable',
+        isFirstResponse: !isUnlocked
+      })
+    });
+    
+    const data = await res.json();
+    
+    if (!res.ok) {
+      alert(`❌ ${data.message || 'Failed to send response'}`);
+      return;
+    }
+    
+    // Update credits if this was the first response
+    if (!isUnlocked) {
+      state.expertCredits -= 10;
+      state.user.credits = state.expertCredits;
+      localStorage.setItem('user', JSON.stringify(state.user));
+      
+      // Add to unlocked requests
+      state.unlockedRequests.push({
+        requestId,
+        unlockedAt: new Date().toISOString(),
+        responsesUsed: 1
+      });
+    } else {
+      // Increment responses used
+      const idx = state.unlockedRequests.findIndex(u => u.requestId === requestId);
+      if (idx > -1) {
+        state.unlockedRequests[idx].responsesUsed++;
+      }
+    }
+    
+    // Save unlocked requests
+    localStorage.setItem('unlockedRequests', JSON.stringify(state.unlockedRequests));
+    
+    alert('✅ Response sent successfully!');
+    await loadExpertData();
+    renderMarketplace();
+  } catch (err) {
+    console.error('Approach error:', err);
+    alert('❌ Network error. Please try again.');
+  }
+}
+
+function openBuyCredits() {
+  const content = `
+    <div class="modal-title">Buy Credits</div>
+    <div class="modal-subtitle">Credits are used to unlock client requests</div>
+    
+    <div class="credit-card">
+      <div class="credit-label">Current Balance</div>
+      <div class="credit-value">${state.expertCredits}</div>
+      <div class="credit-desc">Credits available</div>
+    </div>
+    
+    <div class="section-title">Credit Packages</div>
+    
+    <div class="qual-item" style="cursor:pointer;border:2px solid var(--primary);" onclick="buyCredits(50, 499)">
+      <h5>Starter Pack</h5>
+      <p style="font-size:20px;font-weight:700;color:var(--primary);margin:8px 0;">50 Credits - ₹499</p>
+      <p style="font-size:13px;color:var(--text-muted);">Unlock 5 requests</p>
+    </div>
+    
+    <div class="qual-item" style="cursor:pointer;border:2px solid var(--border);" onclick="buyCredits(120, 999)">
+      <h5>Growth Pack</h5>
+      <p style="font-size:20px;font-weight:700;color:var(--primary);margin:8px 0;">120 Credits - ₹999</p>
+      <p style="font-size:13px;color:var(--text-muted);">Unlock 12 requests • Save 17%</p>
+    </div>
+    
+    <div class="qual-item" style="cursor:pointer;border:2px solid var(--border);" onclick="buyCredits(300, 1999)">
+      <h5>Pro Pack</h5>
+      <p style="font-size:20px;font-weight:700;color:var(--primary);margin:8px 0;">300 Credits - ₹1999</p>
+      <p style="font-size:13px;color:var(--text-muted);">Unlock 30 requests • Save 33%</p>
+    </div>
+    
+    <button class="btn-outline" style="width:100%;margin-top:16px;" onclick="closeModal()">Cancel</button>
+  `;
+  
+  document.getElementById('modalContent').innerHTML = content;
+  document.getElementById('modal').classList.add('open');
+}
+
+function buyCredits(credits, price) {
+  alert(`💳 Payment integration coming soon!\n\nYou selected: ${credits} credits for ₹${price}\n\nFor demo purposes, credits added automatically.`);
+  state.expertCredits += credits;
+  state.user.credits = state.expertCredits;
+  localStorage.setItem('user', JSON.stringify(state.user));
+  closeModal();
+  if (state.currentExpertTab === 'marketplace') {
+    renderMarketplace();
+  } else {
+    renderExpertProfile();
+  }
+}
+
+function openEditProfile() {
+  const profile = state.user?.profile || state.expertProfile || {};
+  
+  const content = `
+    <div class="modal-title">Edit Profile</div>
+    <div class="modal-subtitle">Update your professional information</div>
+    
+    <div class="field">
+      <label>Bio</label>
+      <textarea id="editBio" rows="3" placeholder="Tell clients about yourself...">${profile.bio || ''}</textarea>
+    </div>
+    
+    <div class="field">
+      <label>Specialization</label>
+      <input type="text" id="editSpec" placeholder="e.g., CA, Tax Consultant, Developer" value="${profile.specialization || ''}">
+    </div>
+    
+    <button class="submit-btn" onclick="saveProfile()">Save Changes</button>
+    <button class="btn-outline" style="width:100%;margin-top:10px;" onclick="closeModal()">Cancel</button>
+  `;
+  
+  document.getElementById('modalContent').innerHTML = content;
+  document.getElementById('modal').classList.add('open');
+}
+
+function saveProfile() {
+  const bio = document.getElementById('editBio')?.value.trim();
+  const specialization = document.getElementById('editSpec')?.value.trim();
+  
+  state.expertProfile = {
+    ...state.expertProfile,
+    bio,
+    specialization
+  };
+  
+  state.user.profile = state.expertProfile;
+  localStorage.setItem('user', JSON.stringify(state.user));
+  
+  renderExpertProfile();
+  closeModal();
+  alert('✅ Profile updated successfully!');
+}
+
+// ═══ PHOTO UPLOAD ═══
+function handlePhotoUpload(event, userType) {
+  const file = event.target.files[0];
+  if (!file) return;
+  
+  if (!file.type.startsWith('image/')) {
+    alert('⚠️ Please select an image file');
+    return;
+  }
+  
+  if (file.size > 5 * 1024 * 1024) {
+    alert('⚠️ Image size must be less than 5MB');
+    return;
+  }
+  
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const photoURL = e.target.result;
+    state.profilePhoto = photoURL;
+    state.user.profilePhoto = photoURL;
+    localStorage.setItem('user', JSON.stringify(state.user));
+    
+    // Update avatars
+    updateAvatars();
+    
+    // Update profile display
+    if (userType === 'client') {
+      const avatar = document.getElementById('clientProfAvatar');
+      if (avatar) {
+        avatar.innerHTML = `<img src="${photoURL}" alt="Profile">`;
+      }
+    } else {
+      const avatar = document.getElementById('expertProfAvatar');
+      if (avatar) {
+        avatar.innerHTML = `<img src="${photoURL}" alt="Profile">`;
+      }
+    }
+    
+    alert('✅ Profile photo updated!');
+  };
+  
+  reader.readAsDataURL(file);
+}
+
+// ═══ UTILITIES ═══
+function closeModal() {
+  document.getElementById('modal').classList.remove('open');
+}
+
+function viewRequestDetails(requestId) {
+  const req = state.clientRequests.find(r => r._id === requestId);
+  if (!req) return;
+  
+  const content = `
+    <div class="modal-title">Request Details</div>
+    <div class="modal-subtitle">#${req._id.slice(-6)}</div>
+    
+    <div class="qual-item">
+      <h5>Category</h5>
+      <p>${getCategoryIcon(req.category)} ${req.category}</p>
+    </div>
+    
+    <div class="qual-item">
+      <h5>Description</h5>
+      <p>${req.description}</p>
+    </div>
+    
+    <div class="qual-item">
+      <h5>Urgency</h5>
+      <p>${req.urgency}</p>
+    </div>
+    
+    <div class="qual-item">
+      <h5>Budget</h5>
+      <p>${req.budget}</p>
+    </div>
+    
+    <div class="qual-item">
+      <h5>Location</h5>
+      <p>${req.location || 'Not specified'}</p>
+    </div>
+    
+    <div class="qual-item">
+      <h5>Status</h5>
+      <p>${req.status}</p>
+    </div>
+    
+    <div class="qual-item">
+      <h5>Created</h5>
+      <p>${formatDate(req.createdAt)}</p>
+    </div>
+    
+    <button class="btn-outline" style="width:100%;margin-top:16px;" onclick="closeModal()">Close</button>
+  `;
+  
+  document.getElementById('modalContent').innerHTML = content;
+  document.getElementById('modal').classList.add('open');
+}
+
+function formatDate(dateString) {
+  if (!dateString) return 'N/A';
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffMs = now - date;
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMs / 3600000);
+  const diffDays = Math.floor(diffMs / 86400000);
+  
+  if (diffMins < 60) return `${diffMins} min ago`;
+  if (diffHours < 24) return `${diffHours} hr ago`;
+  if (diffDays < 7) return `${diffDays} days ago`;
+  
+  return date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
+function getCategoryIcon(category) {
+  const icons = {
+    'tax': '📊',
+    'accounting': '📚',
+    'gst': '🧾',
+    'legal': '⚖️',
+    'audit': '🔍',
+    'other': '💼'
+  };
+  return icons[category?.toLowerCase()] || '💼';
+}
+
+function logout() {
+  if (confirm('Are you sure you want to logout?')) {
+    localStorage.clear();
+    state = {
+      role: null,
+      user: null,
+      userId: null,
+      token: null,
+      authMode: 'login',
+      verifyStep: 0,
+      qStep: 0,
+      qAnswers: {},
+      qSequence: null,
+      clientRequests: [],
+      expertApproaches: [],
+      expertCredits: 50,
+      unlockedRequests: [],
+      expertProfile: {},
+      currentClientTab: 'dashboard',
+      currentExpertTab: 'marketplace',
+      profilePhoto: null
+    };
+    goPage('landing');
+  }
+}
+
+// ═══ AUTO-LOGIN ON PAGE LOAD ═══
+window.addEventListener('load', async () => {
+  const token = localStorage.getItem('token');
+  const user = localStorage.getItem('user');
+  
+  if (token && user) {
+    state.token = token;
+    state.user = JSON.parse(user);
+    state.role = state.user.role;
+    state.expertCredits = state.user.credits || 50;
+    state.profilePhoto = state.user.profilePhoto || null;
+    
+    // Load unlocked requests
+    const unlocked = localStorage.getItem('unlockedRequests');
+    if (unlocked) {
+      state.unlockedRequests = JSON.parse(unlocked);
+    }
+    
+    enterDashboard();
+  }
+});
+</script>
+</body>
+</html>
