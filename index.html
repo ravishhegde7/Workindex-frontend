@@ -1736,26 +1736,33 @@ async function sendApproach(requestId, creditsNeeded) {
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || 'Failed to send approach');
     
-    // FIXED: Update local state immediately
-    state.expertCredits -= creditsNeeded;
+    // ⭐ FIXED: Handle credits properly
+    state.expertCredits = data.creditsRemaining || (state.expertCredits - creditsNeeded);
     state.user.credits = state.expertCredits;
     localStorage.setItem('user', JSON.stringify(state.user));
     
     // Add to approached list
     state.approachedRequests.push(requestId);
     
-    // Add to approaches
+    // ⭐ FIXED: Add to unlocked list to show contact details
+    state.unlockedRequests.push(requestId);
+    
+    // Add to approaches with contact info
+    const request = state.clientRequests.find(r => r.id === requestId);
     state.expertApproaches.push({
       id: data.approachId || Date.now().toString(),
       requestId: requestId,
-      requestTitle: state.clientRequests.find(r => r.id === requestId)?.title || 'Request',
+      requestTitle: request?.title || 'Request',
       message: message,
       status: 'pending',
-      createdAt: new Date().toLocaleDateString()
+      createdAt: new Date().toLocaleDateString(),
+      // ⭐ NEW: Store contact details from backend response
+      clientEmail: data.clientEmail || 'Email available after acceptance',
+      clientPhone: data.clientPhone || 'Phone available after acceptance'
     });
     
     closeModal();
-    alert('✅ Approach sent successfully!');
+    alert('✅ Approach sent successfully! Contact details will be visible in your Approaches tab.');
     
     // Reload and refresh display
     await loadExpertApproaches();
