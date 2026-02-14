@@ -157,15 +157,16 @@ async function register(formData) {
     
     const data = await res.json();
     
-    if (data.success && data.token) {
-      state.token = data.token;
-      state.user = data.user;
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
-      
-      showToast('Registration successful!', 'success');
-      enterDashboard();
-    } else {
+   if (data.success && data.token) {
+  state.token = data.token;
+  state.user = data.user;
+  localStorage.setItem('token', data.token);
+  localStorage.setItem('user', JSON.stringify(state.user));
+  
+  showToast('Registration successful!', 'success');
+  startQuestionnaire(); // ← NEW: Go to questionnaire instead
+}
+   else {
       showToast(data.message || 'Registration failed', 'error');
     }
   } catch (error) {
