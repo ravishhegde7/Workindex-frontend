@@ -17,7 +17,8 @@ const state = {
   accessRequests: [],
   ratings: [],
   experts: [],
-  approachedRequests: []
+  approachedRequests: [],
+  myApproaches: []  // ← NEW: Store expert's approaches
 };
 
 // ─── DARK MODE ─── 
@@ -97,6 +98,8 @@ function switchTab(tabName) {
       loadAccessRequests();
     } else if (tabName === 'ratings') {
       loadMyRatings();
+    } else if (tabName === 'approaches' && state.user?.role === 'expert') {
+      loadMyApproaches();  // ← NEW: Load approaches when tab clicked
     }
   }
 }
@@ -862,7 +865,7 @@ async function uploadProfilePhoto(event) {
   }
   
   const formData = new FormData();
-  formData.append('photo', file);
+  formData.append('profilePhoto', file);
   
   try {
     const res = await fetch(`${API_URL}/users/profile-photo`, {
@@ -879,7 +882,13 @@ async function uploadProfilePhoto(event) {
       showToast('Profile photo updated!', 'success');
       state.user.profilePhoto = data.profilePhoto;
       localStorage.setItem('user', JSON.stringify(state.user));
-      updateProfilePhoto(data.profilePhoto);
+      
+      // Update all avatar instances
+      if (state.user.role === 'client') {
+        updateClientProfile();
+      } else {
+        updateExpertProfile();
+      }
     } else {
       showToast(data.message || 'Upload failed', 'error');
     }
@@ -1042,15 +1051,15 @@ async function loadClientData() {
 
 // ─── RENDER CLIENT REQUESTS ───
 function renderClientRequests() {
-  const container = document.getElementById('requestsTab');
+  const container = document.getElementById('requestsList');
   if (!container) return;
   
-  if (state.requests.length === 0) {
+  if (!state.requests || state.requests.length === 0) {
     container.innerHTML = `
       <div class="empty-state">
         <div class="empty-icon">📋</div>
         <h3 class="empty-title">No requests yet</h3>
-        <p class="empty-text">Click "+ New Request" to post your first request</p>
+        <p class="empty-text">Click "+ New Request" above to post your first request</p>
       </div>
     `;
     return;
@@ -1076,12 +1085,12 @@ function renderClientRequests() {
         <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
           <div style="flex: 1;">
             <h3 style="font-size: 18px; font-weight: 700; color: var(--text); margin-bottom: 4px;">${req.title}</h3>
-            <p style="font-size: 14px; color: var(--text-muted);">${req.service}</p>
+            <p style="font-size: 14px; color: var(--text-muted);">${req.service.toUpperCase()}</p>
           </div>
-          <span class="badge ${statusColors[req.status]}">${statusLabels[req.status]}</span>
+          <span class="badge ${statusColors[req.status] || 'badge-warning'}">${statusLabels[req.status] || 'Pending'}</span>
         </div>
         
-        <p style="font-size: 14px; color: var(--text-light); margin-bottom: 16px; line-height: 1.5;">${req.description}</p>
+        <p style="font-size: 14px; color: var(--text-light); margin-bottom: 16px; line-height: 1.5;">${req.description || 'No description'}</p>
         
         <div style="display: flex; gap: 20px; font-size: 13px; color: var(--text-muted);">
           <span>📍 ${req.location || 'Not specified'}</span>
@@ -1089,7 +1098,7 @@ function renderClientRequests() {
           <span>👁️ ${req.viewCount || 0} views</span>
         </div>
         
-        ${req.approachCount > 0 ? `
+        ${(req.approachCount && req.approachCount > 0) ? `
           <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border);">
             <span style="font-size: 13px; font-weight: 600; color: var(--primary);">${req.approachCount} professional${req.approachCount > 1 ? 's' : ''} approached</span>
           </div>
@@ -1157,6 +1166,9 @@ async function loadExpertData() {
       
       // Load expert credits
       loadExpertCredits();
+      
+      // ✅ NEW: Load expert's approaches
+      loadMyApproaches();
     }
   } catch (error) {
     console.error('Load expert data error:', error);
@@ -1170,7 +1182,7 @@ function renderAvailableRequests() {
   const container = document.getElementById('browseTab');
   if (!container) return;
   
-  if (state.availableRequests.length === 0) {
+  if (!state.availableRequests || state.availableRequests.length === 0) {
     container.innerHTML = `
       <div class="empty-state">
         <div class="empty-icon">🔍</div>
@@ -1187,7 +1199,7 @@ function renderAvailableRequests() {
         <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
           <div style="flex: 1;">
             <h3 style="font-size: 18px; font-weight: 700; color: var(--text); margin-bottom: 4px;">${req.title}</h3>
-            <p style="font-size: 14px; color: var(--text-muted);">${req.service}</p>
+            <p style="font-size: 14px; color: var(--text-muted);">${req.service.toUpperCase()}</p>
           </div>
           <span class="badge badge-primary">${req.credits || 20} credits</span>
         </div>
@@ -1339,7 +1351,7 @@ async function loadExpertCredits() {
     if (data.success) {
       const creditsDisplay = document.getElementById('expertCredits');
       if (creditsDisplay) {
-        creditsDisplay.textContent = data.balance || 0;
+        creditsDisplay.textContent = data.balance || state.user.credits || 0;
       }
     }
   } catch (error) {
@@ -1377,82 +1389,6 @@ function updateExpertProfile() {
   
   const profileEmail = document.getElementById('expertProfileEmail');
   if (profileEmail) profileEmail.textContent = user.email;
-}
-
-// ─── LOAD SETTINGS ─── 
-function loadSettings() {
-  const darkModeToggle = document.getElementById('darkModeToggle');
-  if (darkModeToggle) {
-    darkModeToggle.checked = localStorage.getItem('darkMode') === 'true';
-  }
-}
-
-// ─── INIT ON PAGE LOAD ─── 
-document.addEventListener('DOMContentLoaded', () => {
-  initDarkMode();
-  
-  // Check if user is logged in
-  if (state.token && state.user) {
-    enterDashboard();
-  } else {
-    showPage('landing');
-  }
-});
-
-// ═══ END OF JAVASCRIPT ═══
-
-// ─── PROFILE PHOTO UPLOAD ───
-async function uploadProfilePhoto(event) {
-  const file = event.target.files[0];
-  if (!file) return;
-  
-  // Validate file type
-  if (!file.type.startsWith('image/')) {
-    showToast('Please select an image file', 'error');
-    return;
-  }
-  
-  // Validate file size (max 5MB)
-  if (file.size > 5 * 1024 * 1024) {
-    showToast('Image must be less than 5MB', 'error');
-    return;
-  }
-  
-  showToast('Uploading photo...', 'info');
-  
-  const formData = new FormData();
-  formData.append('profilePhoto', file);
-  
-  try {
-    const res = await fetch(`${API_URL}/users/profile-photo`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${state.token}`
-      },
-      body: formData
-    });
-    
-    const data = await res.json();
-    
-    if (data.success) {
-      state.user.profilePhoto = data.profilePhoto;
-      localStorage.setItem('user', JSON.stringify(state.user));
-      
-      // Update all avatar instances
-      if (state.user.role === 'client') {
-        updateClientProfile();
-      } else {
-        updateExpertProfile();
-      }
-      
-      showToast('Profile photo updated!', 'success');
-    } else {
-      showToast(data.message || 'Failed to upload photo', 'error');
-    }
-  } catch (error) {
-    console.error('Upload photo error:', error);
-    showToast('Failed to upload photo', 'error');
-  }
 }
 
 // ─── SHOW REQUEST DETAIL MODAL (FOR CLIENT) ───
@@ -1554,3 +1490,237 @@ function contactExpert(expertId) {
   // Implementation depends on your design
 }
 
+// ═══════════════════════════════════════════════════════════
+//  ✅ NEW: EXPERT APPROACHES FEATURES
+//  Added below to handle expert viewing their approaches
+// ═══════════════════════════════════════════════════════════
+
+// ─── LOAD EXPERT'S APPROACHES ───
+async function loadMyApproaches() {
+  try {
+    const res = await fetch(`${API_URL}/approaches`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${state.token}`
+      }
+    });
+    
+    const data = await res.json();
+    
+    if (data.success) {
+      state.myApproaches = data.approaches || [];
+      renderMyApproaches();
+    }
+  } catch (error) {
+    console.error('Load my approaches error:', error);
+  }
+}
+
+// ─── RENDER EXPERT'S APPROACHES ───
+function renderMyApproaches() {
+  const container = document.getElementById('approachesTab');
+  if (!container) return;
+  
+  if (!state.myApproaches || state.myApproaches.length === 0) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">💼</div>
+        <h3 class="empty-title">No approaches yet</h3>
+        <p class="empty-text">Approach requests to see them here</p>
+      </div>
+    `;
+    return;
+  }
+  
+  container.innerHTML = state.myApproaches.map(app => {
+    const req = app.request;
+    const statusColors = {
+      pending: 'badge-warning',
+      accepted: 'badge-success',
+      rejected: 'badge-danger'
+    };
+    
+    return `
+      <div class="request-card" style="background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 16px; cursor: pointer;" onclick="showMyApproachDetail('${app._id}')">
+        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
+          <div style="flex: 1;">
+            <h3 style="font-size: 18px; font-weight: 700; color: var(--text); margin-bottom: 4px;">${req.title}</h3>
+            <p style="font-size: 14px; color: var(--text-muted);">${req.service.toUpperCase()}</p>
+          </div>
+          <span class="badge ${statusColors[app.status]}">${app.status.toUpperCase()}</span>
+        </div>
+        
+        <p style="font-size: 14px; color: var(--text-light); margin-bottom: 12px;">${req.description}</p>
+        
+        <div style="display: flex; gap: 20px; font-size: 13px; color: var(--text-muted);">
+          <span>💰 ${app.creditsSpent} credits spent</span>
+          <span>📅 ${new Date(app.createdAt).toLocaleDateString()}</span>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ─── SHOW APPROACH DETAIL WITH CONTACT INFO ───
+async function showMyApproachDetail(approachId) {
+  try {
+    const res = await fetch(`${API_URL}/approaches/${approachId}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${state.token}`
+      }
+    });
+    
+    const data = await res.json();
+    
+    if (data.success) {
+      const approach = data.approach;
+      const request = approach.request;
+      const client = approach.client;
+      
+      const modal = document.createElement('div');
+      modal.style.cssText = 'position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 20px;';
+      modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
+      
+      modal.innerHTML = `
+        <div style="background: var(--bg); border-radius: 16px; max-width: 500px; width: 100%; max-height: 80vh; overflow-y: auto; padding: 24px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h2 style="font-size: 20px; font-weight: 700; color: var(--text);">${request.title}</h2>
+            <button onclick="this.closest('div').parentElement.remove()" style="padding: 8px; border: none; background: transparent; font-size: 24px; cursor: pointer; color: var(--text-muted);">×</button>
+          </div>
+          
+          <div style="padding: 16px; background: rgba(76, 175, 80, 0.1); border: 1px solid #4CAF50; border-radius: 12px; margin-bottom: 20px;">
+            <h3 style="font-size: 16px; font-weight: 700; color: #4CAF50; margin-bottom: 12px;">✅ Contact Unlocked</h3>
+            <div style="font-size: 15px; color: var(--text); line-height: 1.8;">
+              <div style="margin-bottom: 8px;"><strong>Client:</strong> ${client.name}</div>
+              <div style="margin-bottom: 8px;"><strong>Email:</strong> <a href="mailto:${client.email}" style="color: var(--primary); text-decoration: none;">${client.email}</a></div>
+              <div><strong>Phone:</strong> <a href="tel:${client.phone}" style="color: var(--primary); text-decoration: none;">${client.phone}</a></div>
+            </div>
+          </div>
+          
+          <div style="margin-bottom: 20px;">
+            <h3 style="font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 12px;">Request Details</h3>
+            <p style="font-size: 14px; color: var(--text-light); line-height: 1.6;">${request.description}</p>
+          </div>
+          
+          <div style="display: flex; flex-wrap: wrap; gap: 16px; font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">
+            <span>📍 ${request.location}</span>
+            <span>💰 ₹${request.budget || 'Negotiable'}</span>
+            <span>⏱️ ${request.timeline || 'Flexible'}</span>
+          </div>
+          
+          <button onclick="viewClientDocuments('${client._id}', '${request._id}')" style="width: 100%; padding: 14px; border: 1.5px solid var(--primary); border-radius: 10px; background: transparent; color: var(--primary); font-size: 15px; font-weight: 600; cursor: pointer; margin-bottom: 12px; transition: all 0.2s;" onmouseover="this.style.background='var(--primary)'; this.style.color='#fff'" onmouseout="this.style.background='transparent'; this.style.color='var(--primary)'">
+            📄 View Client Documents
+          </button>
+          
+          <div style="padding: 12px; background: var(--bg-gray); border-radius: 8px;">
+            <div style="font-size: 13px; font-weight: 600; color: var(--text-muted); margin-bottom: 4px;">Your message:</div>
+            <div style="font-size: 14px; color: var(--text);">${approach.message}</div>
+          </div>
+          
+          <div style="margin-top: 16px; padding: 12px; background: rgba(252, 128, 25, 0.1); border-radius: 8px; font-size: 13px; color: var(--text-muted);">
+            <strong>Status:</strong> ${approach.status} • <strong>Credits spent:</strong> ${approach.creditsSpent}
+          </div>
+        </div>
+      `;
+      
+      document.body.appendChild(modal);
+    }
+  } catch (error) {
+    console.error('Show approach detail error:', error);
+    showToast('Error loading approach details', 'error');
+  }
+}
+
+// ─── VIEW CLIENT DOCUMENTS ───
+async function viewClientDocuments(clientId, requestId) {
+  try {
+    showToast('Loading documents...', 'info');
+    
+    const res = await fetch(`${API_URL}/documents/client/${clientId}/request/${requestId}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${state.token}`
+      }
+    });
+    
+    const data = await res.json();
+    
+    if (data.success) {
+      const modal = document.createElement('div');
+      modal.style.cssText = 'position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1001; padding: 20px;';
+      modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
+      
+      const docsHTML = data.documents.length > 0 ? data.documents.map(doc => {
+        const sizeKB = (doc.fileSize / 1024).toFixed(1);
+        const icon = doc.fileType === 'pdf' ? '📄' : 
+                     doc.fileType === 'word' ? '📝' : 
+                     doc.fileType === 'excel' ? '📊' : 
+                     doc.fileType === 'image' ? '🖼️' : '📎';
+        
+        return `
+          <div style="padding: 16px; background: var(--bg-gray); border-radius: 12px; margin-bottom: 12px;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <span style="font-size: 32px;">${icon}</span>
+              <div style="flex: 1;">
+                <div style="font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 2px;">${doc.originalFileName}</div>
+                <div style="font-size: 13px; color: var(--text-muted);">${sizeKB} KB • ${doc.fileType.toUpperCase()}</div>
+              </div>
+              <a href="${doc.fileUrl}" download="${doc.originalFileName}" style="padding: 8px 16px; background: var(--primary); color: #fff; border-radius: 8px; text-decoration: none; font-size: 13px; font-weight: 600;">Download</a>
+            </div>
+          </div>
+        `;
+      }).join('') : `
+        <div style="text-align: center; padding: 40px;">
+          <div style="font-size: 48px; margin-bottom: 16px;">📁</div>
+          <h3 style="font-size: 18px; font-weight: 600; color: var(--text); margin-bottom: 8px;">No documents yet</h3>
+          <p style="font-size: 14px; color: var(--text-muted);">Client hasn't uploaded any documents for this request</p>
+        </div>
+      `;
+      
+      modal.innerHTML = `
+        <div style="background: var(--bg); border-radius: 16px; max-width: 500px; width: 100%; max-height: 80vh; overflow-y: auto; padding: 24px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h2 style="font-size: 20px; font-weight: 700; color: var(--text);">Client Documents</h2>
+            <button onclick="this.closest('div').parentElement.remove()" style="padding: 8px; border: none; background: transparent; font-size: 24px; cursor: pointer; color: var(--text-muted);">×</button>
+          </div>
+          
+          <div style="padding: 12px; background: rgba(252, 128, 25, 0.1); border-radius: 8px; margin-bottom: 20px; font-size: 13px; color: var(--text-muted);">
+            <strong>Note:</strong> These are documents uploaded by the client for this request
+          </div>
+          
+          ${docsHTML}
+        </div>
+      `;
+      
+      document.body.appendChild(modal);
+    } else {
+      showToast(data.message || 'Failed to load documents', 'error');
+    }
+  } catch (error) {
+    console.error('View documents error:', error);
+    showToast('Error loading documents', 'error');
+  }
+}
+
+// ─── LOAD SETTINGS ─── 
+function loadSettings() {
+  const darkModeToggle = document.getElementById('darkModeToggle');
+  if (darkModeToggle) {
+    darkModeToggle.checked = localStorage.getItem('darkMode') === 'true';
+  }
+}
+
+// ─── INIT ON PAGE LOAD ─── 
+document.addEventListener('DOMContentLoaded', () => {
+  initDarkMode();
+  
+  // Check if user is logged in
+  if (state.token && state.user) {
+    enterDashboard();
+  } else {
+    showPage('landing');
+  }
+});
+
+// ═══ END OF JAVASCRIPT ═══
