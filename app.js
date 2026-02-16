@@ -1229,7 +1229,6 @@ function renderAvailableRequests() {
           <span>⏱️ ${req.timeline || 'Flexible'}</span>
         </div>
         
-        ${/* ✅ NEW: Approach counter with progress bar */}
         <div style="margin-bottom: 16px;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
             <span style="font-size: 13px; font-weight: 600; color: var(--text-muted);">
