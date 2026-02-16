@@ -1486,6 +1486,16 @@ function showRequestApproaches(req, approaches) {
         <h3 style="font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 12px;">Professionals Interested (${approaches.length})</h3>
         ${approachesHTML}
       </div>
+      
+      ${/* ✅ NEW: Add cancel button if request is pending */}
+      ${req.status === 'pending' || req.status === 'active' ? `
+        <button onclick="cancelRequest('${req._id}')" 
+          style="width: 100%; padding: 14px; margin-top: 12px; border: 1.5px solid #dc3545; border-radius: 10px; background: transparent; color: #dc3545; font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.2s;"
+          onmouseover="this.style.background='#dc3545'; this.style.color='#fff'"
+          onmouseout="this.style.background='transparent'; this.style.color='#dc3545'">
+          ✕ Cancel Request
+        </button>
+      ` : ''}
     </div>
   `;
   
