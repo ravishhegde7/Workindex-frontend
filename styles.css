@@ -975,10 +975,6 @@ body.dark-mode {
   .features-grid { grid-template-columns: 1fr; }
   .pricing-grid { grid-template-columns: 1fr; }
 }
-/* ═══════════════════════════════════════════════════════════
-   WORKINDEX - QUESTIONNAIRE CLICKABILITY FIX (CORRECTED)
-   Replace the previous fix with this one
-   ═══════════════════════════════════════════════════════════ */
 
 /* ─── QUESTIONNAIRE FIXES (SCOPED TO QUESTIONNAIRE ONLY) ─── */
 
