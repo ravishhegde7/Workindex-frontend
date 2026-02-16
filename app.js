@@ -1080,12 +1080,19 @@ function renderClientRequests() {
       cancelled: 'Cancelled'
     };
     
+    // ✅ NEW: Get client name
+    const clientName = req.client?.name || state.user?.name || 'You';
+    
     return `
       <div class="request-card" style="background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 16px; cursor: pointer;" onclick="showRequestDetail('${req._id}')">
         <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
           <div style="flex: 1;">
             <h3 style="font-size: 18px; font-weight: 700; color: var(--text); margin-bottom: 4px;">${req.title}</h3>
             <p style="font-size: 14px; color: var(--text-muted);">${req.service.toUpperCase()}</p>
+            ${/* ✅ NEW: Show client name */}
+            <p style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">
+              Posted by: <strong>${clientName}</strong>
+            </p>
           </div>
           <span class="badge ${statusColors[req.status] || 'badge-warning'}">${statusLabels[req.status] || 'Pending'}</span>
         </div>
