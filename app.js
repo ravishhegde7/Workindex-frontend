@@ -1201,6 +1201,17 @@ function renderAvailableRequests() {
   }
   
   container.innerHTML = state.availableRequests.map(req => {
+    // ✅ NEW: Calculate approach progress
+    const currentApproaches = req.currentApproaches || 0;
+    const maxApproaches = req.maxApproaches || 5;
+    const progressPercent = (currentApproaches / maxApproaches) * 100;
+    const spotsLeft = maxApproaches - currentApproaches;
+    
+    // Color based on how full it is
+    const progressColor = currentApproaches >= 4 ? '#f39c12' : 
+                          currentApproaches >= 3 ? '#3498db' : 
+                          'var(--primary)';
+    
     return `
       <div class="request-card" style="background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 16px;">
         <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
@@ -1213,10 +1224,34 @@ function renderAvailableRequests() {
         
         <p style="font-size: 14px; color: var(--text-light); margin-bottom: 16px; line-height: 1.5;">${req.description}</p>
         
-        <div style="display: flex; gap: 20px; font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">
+        <div style="display: flex; gap: 20px; font-size: 13px; color: var(--text-muted); margin-bottom: 12px;">
           <span>📍 ${req.location || 'Online'}</span>
           <span>💰 ₹${req.budget ? req.budget.toLocaleString('en-IN') : 'Budget negotiable'}</span>
           <span>⏱️ ${req.timeline || 'Flexible'}</span>
+        </div>
+        
+        ${/* ✅ NEW: Approach counter with progress bar */}
+        <div style="margin-bottom: 16px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span style="font-size: 13px; font-weight: 600; color: var(--text-muted);">
+              👥 Approaches
+            </span>
+            <span style="font-size: 14px; font-weight: 700; color: ${progressColor};">
+              ${currentApproaches}/${maxApproaches}
+            </span>
+          </div>
+          <div style="height: 8px; background: var(--bg-gray); border-radius: 4px; overflow: hidden; margin-bottom: 4px;">
+            <div style="height: 100%; width: ${progressPercent}%; background: ${progressColor}; transition: width 0.3s;"></div>
+          </div>
+          ${currentApproaches >= 4 ? `
+            <div style="font-size: 12px; color: #e74c3c; font-weight: 600;">
+              ⚠️ Only ${spotsLeft} spot${spotsLeft === 1 ? '' : 's'} left!
+            </div>
+          ` : currentApproaches >= 3 ? `
+            <div style="font-size: 12px; color: #f39c12;">
+              ${spotsLeft} spots remaining
+            </div>
+          ` : ''}
         </div>
         
         <div style="display: flex; gap: 12px;">
