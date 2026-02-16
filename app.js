@@ -1089,7 +1089,6 @@ function renderClientRequests() {
           <div style="flex: 1;">
             <h3 style="font-size: 18px; font-weight: 700; color: var(--text); margin-bottom: 4px;">${req.title}</h3>
             <p style="font-size: 14px; color: var(--text-muted);">${req.service.toUpperCase()}</p>
-            ${/* ✅ NEW: Show client name */}
             <p style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">
               Posted by: <strong>${clientName}</strong>
             </p>
