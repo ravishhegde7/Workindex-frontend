@@ -168,8 +168,7 @@ async function register(formData) {
   
   showToast('Registration successful!', 'success');
   startQuestionnaire(); // ← NEW: Go to questionnaire instead
-}
-   else {
+}  else {
       showToast(data.message || 'Registration failed', 'error');
     }
   } catch (error) {
