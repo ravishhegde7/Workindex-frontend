@@ -1820,18 +1820,3 @@ function showNewRequestForm() {
 </body>
 </html>
 
-
-<!-- Additional Helper: Redirect to questionnaire after signup -->
-<script>
-// Override register function to go to questionnaire
-const originalRegister = window.register;
-if (typeof originalRegister === 'function') {
-  window.register = async function(userData) {
-    const result = await originalRegister(userData);
-    if (result && result.success) {
-      // Go to questionnaire instead of dashboard
-      setTimeout(() => startQuestionnaire(), 500);
-    }
-    return result;
-  };
-}
