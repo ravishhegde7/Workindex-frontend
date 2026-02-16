@@ -975,3 +975,27 @@ body.dark-mode {
   .features-grid { grid-template-columns: 1fr; }
   .pricing-grid { grid-template-columns: 1fr; }
 }
+/* Questionnaire clickability fix */
+#questionnaire [onclick] {
+  cursor: pointer !important;
+  pointer-events: auto !important;
+  user-select: none;
+}
+
+#qContent > div > div[onclick] {
+  cursor: pointer !important;
+  pointer-events: auto !important;
+  transition: all 0.2s ease;
+}
+
+#qContent > div > div[onclick]:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+#questionnaire input,
+#questionnaire textarea,
+#questionnaire select {
+  cursor: pointer !important;
+  pointer-events: auto !important;
+}
