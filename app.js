@@ -1337,28 +1337,44 @@ async function approachClient(requestId) {
 }
 
 // ─── LOAD EXPERT CREDITS ───
-async function loadExpertCredits() {
-  try {
-    const res = await fetch(`${API_URL}/credits`, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${state.token}`
-      }
-    });
-    
-    const data = await res.json();
-    
-    if (data.success) {
-      const creditsDisplay = document.getElementById('expertCredits');
-      if (creditsDisplay) {
-        creditsDisplay.textContent = data.balance || state.user.credits || 0;
-      }
-    }
-  } catch (error) {
-    console.error('Load credits error:', error);
-  }
-}
 
+async function loadExpertCredits() {
+try {
+   // ✅ FIX: Show from state immediately
+  const creditsDisplay = document.getElementById('expertCredits');
+   if (creditsDisplay && state.user) {
+    creditsDisplay.textContent = state.user.credits || 0;
+   }
+   
+  // Also fetch fresh data from API
+   const res = await fetch(`${API_URL}/users/me`, {
+    method: 'GET',
+    headers: {
+     'Authorization': `Bearer ${state.token}`
+     }
+   });
+  
+   const data = await res.json();
+   
+   if (data.success && data.user) {
+     // Update state with fresh credits
+     state.user.credits = data.user.credits;
+    localStorage.setItem('user', JSON.stringify(state.user));
+     
+    // Update display
+     if (creditsDisplay) {
+      creditsDisplay.textContent = data.user.credits || 0;
+    }
+  }
+ } catch (error) {
+  console.error('Load credits error:', error);
+   // Still show from state even if API fails
+   const creditsDisplay = document.getElementById('expertCredits');
+  if (creditsDisplay && state.user) {
+    creditsDisplay.textContent = state.user.credits || 0;
+   }
+ }
+}
 // ─── UPDATE EXPERT PROFILE ───
 function updateExpertProfile() {
   const user = state.user;
