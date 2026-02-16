@@ -1432,6 +1432,42 @@ async function showRequestDetail(requestId) {
   }
 }
 
+// ADD this new function (doesn't exist yet):
+
+async function cancelRequest(requestId) {
+  if (!confirm('Are you sure you want to cancel this request? This cannot be undone.')) return;
+  
+  try {
+    const res = await fetch(`${API_URL}/requests/${requestId}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${state.token}`
+      }
+    });
+    
+    const data = await res.json();
+    
+    if (data.success) {
+      showToast('Request cancelled successfully', 'success');
+      
+      // Close any open modals
+      document.querySelectorAll('[style*="position: fixed"]').forEach(modal => {
+        if (modal.style.zIndex === '1000' || modal.style.zIndex === '1001') {
+          modal.remove();
+        }
+      });
+      
+      // Reload client data
+      loadClientData();
+    } else {
+      showToast(data.message || 'Failed to cancel request', 'error');
+    }
+  } catch (error) {
+    console.error('Cancel request error:', error);
+    showToast('Failed to cancel request', 'error');
+  }
+}
+
 // ─── SHOW REQUEST APPROACHES MODAL ───
 function showRequestApproaches(req, approaches) {
   const modal = document.createElement('div');
