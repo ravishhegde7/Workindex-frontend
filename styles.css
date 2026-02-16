@@ -975,45 +975,46 @@ body.dark-mode {
   .features-grid { grid-template-columns: 1fr; }
   .pricing-grid { grid-template-columns: 1fr; }
 }
-
 /* ═══════════════════════════════════════════════════════════
-   WORKINDEX - QUESTIONNAIRE CLICKABILITY FIX
-   Add this to the END of your styles.css file
+   WORKINDEX - QUESTIONNAIRE CLICKABILITY FIX (CORRECTED)
+   Replace the previous fix with this one
    ═══════════════════════════════════════════════════════════ */
 
-/* ─── QUESTIONNAIRE FIXES ─── */
+/* ─── QUESTIONNAIRE FIXES (SCOPED TO QUESTIONNAIRE ONLY) ─── */
 
-/* Ensure all questionnaire elements are clickable */
-#qContent [onclick] {
+/* ONLY apply fixes inside the questionnaire page */
+#questionnaire [onclick] {
   cursor: pointer !important;
   pointer-events: auto !important;
   user-select: none;
 }
 
-/* Make sure inputs and interactive elements work */
-#qContent input[type="radio"],
-#qContent input[type="checkbox"],
-#qContent input[type="text"],
-#qContent input[type="date"],
-#qContent input[type="range"],
-#qContent textarea,
-#qContent select {
+/* Make sure inputs in questionnaire work */
+#questionnaire input[type="radio"],
+#questionnaire input[type="checkbox"],
+#questionnaire input[type="text"],
+#questionnaire input[type="date"],
+#questionnaire input[type="range"],
+#questionnaire textarea,
+#questionnaire select {
   cursor: pointer !important;
   pointer-events: auto !important;
 }
 
-/* Add hover effects for better UX */
-#qContent > div > div[onclick]:hover {
+/* Add hover effects ONLY for questionnaire */
+#questionnaire [onclick]:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 
-/* Ensure question options are always interactive */
-#qContent > div > div[onclick] {
+/* Ensure question options in qContent are interactive */
+#qContent [onclick] {
+  cursor: pointer !important;
+  pointer-events: auto !important;
   transition: all 0.2s ease;
 }
 
-/* Make sure nothing is blocking the questionnaire */
+/* Make sure nothing blocks the questionnaire */
 #questionnaire {
   position: relative;
   z-index: 1;
@@ -1032,7 +1033,7 @@ body.dark-mode {
   cursor: text !important;
 }
 
-/* Fix for slider specifically */
+/* Fix for slider */
 #qSlider {
   cursor: pointer !important;
   -webkit-appearance: none;
@@ -1049,13 +1050,13 @@ body.dark-mode {
   pointer-events: auto !important;
 }
 
-/* Address field inputs */
-[data-address-field] {
+/* Address field inputs in questionnaire */
+#questionnaire [data-address-field] {
   pointer-events: auto !important;
   cursor: text !important;
 }
 
-/* Navigation buttons */
+/* Navigation buttons in questionnaire */
 #qNextBtn,
 #qBackBtn {
   pointer-events: auto !important;
@@ -1067,46 +1068,19 @@ body.dark-mode {
   pointer-events: auto !important;
 }
 
-/* Make sure progress bar doesn't block anything */
+/* Progress bar (non-interactive) */
 #qProgressFill {
   pointer-events: none;
 }
 
-/* Ensure modal overlays don't interfere */
-.modal-overlay {
-  pointer-events: auto;
-}
-
-.modal-sheet {
-  pointer-events: auto;
-}
-
-/* Fix for any potential z-index issues */
-#qContent * {
-  position: relative;
-}
-
-/* Ensure all clickable divs are truly clickable */
-div[onclick] {
-  cursor: pointer;
-  -webkit-tap-highlight-color: rgba(252, 128, 25, 0.2);
-}
-
-/* Add active state for touch devices */
-div[onclick]:active {
+/* Add active state for touch devices in questionnaire */
+#questionnaire [onclick]:active {
   opacity: 0.8;
 }
 
-/* Fix for radio button visibility */
-#qContent input[type="radio"] {
-  width: 22px;
-  height: 22px;
-  min-width: 22px;
-  min-height: 22px;
-}
-
-/* Fix for checkbox visibility */
-#qContent input[type="checkbox"] {
+/* Fix for radio/checkbox visibility in questionnaire */
+#questionnaire input[type="radio"],
+#questionnaire input[type="checkbox"] {
   width: 22px;
   height: 22px;
   min-width: 22px;
@@ -1114,5 +1088,5 @@ div[onclick]:active {
 }
 
 /* ═══════════════════════════════════════════════════════════
-   END OF QUESTIONNAIRE FIX
+   END OF CORRECTED QUESTIONNAIRE FIX
    ═══════════════════════════════════════════════════════════ */
