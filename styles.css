@@ -975,3 +975,144 @@ body.dark-mode {
   .features-grid { grid-template-columns: 1fr; }
   .pricing-grid { grid-template-columns: 1fr; }
 }
+
+/* ═══════════════════════════════════════════════════════════
+   WORKINDEX - QUESTIONNAIRE CLICKABILITY FIX
+   Add this to the END of your styles.css file
+   ═══════════════════════════════════════════════════════════ */
+
+/* ─── QUESTIONNAIRE FIXES ─── */
+
+/* Ensure all questionnaire elements are clickable */
+#qContent [onclick] {
+  cursor: pointer !important;
+  pointer-events: auto !important;
+  user-select: none;
+}
+
+/* Make sure inputs and interactive elements work */
+#qContent input[type="radio"],
+#qContent input[type="checkbox"],
+#qContent input[type="text"],
+#qContent input[type="date"],
+#qContent input[type="range"],
+#qContent textarea,
+#qContent select {
+  cursor: pointer !important;
+  pointer-events: auto !important;
+}
+
+/* Add hover effects for better UX */
+#qContent > div > div[onclick]:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+/* Ensure question options are always interactive */
+#qContent > div > div[onclick] {
+  transition: all 0.2s ease;
+}
+
+/* Make sure nothing is blocking the questionnaire */
+#questionnaire {
+  position: relative;
+  z-index: 1;
+}
+
+#qContent {
+  position: relative;
+  z-index: 2;
+}
+
+/* Ensure text inputs in questionnaire are clickable */
+#qTextarea,
+#qInput,
+#qSlider {
+  pointer-events: auto !important;
+  cursor: text !important;
+}
+
+/* Fix for slider specifically */
+#qSlider {
+  cursor: pointer !important;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+#qSlider::-webkit-slider-thumb {
+  cursor: pointer !important;
+  pointer-events: auto !important;
+}
+
+#qSlider::-moz-range-thumb {
+  cursor: pointer !important;
+  pointer-events: auto !important;
+}
+
+/* Address field inputs */
+[data-address-field] {
+  pointer-events: auto !important;
+  cursor: text !important;
+}
+
+/* Navigation buttons */
+#qNextBtn,
+#qBackBtn {
+  pointer-events: auto !important;
+  cursor: pointer !important;
+}
+
+#qNextBtn:disabled {
+  cursor: not-allowed !important;
+  pointer-events: auto !important;
+}
+
+/* Make sure progress bar doesn't block anything */
+#qProgressFill {
+  pointer-events: none;
+}
+
+/* Ensure modal overlays don't interfere */
+.modal-overlay {
+  pointer-events: auto;
+}
+
+.modal-sheet {
+  pointer-events: auto;
+}
+
+/* Fix for any potential z-index issues */
+#qContent * {
+  position: relative;
+}
+
+/* Ensure all clickable divs are truly clickable */
+div[onclick] {
+  cursor: pointer;
+  -webkit-tap-highlight-color: rgba(252, 128, 25, 0.2);
+}
+
+/* Add active state for touch devices */
+div[onclick]:active {
+  opacity: 0.8;
+}
+
+/* Fix for radio button visibility */
+#qContent input[type="radio"] {
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+  min-height: 22px;
+}
+
+/* Fix for checkbox visibility */
+#qContent input[type="checkbox"] {
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+  min-height: 22px;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   END OF QUESTIONNAIRE FIX
+   ═══════════════════════════════════════════════════════════ */
