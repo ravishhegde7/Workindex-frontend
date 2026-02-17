@@ -2081,8 +2081,7 @@ function showRatingPrompt(expertId, expertName, requestId, approachId) {
       <p style="font-size: 15px; color: var(--text-muted); margin-bottom: 24px;">How was your experience? Your review helps others find great professionals.</p>
       
       <div style="display: flex; gap: 12px;">
-        <button onclick="this.closest('[style*=fixed]').remove(); openRatingModal('${expertId}', '${expertName}', '${approachId}')" 
-          style="flex: 1; padding: 14px; border: none; border-radius: 12px; background: var(--primary); color: #fff; font-size: 16px; font-weight: 700; cursor: pointer;">
+        <button id="rateNowBtn" style="flex: 1; padding: 14px; border: none; border-radius: 12px; background: var(--primary); color: #fff; font-size: 16px; font-weight: 700; cursor: pointer;">
           ⭐ Rate Now
         </button>
         <button onclick="this.closest('[style*=fixed]').remove()" 
@@ -2092,6 +2091,12 @@ function showRatingPrompt(expertId, expertName, requestId, approachId) {
       </div>
     </div>
   `;
+
+  // Use addEventListener to avoid inline quote escaping issues
+  modal.querySelector('#rateNowBtn').addEventListener('click', function() {
+    modal.remove();
+    openRatingModal(expertId, expertName, approachId, requestId);
+  });
 
   document.body.appendChild(modal);
 }
