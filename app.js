@@ -1919,20 +1919,47 @@ async function viewClientDocuments(clientId, requestId) {
 
 async function requestDocumentAccess(documentId, clientId, requestId) {
   try {
-    const res = await fetch(`${API_URL}/documents/${documentId}/request-access`, {
+    // Step 1: Get the expert's approach for this request
+    const approachRes = await fetch(`${API_URL}/approaches`, {
+      headers: { 'Authorization': `Bearer ${state.token}` }
+    });
+    const approachData = await approachRes.json();
+    
+    if (!approachData.success) {
+      showToast('Could not find your approach', 'error');
+      return;
+    }
+
+    // Find the approach matching this requestId
+    const approach = approachData.approaches && approachData.approaches.find(a => {
+      const approachRequestId = a.request?._id || a.request;
+      return approachRequestId && approachRequestId.toString() === requestId.toString();
+    });
+
+    if (!approach) {
+      showToast('Could not find your approach for this request', 'error');
+      return;
+    }
+
+    // Step 2: Send access request with all required fields
+    const res = await fetch(`${API_URL}/access-requests`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${state.token}`,
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ message: 'I would like to access this document for your request.' })
+      body: JSON.stringify({
+        documentId: documentId,
+        approachId: approach._id,
+        message: 'I would like to access this document for your request.'
+      })
     });
     
     const data = await res.json();
     
     if (data.success) {
       showToast('Access request sent to client!', 'success');
-      // Refresh the documents modal
+      // Refresh documents modal
       document.querySelectorAll('[style*="position: fixed"]').forEach(m => {
         if (m.style.zIndex === '1001') m.remove();
       });
@@ -1941,6 +1968,7 @@ async function requestDocumentAccess(documentId, clientId, requestId) {
       showToast(data.message || 'Failed to send request', 'error');
     }
   } catch (error) {
+    console.error('Request access error:', error);
     showToast('Failed to send access request', 'error');
   }
 }
