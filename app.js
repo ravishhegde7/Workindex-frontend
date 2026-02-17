@@ -1814,7 +1814,6 @@ async function viewClientDocuments(clientId, requestId) {
 try {
 showToast(‘Loading documents…’, ‘info’);
 
-```
 const res = await fetch(`${API_URL}/documents/client/${clientId}/request/${requestId}`, {
   method: 'GET',
   headers: { 'Authorization': `Bearer ${state.token}` }
@@ -1910,7 +1909,7 @@ modal.innerHTML = `
 `;
 
 document.body.appendChild(modal);
-```
+
 
 } catch (error) {
 console.error(‘View documents error:’, error);
@@ -1925,7 +1924,7 @@ try {
 const message = prompt(‘Add a message explaining why you need access to this document:’);
 if (!message || !message.trim()) return;
 
-```
+
 btn.disabled = true;
 btn.textContent = 'Sending...';
 
@@ -1950,7 +1949,7 @@ if (data.success) {
   btn.disabled = false;
   btn.textContent = 'Request Access';
 }
-```
+
 
 } catch (error) {
 console.error(‘Request access error:’, error);
