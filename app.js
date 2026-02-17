@@ -497,11 +497,12 @@ async function rejectAccess(requestId) {
    ═══════════════════════════════════════════════════════════ */
 
 // ─── RATING SYSTEM ─── 
-function openRatingModal(expertId, expertName, approachId) {
+function openRatingModal(expertId, expertName, approachId, requestId) {
   const modal = document.getElementById('ratingModal');
   document.getElementById('ratingExpertName').textContent = expertName;
   modal.dataset.expertId = expertId;
   modal.dataset.approachId = approachId;
+  modal.dataset.requestId = requestId || '';  // ← ADD THIS
   modal.classList.add('open');
   
   // Reset form
@@ -512,6 +513,7 @@ function openRatingModal(expertId, expertName, approachId) {
   document.getElementById('reviewText').value = '';
   document.getElementById('wouldRecommend').checked = true;
 }
+
 
 function closeRatingModal(event) {
   if (event && event.target !== event.currentTarget) return;
