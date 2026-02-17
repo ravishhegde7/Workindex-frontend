@@ -1215,7 +1215,8 @@ function renderAvailableRequests() {
         <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
           <div style="flex: 1;">
             <h3 style="font-size: 18px; font-weight: 700; color: var(--text); margin-bottom: 4px;">${req.title}</h3>
-            <p style="font-size: 14px; color: var(--text-muted);">${req.service.toUpperCase()}</p>
+<p style="font-size: 14px; color: var(--text-muted);">${req.service.toUpperCase()}</p>
+<p style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">👤 <strong>${req.client?.name || 'Client'}</strong></p>
           </div>
           <span class="badge badge-primary">${req.credits || 20} credits</span>
         </div>
