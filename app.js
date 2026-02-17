@@ -1809,11 +1809,11 @@ async function showMyApproachDetail(approachId) {
 }
 
 // ─── VIEW CLIENT DOCUMENTS ───
-// ─── VIEW CLIENT DOCUMENTS (FIXED) ───
 async function viewClientDocuments(clientId, requestId) {
 try {
 showToast(‘Loading documents…’, ‘info’);
 
+```
 const res = await fetch(`${API_URL}/documents/client/${clientId}/request/${requestId}`, {
   method: 'GET',
   headers: { 'Authorization': `Bearer ${state.token}` }
@@ -1826,7 +1826,7 @@ if (!data.success) {
   return;
 }
 
-const approachId = data.approachId; // ✅ needed for access requests
+const approachId = data.approachId;
 
 const modal = document.createElement('div');
 modal.id = 'client-docs-modal';
@@ -1842,7 +1842,6 @@ const docsHTML = data.documents.length > 0
                  : doc.fileType === 'image' ? '🖼️'
                  : '📎';
 
-      // ✅ ACCESS GRANTED — show download button
       if (doc.hasAccess && doc.fileUrl) {
         return `
           <div style="padding:16px;background:var(--bg-gray);border-radius:12px;margin-bottom:12px;">
@@ -1853,7 +1852,7 @@ const docsHTML = data.documents.length > 0
                 <div style="font-size:13px;color:var(--text-muted);">${sizeKB} KB • ${doc.fileType.toUpperCase()}</div>
                 ${doc.description ? `<div style="font-size:12px;color:var(--text-muted);margin-top:2px;">${doc.description}</div>` : ''}
               </div>
-              <a href="${doc.fileUrl}" download="${doc.originalFileName}" 
+              <a href="${doc.fileUrl}" download="${doc.originalFileName}"
                  style="padding:8px 16px;background:var(--primary);color:#fff;border-radius:8px;text-decoration:none;font-size:13px;font-weight:600;flex-shrink:0;">
                 Download
               </a>
@@ -1862,7 +1861,6 @@ const docsHTML = data.documents.length > 0
         `;
       }
 
-      // ✅ ACCESS NOT GRANTED — show locked state with Request Access button
       return `
         <div style="padding:16px;background:var(--bg-gray);border-radius:12px;margin-bottom:12px;opacity:0.85;">
           <div style="display:flex;align-items:center;gap:12px;">
@@ -1875,7 +1873,7 @@ const docsHTML = data.documents.length > 0
                 <span style="font-size:12px;color:var(--text-muted);">Access required</span>
               </div>
             </div>
-            <button 
+            <button
               onclick="requestDocumentAccess('${doc._id}', '${approachId}', this)"
               style="padding:8px 12px;background:transparent;border:1.5px solid var(--primary);color:var(--primary);border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;flex-shrink:0;white-space:nowrap;">
               Request Access
@@ -1896,20 +1894,18 @@ modal.innerHTML = `
   <div style="background:var(--bg);border-radius:16px;max-width:500px;width:100%;max-height:80vh;overflow-y:auto;padding:24px;">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
       <h2 style="font-size:20px;font-weight:700;color:var(--text);">Client Documents</h2>
-      <button onclick="document.getElementById('client-docs-modal').remove()" 
+      <button onclick="document.getElementById('client-docs-modal').remove()"
               style="padding:8px;border:none;background:transparent;font-size:24px;cursor:pointer;color:var(--text-muted);">×</button>
     </div>
-
     <div style="padding:12px;background:rgba(252,128,25,0.1);border-radius:8px;margin-bottom:20px;font-size:13px;color:var(--text-muted);">
       <strong>Note:</strong> These are documents uploaded by the client for this request
     </div>
-
     ${docsHTML}
   </div>
 `;
 
 document.body.appendChild(modal);
-
+```
 
 } catch (error) {
 console.error(‘View documents error:’, error);
@@ -1920,11 +1916,10 @@ showToast(‘Error loading documents’, ‘error’);
 // ─── REQUEST DOCUMENT ACCESS ───
 async function requestDocumentAccess(documentId, approachId, btn) {
 try {
-// Simple message prompt — you can replace with a proper modal if preferred
 const message = prompt(‘Add a message explaining why you need access to this document:’);
 if (!message || !message.trim()) return;
 
-
+```
 btn.disabled = true;
 btn.textContent = 'Sending...';
 
@@ -1949,7 +1944,7 @@ if (data.success) {
   btn.disabled = false;
   btn.textContent = 'Request Access';
 }
-
+```
 
 } catch (error) {
 console.error(‘Request access error:’, error);
