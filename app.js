@@ -1809,74 +1809,155 @@ async function showMyApproachDetail(approachId) {
 }
 
 // ─── VIEW CLIENT DOCUMENTS ───
+// ─── VIEW CLIENT DOCUMENTS (FIXED) ───
 async function viewClientDocuments(clientId, requestId) {
-  try {
-    showToast('Loading documents...', 'info');
-    
-    const res = await fetch(`${API_URL}/documents/client/${clientId}/request/${requestId}`, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${state.token}`
-      }
-    });
-    
-    const data = await res.json();
-    
-    if (data.success) {
-      const modal = document.createElement('div');
-      modal.style.cssText = 'position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1001; padding: 20px;';
-      modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
-      
-      const docsHTML = data.documents.length > 0 ? data.documents.map(doc => {
-        const sizeKB = (doc.fileSize / 1024).toFixed(1);
-        const icon = doc.fileType === 'pdf' ? '📄' : 
-                     doc.fileType === 'word' ? '📝' : 
-                     doc.fileType === 'excel' ? '📊' : 
-                     doc.fileType === 'image' ? '🖼️' : '📎';
-        
+try {
+showToast(‘Loading documents…’, ‘info’);
+
+```
+const res = await fetch(`${API_URL}/documents/client/${clientId}/request/${requestId}`, {
+  method: 'GET',
+  headers: { 'Authorization': `Bearer ${state.token}` }
+});
+
+const data = await res.json();
+
+if (!data.success) {
+  showToast(data.message || 'Failed to load documents', 'error');
+  return;
+}
+
+const approachId = data.approachId; // ✅ needed for access requests
+
+const modal = document.createElement('div');
+modal.id = 'client-docs-modal';
+modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:1001;padding:20px;';
+modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
+
+const docsHTML = data.documents.length > 0
+  ? data.documents.map(doc => {
+      const sizeKB = (doc.fileSize / 1024).toFixed(1);
+      const icon = doc.fileType === 'pdf'   ? '📄'
+                 : doc.fileType === 'word'  ? '📝'
+                 : doc.fileType === 'excel' ? '📊'
+                 : doc.fileType === 'image' ? '🖼️'
+                 : '📎';
+
+      // ✅ ACCESS GRANTED — show download button
+      if (doc.hasAccess && doc.fileUrl) {
         return `
-          <div style="padding: 16px; background: var(--bg-gray); border-radius: 12px; margin-bottom: 12px;">
-            <div style="display: flex; align-items: center; gap: 12px;">
-              <span style="font-size: 32px;">${icon}</span>
-              <div style="flex: 1;">
-                <div style="font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 2px;">${doc.originalFileName}</div>
-                <div style="font-size: 13px; color: var(--text-muted);">${sizeKB} KB • ${doc.fileType.toUpperCase()}</div>
+          <div style="padding:16px;background:var(--bg-gray);border-radius:12px;margin-bottom:12px;">
+            <div style="display:flex;align-items:center;gap:12px;">
+              <span style="font-size:32px;">${icon}</span>
+              <div style="flex:1;">
+                <div style="font-size:15px;font-weight:600;color:var(--text);margin-bottom:2px;">${doc.originalFileName}</div>
+                <div style="font-size:13px;color:var(--text-muted);">${sizeKB} KB • ${doc.fileType.toUpperCase()}</div>
+                ${doc.description ? `<div style="font-size:12px;color:var(--text-muted);margin-top:2px;">${doc.description}</div>` : ''}
               </div>
-              <a href="${doc.fileUrl}" download="${doc.originalFileName}" style="padding: 8px 16px; background: var(--primary); color: #fff; border-radius: 8px; text-decoration: none; font-size: 13px; font-weight: 600;">Download</a>
+              <a href="${doc.fileUrl}" download="${doc.originalFileName}" 
+                 style="padding:8px 16px;background:var(--primary);color:#fff;border-radius:8px;text-decoration:none;font-size:13px;font-weight:600;flex-shrink:0;">
+                Download
+              </a>
             </div>
           </div>
         `;
-      }).join('') : `
-        <div style="text-align: center; padding: 40px;">
-          <div style="font-size: 48px; margin-bottom: 16px;">📁</div>
-          <h3 style="font-size: 18px; font-weight: 600; color: var(--text); margin-bottom: 8px;">No documents yet</h3>
-          <p style="font-size: 14px; color: var(--text-muted);">Client hasn't uploaded any documents for this request</p>
+      }
+
+      // ✅ ACCESS NOT GRANTED — show locked state with Request Access button
+      return `
+        <div style="padding:16px;background:var(--bg-gray);border-radius:12px;margin-bottom:12px;opacity:0.85;">
+          <div style="display:flex;align-items:center;gap:12px;">
+            <span style="font-size:32px;">${icon}</span>
+            <div style="flex:1;">
+              <div style="font-size:15px;font-weight:600;color:var(--text);margin-bottom:2px;">${doc.originalFileName}</div>
+              <div style="font-size:13px;color:var(--text-muted);">${sizeKB} KB • ${doc.fileType.toUpperCase()}</div>
+              <div style="display:flex;align-items:center;gap:4px;margin-top:4px;">
+                <span style="font-size:12px;">🔒</span>
+                <span style="font-size:12px;color:var(--text-muted);">Access required</span>
+              </div>
+            </div>
+            <button 
+              onclick="requestDocumentAccess('${doc._id}', '${approachId}', this)"
+              style="padding:8px 12px;background:transparent;border:1.5px solid var(--primary);color:var(--primary);border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;flex-shrink:0;white-space:nowrap;">
+              Request Access
+            </button>
+          </div>
         </div>
       `;
-      
-      modal.innerHTML = `
-        <div style="background: var(--bg); border-radius: 16px; max-width: 500px; width: 100%; max-height: 80vh; overflow-y: auto; padding: 24px;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <h2 style="font-size: 20px; font-weight: 700; color: var(--text);">Client Documents</h2>
-            <button onclick="this.closest('div').parentElement.remove()" style="padding: 8px; border: none; background: transparent; font-size: 24px; cursor: pointer; color: var(--text-muted);">×</button>
-          </div>
-          
-          <div style="padding: 12px; background: rgba(252, 128, 25, 0.1); border-radius: 8px; margin-bottom: 20px; font-size: 13px; color: var(--text-muted);">
-            <strong>Note:</strong> These are documents uploaded by the client for this request
-          </div>
-          
-          ${docsHTML}
-        </div>
-      `;
-      
-      document.body.appendChild(modal);
-    } else {
-      showToast(data.message || 'Failed to load documents', 'error');
-    }
-  } catch (error) {
-    console.error('View documents error:', error);
-    showToast('Error loading documents', 'error');
-  }
+    }).join('')
+  : `
+    <div style="text-align:center;padding:40px;">
+      <div style="font-size:48px;margin-bottom:16px;">📁</div>
+      <h3 style="font-size:18px;font-weight:600;color:var(--text);margin-bottom:8px;">No documents yet</h3>
+      <p style="font-size:14px;color:var(--text-muted);">Client hasn't uploaded any documents for this request</p>
+    </div>
+  `;
+
+modal.innerHTML = `
+  <div style="background:var(--bg);border-radius:16px;max-width:500px;width:100%;max-height:80vh;overflow-y:auto;padding:24px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+      <h2 style="font-size:20px;font-weight:700;color:var(--text);">Client Documents</h2>
+      <button onclick="document.getElementById('client-docs-modal').remove()" 
+              style="padding:8px;border:none;background:transparent;font-size:24px;cursor:pointer;color:var(--text-muted);">×</button>
+    </div>
+
+    <div style="padding:12px;background:rgba(252,128,25,0.1);border-radius:8px;margin-bottom:20px;font-size:13px;color:var(--text-muted);">
+      <strong>Note:</strong> These are documents uploaded by the client for this request
+    </div>
+
+    ${docsHTML}
+  </div>
+`;
+
+document.body.appendChild(modal);
+```
+
+} catch (error) {
+console.error(‘View documents error:’, error);
+showToast(‘Error loading documents’, ‘error’);
+}
+}
+
+// ─── REQUEST DOCUMENT ACCESS ───
+async function requestDocumentAccess(documentId, approachId, btn) {
+try {
+// Simple message prompt — you can replace with a proper modal if preferred
+const message = prompt(‘Add a message explaining why you need access to this document:’);
+if (!message || !message.trim()) return;
+
+```
+btn.disabled = true;
+btn.textContent = 'Sending...';
+
+const res = await fetch(`${API_URL}/access-requests`, {
+  method: 'POST',
+  headers: {
+    'Authorization': `Bearer ${state.token}`,
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({ documentId, approachId, message: message.trim() })
+});
+
+const data = await res.json();
+
+if (data.success) {
+  showToast('Access request sent! Waiting for client approval.', 'success');
+  btn.textContent = 'Requested ✓';
+  btn.style.opacity = '0.6';
+  btn.style.cursor = 'default';
+} else {
+  showToast(data.message || 'Failed to send request', 'error');
+  btn.disabled = false;
+  btn.textContent = 'Request Access';
+}
+```
+
+} catch (error) {
+console.error(‘Request access error:’, error);
+showToast(‘Error sending access request’, ‘error’);
+btn.disabled = false;
+btn.textContent = ‘Request Access’;
+}
 }
 
 // ─── LOAD SETTINGS ─── 
