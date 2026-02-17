@@ -1466,44 +1466,50 @@ function renderQuestion() {
     </div>
   `;
   
-  if (question.type === 'single') {
-    html += '<div style="display: flex; flex-direction: column; gap: 12px;">';
-    question.options.forEach(opt => {
-      const isSelected = qState.answers[question.key] === opt.value;
-      html += `
-        <div onclick="selectSingleOption('${question.key}', '${opt.value}')" style="padding: 18px 20px; border: 2px solid ${isSelected ? 'var(--primary)' : 'var(--border)'}; border-radius: 12px; cursor: pointer; background: ${isSelected ? 'rgba(252, 128, 25, 0.05)' : 'var(--bg)'}; transition: all 0.2s; box-shadow: ${isSelected ? '0 4px 12px rgba(252, 128, 25, 0.15)' : 'none'};">
-          <div style="display: flex; align-items: center; gap: 14px;">
-            ${opt.icon ? `<span style="font-size: 28px;">${opt.icon}</span>` : ''}
-            <div style="flex: 1;">
-              <div style="font-size: 16px; font-weight: 600; color: var(--text); margin-bottom: 2px;">${opt.label}</div>
-              ${opt.desc ? `<div style="font-size: 14px; color: var(--text-muted);">${opt.desc}</div>` : ''}
-            </div>
-            <div style="width: 22px; height: 22px; border: 2px solid ${isSelected ? 'var(--primary)' : 'var(--border)'}; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-              ${isSelected ? '<div style="width: 12px; height: 12px; background: var(--primary); border-radius: 50%;"></div>' : ''}
-            </div>
+if (question.type === 'single') {
+  html += '<div style="display: flex; flex-direction: column; gap: 12px;">';
+  question.options.forEach(opt => {
+    const isSelected = qState.answers[question.key] === opt.value;
+    const questionKey = question.key;
+    const optValue = opt.value;
+    
+    html += `
+      <div data-question-key="${questionKey}" data-option-value="${optValue}" class="questionnaire-option" style="padding: 18px 20px; border: 2px solid ${isSelected ? 'var(--primary)' : 'var(--border)'}; border-radius: 12px; cursor: pointer; background: ${isSelected ? 'rgba(252, 128, 25, 0.05)' : 'var(--bg)'}; transition: all 0.2s; box-shadow: ${isSelected ? '0 4px 12px rgba(252, 128, 25, 0.15)' : 'none'};">
+        <div style="display: flex; align-items: center; gap: 14px;">
+          ${opt.icon ? `<span style="font-size: 28px;">${opt.icon}</span>` : ''}
+          <div style="flex: 1;">
+            <div style="font-size: 16px; font-weight: 600; color: var(--text); margin-bottom: 2px;">${opt.label}</div>
+            ${opt.desc ? `<div style="font-size: 14px; color: var(--text-muted);">${opt.desc}</div>` : ''}
+          </div>
+          <div style="width: 22px; height: 22px; border: 2px solid ${isSelected ? 'var(--primary)' : 'var(--border)'}; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+            ${isSelected ? '<div style="width: 12px; height: 12px; background: var(--primary); border-radius: 50%;"></div>' : ''}
           </div>
         </div>
-      `;
-    });
-    html += '</div>';
-  } 
+      </div>
+    `;
+  });
+  html += '</div>';
+}
   else if (question.type === 'multi') {
-    html += '<div style="display: flex; flex-direction: column; gap: 12px;">';
-    question.options.forEach(opt => {
-      const isSelected = (qState.answers[question.key] || []).includes(opt.value);
-      html += `
-        <div onclick="toggleMultiOption('${question.key}', '${opt.value}')" style="padding: 18px 20px; border: 2px solid ${isSelected ? 'var(--primary)' : 'var(--border)'}; border-radius: 12px; cursor: pointer; background: ${isSelected ? 'rgba(252, 128, 25, 0.05)' : 'var(--bg)'}; transition: all 0.2s;">
-          <div style="display: flex; align-items: center; gap: 14px;">
-            <div style="width: 22px; height: 22px; border: 2px solid ${isSelected ? 'var(--primary)' : 'var(--border)'}; border-radius: 4px; display: flex; align-items: center; justify-content: center; background: ${isSelected ? 'var(--primary)' : 'transparent'}; flex-shrink: 0;">
-              ${isSelected ? '<span style="color: #fff; font-size: 16px; font-weight: 700;">✓</span>' : ''}
-            </div>
-            <div style="font-size: 16px; font-weight: 600; color: var(--text);">${opt.label}</div>
+  html += '<div style="display: flex; flex-direction: column; gap: 12px;">';
+  question.options.forEach(opt => {
+    const isSelected = (qState.answers[question.key] || []).includes(opt.value);
+    const questionKey = question.key;
+    const optValue = opt.value;
+    
+    html += `
+      <div data-question-key="${questionKey}" data-option-value="${optValue}" class="questionnaire-multi-option" style="padding: 18px 20px; border: 2px solid ${isSelected ? 'var(--primary)' : 'var(--border)'}; border-radius: 12px; cursor: pointer; background: ${isSelected ? 'rgba(252, 128, 25, 0.05)' : 'var(--bg)'}; transition: all 0.2s;">
+        <div style="display: flex; align-items: center; gap: 14px;">
+          <div style="width: 22px; height: 22px; border: 2px solid ${isSelected ? 'var(--primary)' : 'var(--border)'}; border-radius: 4px; display: flex; align-items: center; justify-content: center; background: ${isSelected ? 'var(--primary)' : 'transparent'}; flex-shrink: 0;">
+            ${isSelected ? '<span style="color: #fff; font-size: 16px; font-weight: 700;">✓</span>' : ''}
           </div>
+          <div style="font-size: 16px; font-weight: 600; color: var(--text);">${opt.label}</div>
         </div>
-      `;
-    });
-    html += '</div>';
-  }
+      </div>
+    `;
+  });
+  html += '</div>';
+}
   else if (question.type === 'textarea') {
     const value = qState.answers[question.key] || '';
     const charCount = value.length;
