@@ -1370,7 +1370,81 @@ const BARK_Q_FORMS = {
   }
 };
 
+// ─── EXPERT PROFILE QUESTIONS ───
+BARK_Q_FORMS.expert_services = {
+  title: "What services do you offer?",
+  subtitle: "Select all services you provide",
+  type: "multi",
+  key: "servicesOffered",
+  required: true,
+  options: [
+    { value: "itr", label: "ITR Filing" },
+    { value: "gst", label: "GST Services" },
+    { value: "accounting", label: "Accounting / Bookkeeping" },
+    { value: "audit", label: "Audit Services" },
+    { value: "photography", label: "Photography" },
+    { value: "development", label: "App / Web Development" }
+  ]
+};
 
+BARK_Q_FORMS.expert_specialization = {
+  title: "Your specialization",
+  subtitle: "What best describes your expertise?",
+  type: "single",
+  key: "specialization",
+  required: true,
+  options: [
+    { value: "Chartered Accountant", label: "Chartered Accountant (CA)" },
+    { value: "Tax Consultant", label: "Tax Consultant" },
+    { value: "GST Specialist", label: "GST Specialist" },
+    { value: "Accountant", label: "Accountant" },
+    { value: "Auditor", label: "Auditor" },
+    { value: "Photographer", label: "Photographer" },
+    { value: "Web Developer", label: "Web Developer" },
+    { value: "App Developer", label: "App Developer" },
+    { value: "Other", label: "Other" }
+  ]
+};
+
+BARK_Q_FORMS.expert_experience = {
+  title: "Years of experience",
+  subtitle: "How long have you been practicing?",
+  type: "single",
+  key: "experience",
+  required: true,
+  options: [
+    { value: "0-1", label: "Less than 1 year" },
+    { value: "1-3", label: "1 – 3 years" },
+    { value: "3-5", label: "3 – 5 years" },
+    { value: "5-10", label: "5 – 10 years" },
+    { value: "10+", label: "More than 10 years" }
+  ]
+};
+
+BARK_Q_FORMS.expert_location = {
+  title: "Your location",
+  subtitle: "Where are you based?",
+  type: "single",
+  key: "serviceLocationType",
+  required: true,
+  options: [
+    { value: "online", icon: "💻", label: "Online / Remote only" },
+    { value: "local", icon: "📍", label: "Local (in-person available)" },
+    { value: "both", icon: "🌐", label: "Both online and in-person" }
+  ]
+};
+
+BARK_Q_FORMS.expert_bio = {
+  title: "About yourself",
+  subtitle: "Tell clients about your experience and expertise",
+  type: "textarea",
+  key: "bio",
+  required: true,
+  minLength: 30,
+  maxLength: 500,
+  placeholder: "e.g., I am a Chartered Accountant with 5 years of experience specializing in ITR filing and GST compliance for small businesses...",
+  validation: "Minimum 30 characters required"
+};
 // ─── QUESTIONNAIRE STATE ───
 let qState = {
   step: 0,
