@@ -1565,6 +1565,26 @@ if (question.type === 'single') {
   checkCanProceed();
 }
 
+  // ─── ATTACH CLICK LISTENERS TO OPTIONS ───
+function attachQuestionnaireListeners() {
+  // Single select options
+  document.querySelectorAll('.questionnaire-option').forEach(option => {
+    option.addEventListener('click', function() {
+      const key = this.getAttribute('data-question-key');
+      const value = this.getAttribute('data-option-value');
+      selectSingleOption(key, value);
+    });
+  });
+  
+  // Multi select options
+  document.querySelectorAll('.questionnaire-multi-option').forEach(option => {
+    option.addEventListener('click', function() {
+      const key = this.getAttribute('data-question-key');
+      const value = this.getAttribute('data-option-value');
+      toggleMultiOption(key, value);
+    });
+  });
+}   
 // ─── OPTION SELECTION HANDLERS ───
 function selectSingleOption(key, value) {
   qState.answers[key] = value;
