@@ -1580,7 +1580,7 @@ function showRequestApproaches(req, approaches) {
 // ─── VIEW EXPERT PROFILE ───
 async function viewExpertProfile(expertId) {
   try {
-    const res = await fetch(`${API_URL}/users/experts/${expertId}`, {
+    const res = await fetch(`${API_URL}/users/expert/${expertId}`, {
       headers: { 'Authorization': `Bearer ${state.token}` }
     });
     
