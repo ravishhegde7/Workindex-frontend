@@ -1629,44 +1629,6 @@ function updateAddressField(key, fieldKey, value) {
   qState.answers[key][fieldKey] = value;
   checkCanProceed();
 }
-<script>
-// ═══════════════════════════════════════════════════════════
-//  SIMPLE FIX: Attach click listeners to questionnaire
-// ═══════════════════════════════════════════════════════════
-
-// Override renderQuestion to add event listeners
-const _originalRenderQuestion = renderQuestion;
-renderQuestion = function() {
-  _originalRenderQuestion();
-  
-  setTimeout(() => {
-    // Fix all onclick divs
-    const options = document.querySelectorAll('#qContent > div > div[onclick]');
-    
-    options.forEach(option => {
-      const onclickAttr = option.getAttribute('onclick');
-      if (!onclickAttr) return;
-      
-      // Remove onclick attribute
-      option.removeAttribute('onclick');
-      
-      // Parse and execute
-      option.addEventListener('click', function() {
-        try {
-          // Execute the function
-          eval(onclickAttr);
-        } catch (e) {
-          console.error('Click error:', e);
-        }
-      });
-      
-      // Ensure clickable
-      option.style.cursor = 'pointer';
-      option.style.pointerEvents = 'auto';
-    });
-  }, 50);
-};
-</script>
      
 // ─── VALIDATION ───
 function checkCanProceed() {
