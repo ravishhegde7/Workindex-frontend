@@ -1540,6 +1540,8 @@ function showRequestApproaches(req, approaches) {
         <div style="display: flex; gap: 8px;">
           <button onclick="viewExpertProfile('${expert._id}')" style="flex: 1; padding: 10px; border: 1.5px solid var(--primary); border-radius: 8px; background: transparent; color: var(--primary); font-size: 13px; font-weight: 600; cursor: pointer;">View Profile</button>
           <button onclick="contactExpert('${expert._id}')" style="flex: 1; padding: 10px; border: none; border-radius: 8px; background: var(--primary); color: #fff; font-size: 13px; font-weight: 700; cursor: pointer;">Contact</button>
+          <button onclick="confirmServiceReceived('${req._id}', '${expert._id}', '${expert.name}', '${app._id}')" style="width: 100%; padding: 10px; border: 1.5px solid #4CAF50; border-radius: 8px; background: transparent; color: #4CAF50; font-size: 13px; font-weight: 600; cursor: pointer; margin-top: 4px;">✓ Service Received?</button>
+
         </div>
       </div>
     `;
@@ -1992,5 +1994,104 @@ document.addEventListener('DOMContentLoaded', () => {
     showPage('landing');
   }
 });
+// ─── SERVICE RECEIVED CONFIRMATION ───
+function confirmServiceReceived(requestId, expertId, expertName, approachId) {
+  // Close current modal first
+  document.querySelectorAll('[style*="position: fixed"]').forEach(m => {
+    if (m.style.zIndex === '1000') m.remove();
+  });
+
+  const modal = document.createElement('div');
+  modal.style.cssText = 'position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 20px;';
+  modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
+
+  modal.innerHTML = `
+    <div style="background: var(--bg); border-radius: 16px; max-width: 400px; width: 100%; padding: 28px; text-align: center;">
+      <div style="font-size: 48px; margin-bottom: 16px;">✅</div>
+      <h2 style="font-size: 20px; font-weight: 700; color: var(--text); margin-bottom: 8px;">Service Received?</h2>
+      <p style="font-size: 15px; color: var(--text-muted); margin-bottom: 24px;">Did <strong>${expertName}</strong> complete the service for you?</p>
+      
+      <div style="display: flex; gap: 12px;">
+        <button onclick="markServiceComplete('${requestId}', '${expertId}', '${expertName}', '${approachId}')" 
+          style="flex: 1; padding: 14px; border: none; border-radius: 12px; background: #4CAF50; color: #fff; font-size: 16px; font-weight: 700; cursor: pointer;">
+          ✓ Yes
+        </button>
+        <button onclick="this.closest('[style*=fixed]').remove()" 
+          style="flex: 1; padding: 14px; border: 1.5px solid var(--border); border-radius: 12px; background: transparent; color: var(--text); font-size: 16px; font-weight: 600; cursor: pointer;">
+          ✕ No
+        </button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+}
+
+// ─── MARK SERVICE COMPLETE & GO TO RATING ───
+async function markServiceComplete(requestId, expertId, expertName, approachId) {
+  try {
+    // Close confirmation modal
+    document.querySelectorAll('[style*="position: fixed"]').forEach(m => {
+      if (m.style.zIndex === '1000') m.remove();
+    });
+
+    // Mark request as completed
+    const res = await fetch(`${API_URL}/requests/${requestId}/complete`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${state.token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ expertId })
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      showToast('Request marked as completed!', 'success');
+    }
+    // Even if completion fails, still show rating modal
+    
+    // Reload client data in background
+    loadClientData();
+
+    // Show rating modal
+    setTimeout(() => {
+      showRatingPrompt(expertId, expertName, requestId, approachId);
+    }, 500);
+
+  } catch (error) {
+    console.error('Mark complete error:', error);
+    // Still show rating even if API fails
+    showRatingPrompt(expertId, expertName, requestId, approachId);
+  }
+}
+
+// ─── RATING PROMPT AFTER SERVICE ───
+function showRatingPrompt(expertId, expertName, requestId, approachId) {
+  const modal = document.createElement('div');
+  modal.style.cssText = 'position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 20px;';
+
+  modal.innerHTML = `
+    <div style="background: var(--bg); border-radius: 16px; max-width: 400px; width: 100%; padding: 28px; text-align: center;">
+      <div style="font-size: 48px; margin-bottom: 16px;">⭐</div>
+      <h2 style="font-size: 20px; font-weight: 700; color: var(--text); margin-bottom: 8px;">Rate ${expertName}</h2>
+      <p style="font-size: 15px; color: var(--text-muted); margin-bottom: 24px;">How was your experience? Your review helps others find great professionals.</p>
+      
+      <div style="display: flex; gap: 12px;">
+        <button onclick="this.closest('[style*=fixed]').remove(); openRatingModal('${expertId}', '${expertName}', '${approachId}')" 
+          style="flex: 1; padding: 14px; border: none; border-radius: 12px; background: var(--primary); color: #fff; font-size: 16px; font-weight: 700; cursor: pointer;">
+          ⭐ Rate Now
+        </button>
+        <button onclick="this.closest('[style*=fixed]').remove()" 
+          style="flex: 1; padding: 14px; border: 1.5px solid var(--border); border-radius: 12px; background: transparent; color: var(--text); font-size: 15px; font-weight: 600; cursor: pointer;">
+          Skip
+        </button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+}
 
 // ═══ END OF JAVASCRIPT ═══
