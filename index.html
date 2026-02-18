@@ -682,27 +682,29 @@
   </div>
 
   <!-- Ratings Tab -->
-  <div id="ratingsTab" class="tab-content" style="display: none; padding: 20px;">
-    <h2 style="margin-bottom: 20px;">My Reviews</h2>
-    
-    <div class="settings-section">
-      <div style="display: flex; gap: 24px; margin-bottom: 24px;">
-        <div>
-          <div style="font-size: 48px; font-weight: 700;" id="avgRating">0.0</div>
-          <div class="rating-stars">
-  <span class="star" onclick="selectRating(1)">★</span>
-  <span class="star" onclick="selectRating(2)">★</span>
-  <span class="star" onclick="selectRating(3)">★</span>
-  <span class="star" onclick="selectRating(4)">★</span>
-  <span class="star" onclick="selectRating(5)">★</span>
-</div>
-          <div style="font-size: 14px; color: var(--text-muted); margin-top: 8px;" id="reviewCount">0 reviews</div>
+<!-- Ratings Tab -->
+<div id="ratingsTab" class="tab-content" style="display: none; padding: 20px;">
+  <h2 style="margin-bottom: 20px;">My Reviews</h2>
+  
+  <div class="settings-section">
+    <div style="display: flex; gap: 24px; margin-bottom: 24px;">
+      <div>
+        <div style="font-size: 48px; font-weight: 700;" id="avgRating">0.0</div>
+        <div class="rating-stars" style="pointer-events: none;">
+          <span class="star">★</span>
+          <span class="star">★</span>
+          <span class="star">★</span>
+          <span class="star">★</span>
+          <span class="star">★</span>
         </div>
-        <div style="flex: 1;">
-          <div id="ratingBars" class="rating-bars"></div>
-        </div>
+        <div style="font-size: 14px; color: var(--text-muted); margin-top: 8px;" id="reviewCount">0 reviews</div>
+      </div>
+      <div style="flex: 1;">
+        <div id="ratingBars" class="rating-bars"></div>
       </div>
     </div>
+  </div>
+  <!-- rest stays the same -->
 
     <div id="reviewsList"></div>
 
