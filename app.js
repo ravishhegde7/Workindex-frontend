@@ -623,10 +623,24 @@ function renderMyRatings(data) {
   const container = document.getElementById('reviewsList');
   const emptyState = document.getElementById('reviewsEmpty');
   
-  // Update summary
-  if (state.user && data.total > 0) {
-    document.getElementById('avgRating').textContent = state.user.rating || '0.0';
-    document.getElementById('reviewCount').textContent = `${data.total} reviews`;
+  // Update summary - FIXED to calculate from actual ratings
+  if (data.total > 0 && data.ratings && data.ratings.length > 0) {
+    // Calculate average from received ratings
+    const avgRating = data.ratings.reduce((sum, r) => sum + r.rating, 0) / data.ratings.length;
+    document.getElementById('avgRating').textContent = avgRating.toFixed(1);
+    document.getElementById('reviewCount').textContent = `${data.total} review${data.total > 1 ? 's' : ''}`;
+    
+    // Fill the display stars at the top
+    const topStars = document.querySelectorAll('#ratingsTab > .settings-section .rating-stars .star');
+    const roundedRating = Math.round(avgRating);
+    topStars.forEach((star, index) => {
+      if (index < roundedRating) {
+        star.classList.add('filled');
+      } else {
+        star.classList.remove('filled');
+      }
+    });
+    
     renderRatingBars(data.ratings);
   }
   
