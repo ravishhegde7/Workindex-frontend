@@ -2136,11 +2136,10 @@ function showRatingPrompt(expertId, expertName, requestId, approachId) {
 }
 // ─── RENDER EXPERT PROFILE ───
 function renderExpertProfile() {
-  console.log('🔍 renderExpertProfile called');
-  console.log('User data:', state.user);
+  console.log('🔍 Rendering profile with user data:', state.user);
   
   if (!state.user) {
-    console.log('❌ No user data found');
+    console.log('❌ No user data in state!');
     return;
   }
   
