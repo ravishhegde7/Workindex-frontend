@@ -1767,22 +1767,23 @@ async function submitQuestionnaire() {
     // Update expert profile
     try {
       const res = await fetch(`${API_URL}/users/profile`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${state.token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(qState.answers)
-      });
+  method: 'PUT',
+  headers: {
+    'Authorization': `Bearer ${state.token}`,
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({ profile: qState.answers })  // ✅ Wrap in { profile: ... }
+});
       
       const data = await res.json();
       if (data.success) {
-        state.user = { ...state.user, ...qState.answers };
-        localStorage.setItem('user', JSON.stringify(state.user));
-        showToast('Profile completed successfully!', 'success');
-        showPage('expertDash');
-        loadExpertData();
-      } else {
+  // ✅ Save under profile key, not spread flat
+  state.user = { ...state.user, profile: qState.answers };
+  localStorage.setItem('user', JSON.stringify(state.user));
+  showToast('Profile completed successfully!', 'success');
+  showPage('expertDash');
+  loadExpertData();
+} else {
         showToast(data.message || 'Failed to update profile', 'error');
       }
     } catch (error) {
