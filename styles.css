@@ -1071,3 +1071,10 @@ body.dark-mode {
   z-index: 0;
   clear: both;
 }
+
+#ratingsTab .settings-section .review-count {
+  display: block;
+  margin-top: 4px;
+  position: relative;
+  z-index: 1;
+}
