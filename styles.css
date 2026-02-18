@@ -1067,4 +1067,7 @@ body.dark-mode {
   gap: 4px;
   margin-top: 8px;
   margin-bottom: 4px;
+   position: relative;
+  z-index: 0;
+  clear: both;
 }
