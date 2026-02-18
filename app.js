@@ -2136,10 +2136,19 @@ function showRatingPrompt(expertId, expertName, requestId, approachId) {
 }
 // ─── RENDER EXPERT PROFILE ───
 function renderExpertProfile() {
-  if (!state.user) return;
+  console.log('🔍 renderExpertProfile called');
+  console.log('User data:', state.user);
+  
+  if (!state.user) {
+    console.log('❌ No user data found');
+    return;
+  }
   
   const user = state.user;
+  console.log('✅ Rendering profile for:', user.name);
   
+  // ... rest of the function stays the same
+}
   // Update basic info
   document.getElementById('expertProfileName').textContent = user.name || 'Expert';
   document.getElementById('expertProfileEmail').textContent = user.email || '';
