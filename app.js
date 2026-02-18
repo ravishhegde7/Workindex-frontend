@@ -523,7 +523,22 @@ function closeRatingModal(event) {
 function selectRating(rating) {
   state.selectedRating = rating;
   
-  document.querySelectorAll('.rating-stars .star').forEach((star, index) => {
+  // Handle modal stars with data-rating attributes
+  const modalStars = document.querySelectorAll('#ratingModal .rating-stars .star');
+  if (modalStars.length > 0) {
+    modalStars.forEach(star => {
+      const starRating = parseInt(star.getAttribute('data-rating'));
+      if (starRating <= rating) {
+        star.classList.add('filled');
+      } else {
+        star.classList.remove('filled');
+      }
+    });
+  }
+  
+  // Also handle any other stars using index (for display purposes)
+  const otherStars = document.querySelectorAll('.rating-stars .star:not([data-rating])');
+  otherStars.forEach((star, index) => {
     if (index < rating) {
       star.classList.add('filled');
     } else {
@@ -531,7 +546,6 @@ function selectRating(rating) {
     }
   });
 }
-
 async function submitRating() {
   const modal = document.getElementById('ratingModal');
   const expertId = modal.dataset.expertId;
