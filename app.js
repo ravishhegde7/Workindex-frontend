@@ -550,9 +550,13 @@ async function submitRating() {
   const modal = document.getElementById('ratingModal');
   const expertId = modal.dataset.expertId;
   const approachId = modal.dataset.approachId;
+  const requestId = modal.dataset.requestId;  // ✅ DECLARE IT FIRST
   const rating = state.selectedRating;
   const review = document.getElementById('reviewText').value.trim();
   const wouldRecommend = document.getElementById('wouldRecommend').checked;
+  
+  // ✅ ADD DEBUG
+  console.log('Submitting rating with:', { expertId, requestId, approachId, rating });
   
   if (rating === 0) {
     showToast('Please select a rating', 'warning');
@@ -573,7 +577,7 @@ async function submitRating() {
       },
       body: JSON.stringify({
         expertId,
-        requestId: modal.dataset.requestId,
+        requestId,  // ✅ USE THE VARIABLE
         approachId,
         rating,
         review,
