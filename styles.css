@@ -999,3 +999,34 @@ body.dark-mode {
   cursor: pointer !important;
   pointer-events: auto !important;
 }
+/* Fix star clickability */
+.rating-stars {
+  display: flex;
+  gap: 8px;
+  pointer-events: auto !important;
+}
+
+.rating-stars .star {
+  font-size: 40px;
+  color: #ddd;
+  cursor: pointer;
+  transition: all 0.2s;
+  user-select: none;
+  pointer-events: auto !important;
+  position: relative;
+  z-index: 10;
+}
+
+.rating-stars .star.large {
+  font-size: 48px;
+}
+
+.rating-stars .star.filled {
+  color: #f39c12;
+  transform: scale(1.1);
+}
+
+.rating-stars .star:hover {
+  color: #f39c12;
+  transform: scale(1.15);
+}
