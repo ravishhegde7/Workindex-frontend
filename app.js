@@ -746,7 +746,7 @@ async function respondToReview(ratingId) {
     
     if (data.success) {
       showToast('Response posted!', 'success');
-      loadMyRatings();
+      loadExpertData(); // ✅ FIXED: was loadMyRatings()
     } else {
       showToast(data.message || 'Failed to post response', 'error');
     }
@@ -768,12 +768,13 @@ async function markHelpful(ratingId) {
     const data = await res.json();
     
     if (data.success) {
-      loadMyRatings();
+      loadExpertData(); // ✅ FIXED: was loadMyRatings()
     }
   } catch (error) {
     console.error('Mark helpful error:', error);
   }
 }
+
 
 // ─── FIND PROFESSIONALS ─── 
 async function loadExperts(filters = {}) {
