@@ -1209,6 +1209,7 @@ async function loadExpertData() {
       
       // ✅ NEW: Load expert's approaches
       loadMyApproaches();
+       renderExpertProfile();
     }
   } catch (error) {
     console.error('Load expert data error:', error);
@@ -2133,5 +2134,126 @@ function showRatingPrompt(expertId, expertName, requestId, approachId) {
 
   document.body.appendChild(modal);
 }
-
+// ─── RENDER EXPERT PROFILE ───
+function renderExpertProfile() {
+  if (!state.user) return;
+  
+  const user = state.user;
+  
+  // Update basic info
+  document.getElementById('expertProfileName').textContent = user.name || 'Expert';
+  document.getElementById('expertProfileEmail').textContent = user.email || '';
+  
+  const avatar = document.getElementById('expertProfileAvatar');
+  if (user.profilePhoto) {
+    avatar.innerHTML = `<img src="${user.profilePhoto}" alt="${user.name}">`;
+  } else {
+    avatar.textContent = (user.name || 'E').substring(0, 2).toUpperCase();
+  }
+  
+  // Check if profile tab already has content sections
+  const profileTab = document.getElementById('profileTab');
+  const existingSections = profileTab.querySelectorAll('.settings-section');
+  
+  // Remove old sections (keep only avatar section)
+  existingSections.forEach(section => section.remove());
+  
+  // Build profile details HTML
+  let profileHTML = '';
+  
+  // Services Offered
+  if (user.servicesOffered && user.servicesOffered.length > 0) {
+    const serviceLabels = {
+      itr: 'ITR Filing',
+      gst: 'GST Services',
+      accounting: 'Accounting',
+      audit: 'Audit',
+      photography: 'Photography',
+      development: 'Development'
+    };
+    
+    profileHTML += `
+      <div class="settings-section">
+        <h3 class="settings-section-title">Services Offered</h3>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+          ${user.servicesOffered.map(s => 
+            `<span class="badge badge-primary">${serviceLabels[s] || s}</span>`
+          ).join('')}
+        </div>
+      </div>
+    `;
+  }
+  
+  // Specialization & Experience
+  profileHTML += `
+    <div class="settings-section">
+      <h3 class="settings-section-title">Professional Details</h3>
+      ${user.specialization ? `
+        <div style="padding: 12px 0; border-bottom: 1px solid var(--border);">
+          <div style="font-size: 13px; color: var(--text-muted); margin-bottom: 4px;">Specialization</div>
+          <div style="font-size: 15px; font-weight: 600;">${user.specialization}</div>
+        </div>
+      ` : ''}
+      ${user.experience ? `
+        <div style="padding: 12px 0; border-bottom: 1px solid var(--border);">
+          <div style="font-size: 13px; color: var(--text-muted); margin-bottom: 4px;">Experience</div>
+          <div style="font-size: 15px; font-weight: 600;">${user.experience} years</div>
+        </div>
+      ` : ''}
+      <div style="padding: 12px 0; border-bottom: 1px solid var(--border);">
+        <div style="font-size: 13px; color: var(--text-muted); margin-bottom: 4px;">Rating</div>
+        <div style="font-size: 15px; font-weight: 600;">⭐ ${user.rating || '0.0'} (${user.reviewCount || 0} reviews)</div>
+      </div>
+      <div style="padding: 12px 0;">
+        <div style="font-size: 13px; color: var(--text-muted); margin-bottom: 4px;">Credits Balance</div>
+        <div style="font-size: 15px; font-weight: 600;">💎 ${user.credits || 0} credits</div>
+      </div>
+    </div>
+  `;
+  
+  // Bio
+  if (user.bio) {
+    profileHTML += `
+      <div class="settings-section">
+        <h3 class="settings-section-title">About</h3>
+        <p style="font-size: 15px; color: var(--text-light); line-height: 1.6;">${user.bio}</p>
+      </div>
+    `;
+  }
+  
+  // Service Location Type
+  if (user.serviceLocationType) {
+    const locationLabels = {
+      online: '💻 Online / Remote only',
+      local: '📍 Local (in-person available)',
+      both: '🌐 Both online and in-person'
+    };
+    
+    profileHTML += `
+      <div class="settings-section">
+        <h3 class="settings-section-title">Service Location</h3>
+        <div style="font-size: 15px; font-weight: 600;">${locationLabels[user.serviceLocationType] || user.serviceLocationType}</div>
+      </div>
+    `;
+  }
+  
+  // Contact Info
+  profileHTML += `
+    <div class="settings-section">
+      <h3 class="settings-section-title">Contact Information</h3>
+      <div style="padding: 12px 0; border-bottom: 1px solid var(--border);">
+        <div style="font-size: 13px; color: var(--text-muted); margin-bottom: 4px;">Phone</div>
+        <div style="font-size: 15px; font-weight: 600;">${user.phone || 'Not provided'}</div>
+      </div>
+      <div style="padding: 12px 0;">
+        <div style="font-size: 13px; color: var(--text-muted); margin-bottom: 4px;">Member Since</div>
+        <div style="font-size: 15px; font-weight: 600;">${user.createdAt ? new Date(user.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : 'Recently joined'}</div>
+      </div>
+    </div>
+  `;
+  
+  // Insert all sections after the avatar section
+  const avatarSection = profileTab.querySelector('[style*="text-align: center"]');
+  avatarSection.insertAdjacentHTML('afterend', profileHTML);
+}
 // ═══ END OF JAVASCRIPT ═══
