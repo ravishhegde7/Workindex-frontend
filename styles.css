@@ -1030,3 +1030,41 @@ body.dark-mode {
   color: #f39c12;
   transform: scale(1.15);
 }
+/* Fix star positioning in review cards */
+.review-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.review-header .avatar {
+  flex-shrink: 0;
+}
+
+.review-author {
+  flex: 1;
+  min-width: 0;
+}
+
+.review-header .rating-stars {
+  flex-shrink: 0;
+  display: flex;
+  gap: 2px;
+  align-items: center;
+}
+
+.review-text {
+  margin-top: 12px;
+  margin-bottom: 12px;
+  line-height: 1.6;
+  color: var(--text-light);
+}
+
+/* Fix top rating display alignment */
+#ratingsTab .settings-section .rating-stars {
+  display: flex;
+  gap: 4px;
+  margin-top: 8px;
+  margin-bottom: 4px;
+}
