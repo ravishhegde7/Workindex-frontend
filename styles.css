@@ -1004,17 +1004,18 @@ body.dark-mode {
   display: flex;
   gap: 8px;
   pointer-events: auto !important;
+  align-items: center;
+  line-height: 1;
 }
 
 .rating-stars .star {
-  font-size: 40px;
+  font-size: 24px;
   color: #ddd;
   cursor: pointer;
   transition: all 0.2s;
   user-select: none;
   pointer-events: auto !important;
-  position: relative;
-  z-index: 10;
+  display: inline-block;  /* removes position:relative/z-index */
 }
 
 .rating-stars .star.large {
