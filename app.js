@@ -2182,59 +2182,61 @@ const profile = user.profile || {};  // ✅ ADD THIS LINE
     section.remove();
   });
   
-  // Build profile details HTML
-  var profileHTML = '';
+// Build profile details HTML
+var profileHTML = '';
+
+// Services Offered - READ FROM PROFILE
+if (profile.servicesOffered && profile.servicesOffered.length > 0) {  // ✅ CHANGED
+  var serviceLabels = {
+    itr: 'ITR Filing',
+    gst: 'GST Services',
+    accounting: 'Accounting',
+    audit: 'Audit',
+    photography: 'Photography',
+    development: 'Development'
+  };
   
-  // Services Offered
-  if (user.servicesOffered && user.servicesOffered.length > 0) {
-    var serviceLabels = {
-      itr: 'ITR Filing',
-      gst: 'GST Services',
-      accounting: 'Accounting',
-      audit: 'Audit',
-      photography: 'Photography',
-      development: 'Development'
-    };
-    
-    var serviceBadges = user.servicesOffered.map(function(s) {
-      return '<span class="badge badge-primary">' + (serviceLabels[s] || s) + '</span>';
-    }).join('');
-    
-    profileHTML += '<div class="settings-section"><h3 class="settings-section-title">Services Offered</h3><div style="display: flex; flex-wrap: wrap; gap: 8px;">' + serviceBadges + '</div></div>';
-  }
+  var serviceBadges = profile.servicesOffered.map(function(s) {  // ✅ CHANGED
+    return '<span class="badge badge-primary">' + (serviceLabels[s] || s) + '</span>';
+  }).join('');
   
-  // Specialization & Experience
-  profileHTML += '<div class="settings-section"><h3 class="settings-section-title">Professional Details</h3>';
+  profileHTML += '<div class="settings-section"><h3 class="settings-section-title">Services Offered</h3><div style="display: flex; flex-wrap: wrap; gap: 8px;">' + serviceBadges + '</div></div>';
+}
+
+// Specialization & Experience
+profileHTML += '<div class="settings-section"><h3 class="settings-section-title">Professional Details</h3>';
+
+if (profile.specialization) {  // ✅ CHANGED
+  profileHTML += '<div style="padding: 12px 0; border-bottom: 1px solid var(--border);"><div style="font-size: 13px; color: var(--text-muted); margin-bottom: 4px;">Specialization</div><div style="font-size: 15px; font-weight: 600;">' + profile.specialization + '</div></div>';
+}
+
+if (profile.experience) {  // ✅ CHANGED
+  profileHTML += '<div style="padding: 12px 0; border-bottom: 1px solid var(--border);"><div style="font-size: 13px; color: var(--text-muted); margin-bottom: 4px;">Experience</div><div style="font-size: 15px; font-weight: 600;">' + profile.experience + '</div></div>';
+}
+
+profileHTML += '<div style="padding: 12px 0; border-bottom: 1px solid var(--border);"><div style="font-size: 13px; color: var(--text-muted); margin-bottom: 4px;">Rating</div><div style="font-size: 15px; font-weight: 600;">⭐ ' + (user.rating || '0.0') + ' (' + (user.reviewCount || 0) + ' reviews)</div></div>';
+
+profileHTML += '<div style="padding: 12px 0;"><div style="font-size: 13px; color: var(--text-muted); margin-bottom: 4px;">Credits Balance</div><div style="font-size: 15px; font-weight: 600;">💎 ' + (user.credits || 0) + ' credits</div></div>';
+
+profileHTML += '</div>';
+
+// Bio - READ FROM PROFILE
+if (profile.bio) {  // ✅ CHANGED
+  profileHTML += '<div class="settings-section"><h3 class="settings-section-title">About</h3><p style="font-size: 15px; color: var(--text-light); line-height: 1.6;">' + profile.bio + '</p></div>';
+}
+
+// Service Location Type - READ FROM PROFILE
+if (profile.serviceLocationType) {  // ✅ CHANGED
+  var locationLabels = {
+    online: '💻 Online / Remote only',
+    local: '📍 Local (in-person available)',
+    both: '🌐 Both online and in-person'
+  };
   
-  if (user.specialization) {
-    profileHTML += '<div style="padding: 12px 0; border-bottom: 1px solid var(--border);"><div style="font-size: 13px; color: var(--text-muted); margin-bottom: 4px;">Specialization</div><div style="font-size: 15px; font-weight: 600;">' + user.specialization + '</div></div>';
-  }
-  
-  if (user.experience) {
-    profileHTML += '<div style="padding: 12px 0; border-bottom: 1px solid var(--border);"><div style="font-size: 13px; color: var(--text-muted); margin-bottom: 4px;">Experience</div><div style="font-size: 15px; font-weight: 600;">' + user.experience + ' years</div></div>';
-  }
-  
-  profileHTML += '<div style="padding: 12px 0; border-bottom: 1px solid var(--border);"><div style="font-size: 13px; color: var(--text-muted); margin-bottom: 4px;">Rating</div><div style="font-size: 15px; font-weight: 600;">⭐ ' + (user.rating || '0.0') + ' (' + (user.reviewCount || 0) + ' reviews)</div></div>';
-  
-  profileHTML += '<div style="padding: 12px 0;"><div style="font-size: 13px; color: var(--text-muted); margin-bottom: 4px;">Credits Balance</div><div style="font-size: 15px; font-weight: 600;">💎 ' + (user.credits || 0) + ' credits</div></div>';
-  
-  profileHTML += '</div>';
-  
-  // Bio
-  if (user.bio) {
-    profileHTML += '<div class="settings-section"><h3 class="settings-section-title">About</h3><p style="font-size: 15px; color: var(--text-light); line-height: 1.6;">' + user.bio + '</p></div>';
-  }
-  
-  // Service Location Type
-  if (user.serviceLocationType) {
-    var locationLabels = {
-      online: '💻 Online / Remote only',
-      local: '📍 Local (in-person available)',
-      both: '🌐 Both online and in-person'
-    };
-    
-    profileHTML += '<div class="settings-section"><h3 class="settings-section-title">Service Location</h3><div style="font-size: 15px; font-weight: 600;">' + (locationLabels[user.serviceLocationType] || user.serviceLocationType) + '</div></div>';
-  }
+  profileHTML += '<div class="settings-section"><h3 class="settings-section-title">Service Location</h3><div style="font-size: 15px; font-weight: 600;">' + (locationLabels[profile.serviceLocationType] || profile.serviceLocationType) + '</div></div>';
+}
+
+// Rest stays same (user.phone, user.createdAt)
   
   // Contact Info
   profileHTML += '<div class="settings-section"><h3 class="settings-section-title">Contact Information</h3><div style="padding: 12px 0; border-bottom: 1px solid var(--border);"><div style="font-size: 13px; color: var(--text-muted); margin-bottom: 4px;">Phone</div><div style="font-size: 15px; font-weight: 600;">' + (user.phone || 'Not provided') + '</div></div>';
