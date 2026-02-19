@@ -2432,14 +2432,15 @@ async function startChat(requestId, expertId, clientId) {
     });
     const data = await res.json();
     if (data.success) {
-      closeModal(); // close any open modal
+      // ✅ Close all open modals correctly
+      document.querySelectorAll('[style*="position: fixed"]').forEach(m => m.remove());
       switchTab('chat');
       openChat(data.chat._id);
     } else {
       showToast(data.message || 'Could not start chat', 'error');
     }
   } catch (err) {
-    showToast('Network error', 'error');
+    showToast('Network error', 'err');
   }
 }
 // ═══ END OF JAVASCRIPT ═══
