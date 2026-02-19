@@ -2238,4 +2238,173 @@ if (profile.serviceLocationType) {  // ✅ CHANGED
     avatarSection.insertAdjacentHTML('afterend', profileHTML);
   }
 }
+// ─── CHAT STATE ───
+let currentChatId = null;
+let chatPollingInterval = null;
+
+// ─── LOAD ALL CHATS ───
+async function loadChats() {
+  try {
+    const res = await fetch(`${API_URL}/chats`, {
+      headers: { 'Authorization': `Bearer ${state.token}` }
+    });
+    const data = await res.json();
+    if (!data.success) return;
+
+    const container = document.getElementById('chatConversations');
+    if (!data.chats.length) {
+      container.innerHTML = `<div class="empty-state">
+        <div class="empty-icon">💬</div>
+        <h3 class="empty-title">No conversations yet</h3>
+        <p class="empty-text">${state.user.role === 'expert' ? 'Approach a request to start chatting' : 'Chat with experts who approach your requests'}</p>
+      </div>`;
+      return;
+    }
+
+    container.innerHTML = data.chats.map(chat => {
+      const other = state.user.role === 'expert' ? chat.client : chat.expert;
+      const initials = (other.name || '?').substring(0, 2).toUpperCase();
+      const photo = other.profilePhoto 
+        ? `<img src="${other.profilePhoto}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">` 
+        : initials;
+      
+      return `<div onclick="openChat('${chat._id}')" 
+        style="display:flex; align-items:center; gap:12px; padding:14px; border-radius:12px; cursor:pointer; border:1px solid var(--border); margin-bottom:10px; background:var(--bg);">
+        <div class="avatar">${photo}</div>
+        <div style="flex:1; min-width:0;">
+          <div style="font-weight:600; margin-bottom:2px;">${other.name}</div>
+          <div style="font-size:12px; color:var(--text-muted); margin-bottom:4px;">${chat.request?.title || ''}</div>
+          <div style="font-size:13px; color:var(--text-light); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${chat.lastMessage || 'No messages yet'}</div>
+        </div>
+      </div>`;
+    }).join('');
+
+  } catch (err) {
+    console.error('Load chats error:', err);
+  }
+}
+
+// ─── OPEN SPECIFIC CHAT ───
+async function openChat(chatId) {
+  currentChatId = chatId;
+  
+  document.getElementById('chatListView').style.display = 'none';
+  document.getElementById('chatMessageView').style.display = 'flex';
+
+  // Load messages
+  await loadMessages(chatId);
+
+  // Poll for new messages every 5 seconds
+  clearInterval(chatPollingInterval);
+  chatPollingInterval = setInterval(() => loadMessages(chatId), 5000);
+}
+
+// ─── LOAD MESSAGES ───
+async function loadMessages(chatId) {
+  try {
+    const res = await fetch(`${API_URL}/chats/${chatId}/messages`, {
+      headers: { 'Authorization': `Bearer ${state.token}` }
+    });
+    const data = await res.json();
+    if (!data.success) return;
+
+    // Set chat header
+    const chatsRes = await fetch(`${API_URL}/chats`, {
+      headers: { 'Authorization': `Bearer ${state.token}` }
+    });
+    const chatsData = await chatsRes.json();
+    const chat = chatsData.chats?.find(c => c._id === chatId);
+    if (chat) {
+      const other = state.user.role === 'expert' ? chat.client : chat.expert;
+      document.getElementById('chatWithName').textContent = other.name;
+      document.getElementById('chatRequestTitle').textContent = chat.request?.title || '';
+      const avatar = document.getElementById('chatWithAvatar');
+      avatar.innerHTML = other.profilePhoto 
+        ? `<img src="${other.profilePhoto}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`
+        : (other.name || '?').substring(0, 2).toUpperCase();
+    }
+
+    // Render messages
+    const container = document.getElementById('chatMessages');
+    const myId = state.user._id || state.user.id;
+    
+    container.innerHTML = data.messages.map(msg => {
+      const isMe = msg.sender._id === myId || msg.sender === myId;
+      const time = new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      return `<div style="display:flex; justify-content:${isMe ? 'flex-end' : 'flex-start'};">
+        <div style="max-width:70%; padding:10px 14px; border-radius:${isMe ? '18px 18px 4px 18px' : '18px 18px 18px 4px'}; 
+          background:${isMe ? 'var(--primary)' : 'var(--bg-secondary, #f1f1f1)'}; 
+          color:${isMe ? 'white' : 'var(--text)'};
+          font-size:14px; line-height:1.4;">
+          ${msg.text}
+          <div style="font-size:10px; opacity:0.7; margin-top:4px; text-align:right;">${time}</div>
+        </div>
+      </div>`;
+    }).join('');
+
+    // Scroll to bottom
+    container.scrollTop = container.scrollHeight;
+
+  } catch (err) {
+    console.error('Load messages error:', err);
+  }
+}
+
+// ─── SEND MESSAGE ───
+async function sendMessage() {
+  const input = document.getElementById('chatInput');
+  const text = input.value.trim();
+  if (!text || !currentChatId) return;
+
+  input.value = '';
+
+  try {
+    await fetch(`${API_URL}/chats/${currentChatId}/messages`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${state.token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ text })
+    });
+    await loadMessages(currentChatId);
+  } catch (err) {
+    console.error('Send message error:', err);
+  }
+}
+
+// ─── SHOW CHAT LIST ───
+function showChatList() {
+  currentChatId = null;
+  clearInterval(chatPollingInterval);
+  document.getElementById('chatListView').style.display = 'block';
+  document.getElementById('chatMessageView').style.display = 'none';
+  loadChats();
+}
+
+// ─── START CHAT FROM CONTACT BUTTON ───
+async function startChat(requestId, expertId, clientId) {
+  try {
+    const res = await fetch(`${API_URL}/chats/start`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${state.token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ requestId, expertId, clientId })
+    });
+    const data = await res.json();
+    if (data.success) {
+      // Close any open modal
+      closeModal();
+      // Switch to chat tab and open conversation
+      switchTab('chat');
+      openChat(data.chat._id);
+    } else {
+      showToast(data.message || 'Could not start chat', 'error');
+    }
+  } catch (err) {
+    showToast('Network error', 'error');
+  }
+}
 // ═══ END OF JAVASCRIPT ═══
