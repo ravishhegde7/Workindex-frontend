@@ -888,10 +888,34 @@ async function viewExpertProfile(expertId) {
     if (!data.success) { showToast('Could not load profile', 'error'); return; }
     
     const expert = data.expert || data.user;
-    
+    const profile = expert.profile || {};
+
+    const specialization = profile.specialization || expert.specialization || 'Professional';
+    const bio            = profile.bio || expert.bio || '';
+    const experience     = profile.experience || expert.yearsOfExperience || '—';
+    const services       = profile.servicesOffered || expert.servicesOffered || [];
+    const companyName    = profile.companyName || expert.companyName || '';
+    const companySize    = profile.companySize || '';
+    const hasWebsite     = profile.hasWebsite || false;
+    const websiteUrl     = profile.websiteUrl || expert.websiteUrl || '';
+    const locationType   = profile.serviceLocationType || '';
+    const certifications = profile.certifications || expert.certifications || [];
+    const city           = profile.city || expert.location?.city || '';
+
+    const locationLabels = {
+      online: '💻 Online / Remote only',
+      local: '📍 Local (in-person)',
+      both: '🌐 Both online & in-person'
+    };
+    const serviceLabels = {
+      itr: 'ITR Filing', gst: 'GST Services',
+      accounting: 'Accounting', audit: 'Audit',
+      photography: 'Photography', development: 'Development'
+    };
+
     const modal = document.createElement('div');
-    modal.style.cssText = 'position: fixed; inset: 0; background: rgba(0,0,0,0.5);
-    
+    modal.style.cssText = 'position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1001; padding: 20px;';
+    modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
     modal.innerHTML = `
       <div style="background: var(--bg); border-radius: 16px; max-width: 480px; width: 100%; max-height: 85vh; overflow-y: auto; padding: 24px;">
         
