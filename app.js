@@ -890,7 +890,7 @@ async function viewExpertProfile(expertId) {
     const expert = data.expert || data.user;
     
     const modal = document.createElement('div');
-    modal.style.cssText = 'position: fixed; inset: 0; background: rgba(0,0,0,0.5); ...
+    modal.style.cssText = 'position: fixed; inset: 0; background: rgba(0,0,0,0.5);
     
     modal.innerHTML = `
       <div style="background: var(--bg); border-radius: 16px; max-width: 480px; width: 100%; max-height: 85vh; overflow-y: auto; padding: 24px;">
