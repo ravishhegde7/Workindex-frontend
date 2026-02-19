@@ -1585,7 +1585,8 @@ function showRequestApproaches(req, approaches) {
         <p style="font-size: 14px; color: var(--text-light); margin-bottom: 12px;">${app.message}</p>
         <div style="display: flex; gap: 8px;">
           <button onclick="viewExpertProfile('${expert._id}')" style="flex: 1; padding: 10px; border: 1.5px solid var(--primary); border-radius: 8px; background: transparent; color: var(--primary); font-size: 13px; font-weight: 600; cursor: pointer;">View Profile</button>
-          <button onclick="contactExpert('${expert._id}')" style="flex: 1; padding: 10px; border: none; border-radius: 8px; background: var(--primary); color: #fff; font-size: 13px; font-weight: 700; cursor: pointer;">Contact</button>
+          <button onclick="contactExpert('${expert._id}', '${req._id}', '${state.user._id}')" 
+          style="flex: 1; padding: 10px; border: none; border-radius: 8px; background: var(--primary); color: #fff; font-size: 13px; font-weight: 700; cursor: pointer;">Contact</button>
           <button onclick="confirmServiceReceived('${req._id}', '${expert._id}', '${expert.name}', '${app._id}')" style="width: 100%; padding: 10px; border: 1.5px solid #4CAF50; border-radius: 8px; background: transparent; color: #4CAF50; font-size: 13px; font-weight: 600; cursor: pointer; margin-top: 4px;">✓ Service Received?</button>
 
         </div>
