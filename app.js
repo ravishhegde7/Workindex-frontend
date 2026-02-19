@@ -80,9 +80,19 @@ function switchTab(tabName) {
   
   document.querySelectorAll('.tab-content').forEach(content => content.style.display = 'none');
   
-  // ✅ Use correct profileTab ID based on role
   const isExpert = state.user?.role === 'expert';
-  const contentId = (tabName === 'profile' && isExpert) ? 'expertProfileTab' : tabName + 'Tab';
+
+  // Determine correct content div ID
+  let contentId;
+  if (tabName === 'profile' && isExpert) {
+    contentId = 'expertProfileTab';
+  } else if (tabName === 'chat' && isExpert) {
+    contentId = 'expertChatTab';
+  } else if (tabName === 'chat' && !isExpert) {
+    contentId = 'clientChatTab';
+  } else {
+    contentId = tabName + 'Tab';
+  }
   
   const content = document.getElementById(contentId);
   if (content) {
@@ -91,7 +101,8 @@ function switchTab(tabName) {
     else if (tabName === 'access') loadAccessRequests();
     else if (tabName === 'ratings') loadMyRatings();
     else if (tabName === 'approaches' && isExpert) loadMyApproaches();
-    else if (tabName === 'profile') renderExpertProfile();  // ✅ Now triggers correctly
+    else if (tabName === 'profile' && isExpert) renderExpertProfile();
+    else if (tabName === 'chat') showChatList();  // ✅ works for both roles
   }
 }
 
