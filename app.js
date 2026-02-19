@@ -2157,7 +2157,7 @@ const profile = user.profile || {};  // ✅ ADD THIS LINE
   }
   
   // Check if profile tab already has content sections
-  const profileTab = document.getElementById('profileTab');
+  const profileTab = document.getElementById('expertProfileTab');
   const existingSections = profileTab.querySelectorAll('.settings-section');
   
   // Remove old sections (keep only avatar section)
