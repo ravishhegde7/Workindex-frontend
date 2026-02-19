@@ -1185,6 +1185,20 @@ function updateClientProfile() {
 
 // ─── LOAD EXPERT DATA ─── 
 async function loadExpertData() {
+  // ✅ FIRST: Fetch fresh user data with profile
+  try {
+    const userRes = await fetch(`${API_URL}/users/me`, {
+      headers: { 'Authorization': `Bearer ${state.token}` }
+    });
+    const userData = await userRes.json();
+    if (userData.success) {
+      state.user = userData.user;
+      localStorage.setItem('user', JSON.stringify(userData.user));
+    }
+  } catch (error) {
+    console.error('Load user data error:', error);
+  }
+  
   // Load available requests for experts
   try {
     const res = await fetch(`${API_URL}/requests/available`, {
@@ -1207,9 +1221,11 @@ async function loadExpertData() {
       // Load expert credits
       loadExpertCredits();
       
-      // ✅ NEW: Load expert's approaches
+      // Load expert's approaches
       loadMyApproaches();
-       renderExpertProfile();
+      
+      // ✅ Render expert profile with fresh data
+      renderExpertProfile();
     }
   } catch (error) {
     console.error('Load expert data error:', error);
