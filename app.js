@@ -877,10 +877,143 @@ function sortExperts(sortBy) {
   loadExperts({ sortBy });
 }
 
-function viewExpertProfile(expertId) {
-  // TODO: Open expert profile modal or page
-  console.log('View expert:', expertId);
-  showToast('Expert profile view - Coming soon!', 'info');
+async function viewExpertProfile(expertId) {
+  try {
+    const res = await fetch(`${API_URL}/users/expert/${expertId}`, {
+      headers: { 'Authorization': `Bearer ${state.token}` }
+    });
+    
+    const data = await res.json();
+    if (!data.success) { showToast('Could not load profile', 'error'); return; }
+    
+    const expert = data.expert || data.user;
+    const profile = expert.profile || {};  // ← questionnaire data lives here
+
+    // Merge — use profile fields first, fall back to top-level fields
+    const specialization = profile.specialization || expert.specialization || 'Professional';
+    const bio            = profile.bio || expert.bio || '';
+    const experience     = profile.experience || expert.yearsOfExperience || '—';
+    const services       = profile.servicesOffered || expert.servicesOffered || [];
+    const companyName    = profile.companyName || expert.companyName || '';
+    const companySize    = profile.companySize || '';
+    const hasWebsite     = profile.hasWebsite || false;
+    const websiteUrl     = profile.websiteUrl || expert.websiteUrl || '';
+    const locationType   = profile.serviceLocationType || '';
+    const certifications = profile.certifications || expert.certifications || [];
+    const city           = profile.city || expert.location?.city || '';
+
+    const locationLabels = {
+      online: '💻 Online / Remote only',
+      local:  '📍 Local (in-person)',
+      both:   '🌐 Both online & in-person'
+    };
+
+    const serviceLabels = {
+      itr: 'ITR Filing', gst: 'GST Services',
+      accounting: 'Accounting', audit: 'Audit',
+      photography: 'Photography', development: 'Development'
+    };
+    
+    const modal = document.createElement('div');
+    modal.style.cssText = 'position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1001; padding: 20px;';
+    modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
+    
+    modal.innerHTML = `
+      <div style="background: var(--bg); border-radius: 16px; max-width: 480px; width: 100%; max-height: 85vh; overflow-y: auto; padding: 24px;">
+        
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+          <h2 style="font-size: 20px; font-weight: 700; color: var(--text);">Expert Profile</h2>
+          <button onclick="this.closest('[style*=fixed]').remove()" style="border: none; background: none; font-size: 24px; cursor: pointer; color: var(--text-muted);">×</button>
+        </div>
+        
+        <!-- Avatar + Name -->
+        <div style="text-align: center; margin-bottom: 24px;">
+          <div style="width: 80px; height: 80px; border-radius: 50%; background: var(--primary); color: #fff; font-size: 32px; font-weight: 700; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; overflow: hidden;">
+            ${expert.profilePhoto ? `<img src="${expert.profilePhoto}" style="width:100%;height:100%;object-fit:cover;">` : expert.name.charAt(0).toUpperCase()}
+          </div>
+          <h3 style="font-size: 22px; font-weight: 700; color: var(--text); margin-bottom: 4px;">${expert.name}</h3>
+          <p style="font-size: 15px; color: var(--primary); font-weight: 600;">${specialization}</p>
+          ${city ? `<p style="font-size: 13px; color: var(--text-muted);">📍 ${city}</p>` : ''}
+          ${expert.rating ? `
+            <div style="display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 8px;">
+              <span style="color: #f39c12; font-size: 18px;">★</span>
+              <span style="font-size: 16px; font-weight: 700;">${expert.rating.toFixed(1)}</span>
+              <span style="font-size: 13px; color: var(--text-muted);">(${expert.reviewCount || 0} reviews)</span>
+            </div>
+          ` : ''}
+        </div>
+        
+        <!-- Stats Row -->
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px;">
+          <div style="text-align: center; padding: 12px; background: var(--bg-gray); border-radius: 10px;">
+            <div style="font-size: 20px; font-weight: 700; color: var(--primary);">${expert.reviewCount || 0}</div>
+            <div style="font-size: 12px; color: var(--text-muted);">Reviews</div>
+          </div>
+          <div style="text-align: center; padding: 12px; background: var(--bg-gray); border-radius: 10px;">
+            <div style="font-size: 18px; font-weight: 700; color: var(--primary);">${experience}</div>
+            <div style="font-size: 12px; color: var(--text-muted);">Experience</div>
+          </div>
+          <div style="text-align: center; padding: 12px; background: var(--bg-gray); border-radius: 10px;">
+            <div style="font-size: 20px; font-weight: 700; color: var(--primary);">${expert.rating ? expert.rating.toFixed(1) : '—'}</div>
+            <div style="font-size: 12px; color: var(--text-muted);">Rating</div>
+          </div>
+        </div>
+
+        <!-- Services -->
+        ${services.length > 0 ? `
+          <div style="margin-bottom: 20px;">
+            <h4 style="font-size: 14px; font-weight: 700; color: var(--text-muted); margin-bottom: 10px;">SERVICES OFFERED</h4>
+            <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+              ${services.map(s => `<span style="padding: 6px 12px; background: rgba(252,128,25,0.1); color: var(--primary); border-radius: 20px; font-size: 13px; font-weight: 600;">${serviceLabels[s] || s}</span>`).join('')}
+            </div>
+          </div>
+        ` : ''}
+
+        <!-- Bio -->
+        ${bio ? `
+          <div style="margin-bottom: 20px;">
+            <h4 style="font-size: 14px; font-weight: 700; color: var(--text-muted); margin-bottom: 10px;">ABOUT</h4>
+            <p style="font-size: 14px; color: var(--text-light); line-height: 1.6;">${bio}</p>
+          </div>
+        ` : ''}
+
+        <!-- Company -->
+        ${companyName ? `
+          <div style="margin-bottom: 20px;">
+            <h4 style="font-size: 14px; font-weight: 700; color: var(--text-muted); margin-bottom: 10px;">COMPANY</h4>
+            <div style="font-size: 14px; color: var(--text);">🏢 ${companyName}${companySize ? ` · ${companySize} employees` : ''}</div>
+            ${hasWebsite && websiteUrl ? `<a href="${websiteUrl}" target="_blank" style="font-size: 13px; color: var(--primary);">🌐 ${websiteUrl}</a>` : ''}
+          </div>
+        ` : ''}
+
+        <!-- Certifications -->
+        ${certifications.length > 0 ? `
+          <div style="margin-bottom: 20px;">
+            <h4 style="font-size: 14px; font-weight: 700; color: var(--text-muted); margin-bottom: 10px;">CERTIFICATIONS</h4>
+            <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+              ${certifications.map(c => `<span style="padding: 6px 12px; background: var(--bg-gray); border-radius: 20px; font-size: 13px;">🏅 ${c}</span>`).join('')}
+            </div>
+          </div>
+        ` : ''}
+
+        <!-- Service Location -->
+        ${locationType ? `
+          <div style="margin-bottom: 20px;">
+            <h4 style="font-size: 14px; font-weight: 700; color: var(--text-muted); margin-bottom: 10px;">SERVICE LOCATION</h4>
+            <div style="font-size: 14px; color: var(--text);">${locationLabels[locationType] || locationType}</div>
+          </div>
+        ` : ''}
+        
+        <button onclick="this.closest('[style*=fixed]').remove()" style="width: 100%; padding: 14px; border: 1.5px solid var(--border); border-radius: 10px; background: transparent; color: var(--text); font-size: 15px; font-weight: 600; cursor: pointer;">Close</button>
+      </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+  } catch (error) {
+    console.error('View profile error:', error);
+    showToast('Failed to load profile', 'error');
+  }
 }
 
 // ─── PROFILE PHOTO UPLOAD ─── 
