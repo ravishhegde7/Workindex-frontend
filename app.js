@@ -80,16 +80,18 @@ function switchTab(tabName) {
   
   document.querySelectorAll('.tab-content').forEach(content => content.style.display = 'none');
   
-  const contentId = tabName + 'Tab';
+  // ✅ Use correct profileTab ID based on role
+  const isExpert = state.user?.role === 'expert';
+  const contentId = (tabName === 'profile' && isExpert) ? 'expertProfileTab' : tabName + 'Tab';
+  
   const content = document.getElementById(contentId);
   if (content) {
     content.style.display = 'block';
-    
     if (tabName === 'documents') loadDocuments();
     else if (tabName === 'access') loadAccessRequests();
     else if (tabName === 'ratings') loadMyRatings();
-    else if (tabName === 'approaches' && state.user?.role === 'expert') loadMyApproaches();
-    else if (tabName === 'profile') renderExpertProfile();  // ✅ ADD THIS LINE
+    else if (tabName === 'approaches' && isExpert) loadMyApproaches();
+    else if (tabName === 'profile') renderExpertProfile();  // ✅ Now triggers correctly
   }
 }
 
