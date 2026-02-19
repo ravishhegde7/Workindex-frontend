@@ -2144,6 +2144,7 @@ function renderExpertProfile() {
   }
   
   const user = state.user;
+const profile = user.profile || {};  // ✅ ADD THIS LINE
   
   // Update basic info
   document.getElementById('expertProfileName').textContent = user.name || 'Expert';
