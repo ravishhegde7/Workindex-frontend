@@ -1708,10 +1708,9 @@ async function viewExpertProfile(expertId) {
 }
 
 // ─── CONTACT EXPERT ───
-function contactExpert(expertId) {
-  showToast('Opening chat with expert...', 'info');
-  // This would open a chat/contact modal
-  // Implementation depends on your design
+async function contactExpert(expertId, requestId, clientId) {
+  showToast('Opening chat...', 'info');
+  await startChat(requestId, expertId, clientId);
 }
 
 // ═══════════════════════════════════════════════════════════
