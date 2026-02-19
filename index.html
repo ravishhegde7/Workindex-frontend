@@ -546,10 +546,10 @@
       <span>Access</span>
       <div id="accessBadge" style="display: none; background: var(--red); color: #fff; border-radius: 10px; padding: 2px 6px; font-size: 11px; margin-left: 4px;"></div>
     </div>
-       <div class="dash-tab" data-tab="chat" onclick="switchTab('chat')">
-  <span>💬</span>
-  <span>Chat <span id="clientUnreadBadge" style="display:none; background:red; color:white; border-radius:50%; padding:1px 6px; font-size:11px;">0</span></span>
-</div>
+    <div class="dash-tab" data-tab="chat" onclick="switchTab('chat')">
+      <span>💬</span>
+      <span>Chat <span id="clientUnreadBadge" style="display:none; background:red; color:white; border-radius:50%; padding:1px 6px; font-size:11px;">0</span></span>
+    </div>
     <div class="dash-tab" data-tab="profile" onclick="switchTab('profile')">
       <span>👤</span>
       <span>Profile</span>
@@ -609,6 +609,42 @@
     </div>
   </div>
 
+  <!-- Client Chat Tab -->
+  <div id="clientChatTab" class="tab-content" style="display:none;">
+    <div style="height:85vh; display:flex; flex-direction:column;">
+
+      <!-- Chat List View -->
+      <div id="clientChatListView" style="padding:20px; overflow-y:auto; flex:1;">
+        <h2 style="margin-bottom:16px;">Messages</h2>
+        <div id="clientChatConversations"></div>
+      </div>
+
+      <!-- Chat Message View (hidden by default) -->
+      <div id="clientChatMessageView" style="display:none; flex-direction:column; height:100%;">
+        <!-- Header -->
+        <div style="padding:12px 16px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:12px; flex-shrink:0;">
+          <button onclick="showChatList()" style="background:none; border:none; font-size:20px; cursor:pointer;">←</button>
+          <div class="avatar" id="chatWithAvatar">?</div>
+          <div>
+            <div style="font-weight:600;" id="chatWithName">Name</div>
+            <div style="font-size:12px; color:var(--text-muted);" id="chatRequestTitle">Request</div>
+          </div>
+        </div>
+        <!-- Messages -->
+        <div id="chatMessages" style="flex:1; overflow-y:auto; padding:16px; display:flex; flex-direction:column; gap:8px;"></div>
+        <!-- Input -->
+        <div style="padding:12px 16px; border-top:1px solid var(--border); display:flex; gap:8px; flex-shrink:0;">
+          <input id="chatInput" type="text" placeholder="Type a message..."
+            style="flex:1; padding:10px 14px; border:1px solid var(--border); border-radius:20px; outline:none;"
+            onkeypress="if(event.key==='Enter') sendMessage()">
+          <button onclick="sendMessage()"
+            style="padding:10px 18px; background:var(--primary); color:white; border:none; border-radius:20px; cursor:pointer; font-weight:600;">Send</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
   <!-- Profile Tab -->
   <div id="profileTab" class="tab-content" style="display: none; padding: 20px;">
     <div style="text-align: center; margin-bottom: 30px;">
@@ -620,7 +656,7 @@
         <input type="file" id="profilePhotoInput" style="display: none;" accept="image/*" onchange="uploadProfilePhoto(event)">
       </div>
       <h2 style="margin-top: 16px;" id="profileName">Client Name</h2>
-      <p style="color: var(--text-muted);" id="profileEmail"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="42272f232b2e02273a232f322e276c212d2f">[email&#160;protected]</a></p>
+      <p style="color: var(--text-muted);" id="profileEmail">client@email.com</p>
     </div>
 
     <div class="settings-section">
@@ -635,7 +671,10 @@
       </div>
     </div>
   </div>
+
 </div>
+<!-- END CLIENT DASHBOARD -->
+
 
 <!-- EXPERT DASHBOARD -->
 <div id="expertDash" class="page">
@@ -660,13 +699,13 @@
       <span>Browse</span>
     </div>
     <div class="dash-tab" data-tab="approaches" onclick="switchTab('approaches')">
-      <span>💬</span>
+      <span>📨</span>
       <span>Approaches</span>
     </div>
-     <div class="dash-tab" data-tab="chat" onclick="switchTab('chat')">
-  <span>💬</span>
-  <span>Chat <span id="expertUnreadBadge" style="display:none; background:red; color:white; border-radius:50%; padding:1px 6px; font-size:11px;">0</span></span>
-</div>  
+    <div class="dash-tab" data-tab="chat" onclick="switchTab('chat')">
+      <span>💬</span>
+      <span>Chat <span id="expertUnreadBadge" style="display:none; background:red; color:white; border-radius:50%; padding:1px 6px; font-size:11px;">0</span></span>
+    </div>
     <div class="dash-tab" data-tab="ratings" onclick="switchTab('ratings')">
       <span>⭐</span>
       <span>Reviews</span>
@@ -689,30 +728,64 @@
     <div id="approachesList"></div>
   </div>
 
-  <!-- Ratings Tab -->
-<!-- Ratings Tab -->
-<div id="ratingsTab" class="tab-content" style="display: none; padding: 20px;">
-  <h2 style="margin-bottom: 20px;">My Reviews</h2>
-  
-  <div class="settings-section">
-    <div style="display: flex; gap: 24px; margin-bottom: 24px;">
-      <div>
-        <div style="font-size: 48px; font-weight: 700;" id="avgRating">0.0</div>
-       <div class="rating-stars" style="pointer-events: none; display: flex; margin-top: 8px; margin-bottom: 8px;">
-          <span class="star">★</span>
-          <span class="star">★</span>
-          <span class="star">★</span>
-          <span class="star">★</span>
-          <span class="star">★</span>
+  <!-- Expert Chat Tab -->
+  <div id="expertChatTab" class="tab-content" style="display:none;">
+    <div style="height:85vh; display:flex; flex-direction:column;">
+
+      <!-- Chat List View -->
+      <div id="expertChatListView" style="padding:20px; overflow-y:auto; flex:1;">
+        <h2 style="margin-bottom:16px;">Messages</h2>
+        <div id="expertChatConversations"></div>
+      </div>
+
+      <!-- Chat Message View (hidden by default) -->
+      <div id="expertChatMessageView" style="display:none; flex-direction:column; height:100%;">
+        <!-- Header -->
+        <div style="padding:12px 16px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:12px; flex-shrink:0;">
+          <button onclick="showChatList()" style="background:none; border:none; font-size:20px; cursor:pointer;">←</button>
+          <div class="avatar" id="expertChatWithAvatar">?</div>
+          <div>
+            <div style="font-weight:600;" id="expertChatWithName">Name</div>
+            <div style="font-size:12px; color:var(--text-muted);" id="expertChatRequestTitle">Request</div>
+          </div>
         </div>
-        <div style="font-size: 14px; color: var(--text-muted); margin-top: 4px; display: block; clear: both;" id="reviewCount">0 reviews</div>
+        <!-- Messages -->
+        <div id="expertChatMessages" style="flex:1; overflow-y:auto; padding:16px; display:flex; flex-direction:column; gap:8px;"></div>
+        <!-- Input -->
+        <div style="padding:12px 16px; border-top:1px solid var(--border); display:flex; gap:8px; flex-shrink:0;">
+          <input id="expertChatInput" type="text" placeholder="Type a message..."
+            style="flex:1; padding:10px 14px; border:1px solid var(--border); border-radius:20px; outline:none;"
+            onkeypress="if(event.key==='Enter') sendMessage()">
+          <button onclick="sendMessage()"
+            style="padding:10px 18px; background:var(--primary); color:white; border:none; border-radius:20px; cursor:pointer; font-weight:600;">Send</button>
+        </div>
       </div>
-      <div style="flex: 1;">
-        <div id="ratingBars" class="rating-bars"></div>
-      </div>
+
     </div>
   </div>
-  <!-- rest stays the same -->
+
+  <!-- Ratings Tab -->
+  <div id="ratingsTab" class="tab-content" style="display: none; padding: 20px;">
+    <h2 style="margin-bottom: 20px;">My Reviews</h2>
+    
+    <div class="settings-section">
+      <div style="display: flex; gap: 24px; margin-bottom: 24px;">
+        <div>
+          <div style="font-size: 48px; font-weight: 700;" id="avgRating">0.0</div>
+          <div class="rating-stars" style="pointer-events: none; display: flex; margin-top: 8px; margin-bottom: 8px;">
+            <span class="star">★</span>
+            <span class="star">★</span>
+            <span class="star">★</span>
+            <span class="star">★</span>
+            <span class="star">★</span>
+          </div>
+          <div style="font-size: 14px; color: var(--text-muted); margin-top: 4px; display: block; clear: both;" id="reviewCount">0 reviews</div>
+        </div>
+        <div style="flex: 1;">
+          <div id="ratingBars" class="rating-bars"></div>
+        </div>
+      </div>
+    </div>
 
     <div id="reviewsList"></div>
 
@@ -723,7 +796,7 @@
     </div>
   </div>
 
-  <!-- Profile Tab -->
+  <!-- Expert Profile Tab -->
   <div id="expertProfileTab" class="tab-content" style="display: none; padding: 20px;">
     <div style="text-align: center; margin-bottom: 30px;">
       <div class="avatar-upload">
@@ -734,10 +807,12 @@
         <input type="file" id="expertPhotoInput" style="display: none;" accept="image/*" onchange="uploadProfilePhoto(event)">
       </div>
       <h2 style="margin-top: 16px;" id="expertProfileName">Expert Name</h2>
-      <p style="color: var(--text-muted);" id="expertProfileEmail"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="3c59515d55507c59445d514c5059125f5351">[email&#160;protected]</a></p>
+      <p style="color: var(--text-muted);" id="expertProfileEmail">expert@email.com</p>
     </div>
   </div>
+
 </div>
+<!-- END EXPERT DASHBOARD -->
 
 
 <!-- ═══ MODALS ═══ -->
