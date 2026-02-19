@@ -75,32 +75,21 @@ function goBack() {
 function switchTab(tabName) {
   state.currentTab = tabName;
   
-  // Update tab buttons
-  document.querySelectorAll('.dash-tab').forEach(tab => {
-    tab.classList.remove('active');
-  });
+  document.querySelectorAll('.dash-tab').forEach(tab => tab.classList.remove('active'));
   document.querySelector(`[data-tab="${tabName}"]`)?.classList.add('active');
   
-  // Update tab content
-  document.querySelectorAll('.tab-content').forEach(content => {
-    content.style.display = 'none';
-  });
+  document.querySelectorAll('.tab-content').forEach(content => content.style.display = 'none');
   
   const contentId = tabName + 'Tab';
   const content = document.getElementById(contentId);
   if (content) {
     content.style.display = 'block';
     
-    // Load data for specific tabs
-    if (tabName === 'documents') {
-      loadDocuments();
-    } else if (tabName === 'access') {
-      loadAccessRequests();
-    } else if (tabName === 'ratings') {
-      loadMyRatings();
-    } else if (tabName === 'approaches' && state.user?.role === 'expert') {
-      loadMyApproaches();  // ← NEW: Load approaches when tab clicked
-    }
+    if (tabName === 'documents') loadDocuments();
+    else if (tabName === 'access') loadAccessRequests();
+    else if (tabName === 'ratings') loadMyRatings();
+    else if (tabName === 'approaches' && state.user?.role === 'expert') loadMyApproaches();
+    else if (tabName === 'profile') renderExpertProfile();  // ✅ ADD THIS LINE
   }
 }
 
@@ -1185,7 +1174,7 @@ function updateClientProfile() {
 
 // ─── LOAD EXPERT DATA ─── 
 async function loadExpertData() {
-  // ✅ FIRST: Fetch fresh user data with profile
+  // FIRST: Fetch fresh user data with profile
   try {
     const userRes = await fetch(`${API_URL}/users/me`, {
       headers: { 'Authorization': `Bearer ${state.token}` }
@@ -1194,6 +1183,7 @@ async function loadExpertData() {
     if (userData.success) {
       state.user = userData.user;
       localStorage.setItem('user', JSON.stringify(userData.user));
+      renderExpertProfile();  // ✅ MOVE HERE — right after fresh data is loaded
     }
   } catch (error) {
     console.error('Load user data error:', error);
@@ -1202,7 +1192,6 @@ async function loadExpertData() {
   // Load available requests for experts
   try {
     const res = await fetch(`${API_URL}/requests/available`, {
-      method: 'GET',
       headers: {
         'Authorization': `Bearer ${state.token}`,
         'Content-Type': 'application/json'
@@ -1214,18 +1203,10 @@ async function loadExpertData() {
     if (data.success) {
       state.availableRequests = data.requests || [];
       renderAvailableRequests();
-      
-      // Update profile info
       updateExpertProfile();
-      
-      // Load expert credits
       loadExpertCredits();
-      
-      // Load expert's approaches
       loadMyApproaches();
-      
-      // ✅ Render expert profile with fresh data
-      renderExpertProfile();
+      // ✅ REMOVE renderExpertProfile() from here
     }
   } catch (error) {
     console.error('Load expert data error:', error);
