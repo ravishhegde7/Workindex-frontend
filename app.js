@@ -2448,4 +2448,28 @@ async function startChat(requestId, expertId, clientId) {
     showToast('Network error', 'err');
   }
 }
+// ─── EXPERT STARTS CHAT FROM APPROACH DETAIL ───
+async function expertStartChat(requestId, expertId, clientId) {
+  try {
+    const res = await fetch(`${API_URL}/chats/start`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${state.token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ requestId, expertId, clientId })
+    });
+    const data = await res.json();
+    if (data.success) {
+      // Close all open modals
+      document.querySelectorAll('[style*="position: fixed"]').forEach(m => m.remove());
+      switchTab('chat');
+      openChat(data.chat._id);
+    } else {
+      showToast(data.message || 'Could not start chat', 'error');
+    }
+  } catch (err) {
+    showToast('Network error', 'error');
+  }
+}
 // ═══ END OF JAVASCRIPT ═══
