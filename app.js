@@ -2712,4 +2712,42 @@ function landingSearch() {
 
   showPage('findProfessionals');
 }
+// ─── LANDING PAGE SUGGESTIONS ───
+function showLandingSuggestions(value) {
+  const el = document.getElementById('landingSuggestions');
+  if (!el) return;
+  if (!value || value.length < 2) { hideLandingSuggestions(); return; }
+
+  const lower = value.toLowerCase();
+  const matches = SEARCH_SUGGESTIONS.services.filter(s =>
+    s.label.toLowerCase().includes(lower)
+  );
+
+  if (!matches.length) { hideLandingSuggestions(); return; }
+
+  el.innerHTML = matches.map(s => `
+    <div onclick="selectLandingSuggestion('${s.value}', '${s.label}')"
+      style="padding:12px 16px;cursor:pointer;display:flex;align-items:center;gap:10px;border-bottom:1px solid #f0f0f0;"
+      onmouseover="this.style.background='#f5f5f5'" onmouseout="this.style.background='transparent'">
+      <span style="font-size:18px;">🔧</span>
+      <div>
+        <div style="font-size:14px;font-weight:600;color:#333;">${s.label}</div>
+        <div style="font-size:11px;color:#888;">Service</div>
+      </div>
+    </div>
+  `).join('');
+  el.style.display = 'block';
+}
+
+function selectLandingSuggestion(value, label) {
+  document.getElementById('landingServiceInput').value = label;
+  hideLandingSuggestions();
+  state.pendingSearch = { service: value, location: null };
+  showPage('findProfessionals');
+}
+
+function hideLandingSuggestions() {
+  const el = document.getElementById('landingSuggestions');
+  if (el) el.style.display = 'none';
+}
 // ═══ END OF JAVASCRIPT ═══
