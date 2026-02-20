@@ -2699,4 +2699,29 @@ function hideSearchSuggestions() {
   const el = document.getElementById('searchSuggestions');
   if (el) el.style.display = 'none';
 }
+// ─── LANDING PAGE SEARCH ───
+function landingSearch() {
+  const service = document.getElementById('landingServiceInput')?.value.trim().toLowerCase();
+  const location = document.getElementById('landingLocationInput')?.value.trim();
+
+  // Map typed service to service key
+  const serviceMap = {
+    'itr': 'itr', 'itr filing': 'itr', 'tax': 'itr',
+    'gst': 'gst', 'gst services': 'gst',
+    'accounting': 'accounting', 'bookkeeping': 'accounting',
+    'audit': 'audit',
+    'photography': 'photography', 'photo': 'photography',
+    'development': 'development', 'dev': 'development', 'web': 'development'
+  };
+
+  const mappedService = serviceMap[service] || null;
+
+  // Store search params to apply after page loads
+  state.pendingSearch = {
+    service: mappedService,
+    location: location || null
+  };
+
+  showPage('findProfessionals');
+}
 // ═══ END OF JAVASCRIPT ═══
