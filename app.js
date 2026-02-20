@@ -2578,4 +2578,93 @@ async function lookupPincode(value) {
     console.error('Pincode lookup error:', err);
   }
 }
+// ─── EXPERT SEARCH AUTOCOMPLETE ───
+const SEARCH_SUGGESTIONS = {
+  services: [
+    { label: 'ITR Filing', value: 'itr', type: 'service' },
+    { label: 'GST Services', value: 'gst', type: 'service' },
+    { label: 'Accounting', value: 'accounting', type: 'service' },
+    { label: 'Audit', value: 'audit', type: 'service' },
+    { label: 'Photography', value: 'photography', type: 'service' },
+    { label: 'Development', value: 'development', type: 'service' }
+  ]
+};
+
+let searchTimeout = null;
+
+function handleExpertSearch(value) {
+  clearTimeout(searchTimeout);
+  if (!value || value.length < 2) {
+    hideSearchSuggestions();
+    if (!value) loadExperts();
+    return;
+  }
+  showSearchSuggestions(value);
+  searchTimeout = setTimeout(() => {
+    loadExperts({ location: value });
+  }, 500);
+}
+
+function showSearchSuggestions(value) {
+  const el = document.getElementById('searchSuggestions');
+  if (!el) return;
+  const lower = value.toLowerCase();
+  const suggestions = [];
+
+  SEARCH_SUGGESTIONS.services.forEach(s => {
+    if (s.label.toLowerCase().includes(lower)) suggestions.push(s);
+  });
+
+  const cities = [...new Set(
+    (state.experts || []).map(e => e.location?.city || e.profile?.city).filter(Boolean)
+  )];
+  cities.forEach(city => {
+    if (city.toLowerCase().includes(lower))
+      suggestions.push({ label: city, value: city, type: 'city' });
+  });
+
+  const pincodes = [...new Set(
+    (state.experts || []).map(e => e.location?.pincode || e.profile?.pincode).filter(Boolean)
+  )];
+  pincodes.forEach(pin => {
+    if (pin.includes(value))
+      suggestions.push({ label: pin, value: pin, type: 'pincode' });
+  });
+
+  if (!suggestions.length) { hideSearchSuggestions(); return; }
+
+  const icons = { service: '🔧', city: '🏙️', pincode: '📍' };
+  const labels = { service: 'Service', city: 'City', pincode: 'Pincode' };
+
+  el.innerHTML = suggestions.slice(0, 6).map(s => `
+    <div onclick="selectSearchSuggestion('${s.value}','${s.type}')"
+      style="padding:12px 16px;cursor:pointer;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border);"
+      onmouseover="this.style.background='#f5f5f5'" onmouseout="this.style.background='transparent'">
+      <span style="font-size:18px;">${icons[s.type]}</span>
+      <div>
+        <div style="font-size:14px;font-weight:600;">${s.label}</div>
+        <div style="font-size:11px;color:#888;">${labels[s.type]}</div>
+      </div>
+    </div>
+  `).join('');
+  el.style.display = 'block';
+}
+
+function selectSearchSuggestion(value, type) {
+  const input = document.getElementById('expertSearchInput');
+  if (input) input.value = value;
+  hideSearchSuggestions();
+  if (type === 'service') {
+    document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+    document.querySelector(`[data-service="${value}"]`)?.classList.add('active');
+    loadExperts({ service: value });
+  } else {
+    loadExperts({ location: value });
+  }
+}
+
+function hideSearchSuggestions() {
+  const el = document.getElementById('searchSuggestions');
+  if (el) el.style.display = 'none';
+}
 // ═══ END OF JAVASCRIPT ═══
