@@ -1518,6 +1518,23 @@ BARK_Q_FORMS.expert_location = {
     { value: "both", icon: "🌐", label: "Both online and in-person" }
   ]
 };
+BARK_Q_FORMS.expert_city = {
+  title: "Which city are you based in?",
+  subtitle: "Clients will use this to find local experts",
+  type: "text",
+  key: "city",
+  required: true,
+  placeholder: "e.g. Bengaluru, Mumbai, Delhi..."
+};
+
+BARK_Q_FORMS.expert_pincode = {
+  title: "Your service pincode",
+  subtitle: "Clients can search experts by pincode",
+  type: "pincode",
+  key: "pincode",
+  required: true,
+  placeholder: "Enter 6-digit pincode"
+};
 
 BARK_Q_FORMS.expert_bio = {
   title: "About yourself",
@@ -1546,7 +1563,7 @@ function buildQuestionSequence() {
   
   if (role === 'expert') {
     // Expert profile questions
-    seq = ['expert_services', 'expert_specialization', 'expert_experience', 'expert_location', 'expert_bio'];
+    seq = ['expert_services', 'expert_specialization', 'expert_experience', 'expert_location', 'expert_city', 'expert_pincode','expert_bio'];
     return seq;
   }
   
