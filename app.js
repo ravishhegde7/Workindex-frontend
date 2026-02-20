@@ -81,9 +81,10 @@ function showPage(pageId) {
   loadExpertData();
 } else if (pageId === 'settings') {
   loadSettings();
-}
-}
-
+    }
+   }
+  }
+   
 function goBack() {
   if (state.user) {
     const dashPage = state.user.role === 'client' ? 'clientDash' : 'expertDash';
