@@ -1,0 +1,2059 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"/>
+<meta name="theme-color" content="#FC8019"/>
+<meta name="description" content="WorkIndex - Find verified professionals for any service. Connect with expert CAs, GST consultants, photographers, developers and more."/>
+<title>WorkIndex - Find Verified Professionals</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════
+     WORKINDEX v2.0 - COMPLETE HTML
+     ═══════════════════════════════════════════════════════════ -->
+
+<!-- LANDING PAGE -->
+<div id="landing" class="page active">
+  <div class="landing-nav">
+    <div class="logo">
+      <div class="logo-icon">W</div>
+      <span class="logo-text">WorkIndex</span>
+    </div>
+    <div style="display: flex; gap: 16px; align-items: center;">
+      <a class="nav-link" onclick="showPage('findProfessionals')">Explore</a>
+      <button class="btn-outline" onclick="showPage('auth')" style="padding: 8px 16px; font-size: 14px;">Login</button>
+      <button class="btn-primary" onclick="showPage('auth')" style="padding: 8px 16px; font-size: 14px;">Join</button>
+    </div>
+  </div>
+
+  <div class="hero">
+    <div class="hero-badge">
+      <div class="dot"></div>
+      <span>Spam free platform connect with real professionals</span>
+    </div>
+    
+    <h1>Find Verified <span class="highlight">Professionals</span> for Any Service</h1>
+    <p>Connect with expert CAs, GST consultants, photographers, developers and more. Get your work done with confidence.</p>
+    
+    <div class="hero-actions">
+      <button class="hero-btn hero-btn-primary" onclick="showPage('auth')">
+        <span>Find Professionals</span>
+        <span>→</span>
+      </button>
+      <button class="hero-btn hero-btn-secondary" onclick="showPage('howItWorks')">
+        <span>How It Works</span>
+      </button>
+    </div>
+
+    <div style="margin-top: 40px; max-width: 600px; margin-left: auto; margin-right: auto;">
+      <div style="display: flex; gap: 12px; background: #fff; padding: 8px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08);">
+        <input type="text" id="landingServiceInput" placeholder="What service do you need?" style="flex: 1; padding: 12px; border: none; font-size: 15px; outline: none;">
+<input type="text" id="landingLocationInput" placeholder="Location" style="width: 150px; padding: 12px; border: none; border-left: 1px solid var(--border); font-size: 15px; outline: none;">
+<button class="btn-primary" onclick="landingSearch()" style="padding: 12px 24px;">Search</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="features-section">
+    <h2 class="section-title">Why Choose WorkIndex?</h2>
+    <p class="section-subtitle">The easiest way to find and hire verified professionals</p>
+    
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">✓</div>
+        <h3>Verified Professionals</h3>
+        <p>All experts are verified with credentials and ratings from real clients</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">⚡</div>
+        <h3>Quick Responses</h3>
+        <p>Get personalized quotes from multiple professionals within 24 hours</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🔒</div>
+        <h3>Secure & Safe</h3>
+        <p>Your information is protected. Only share contact details when ready</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">⭐</div>
+        <h3>Rated & Reviewed</h3>
+        <p>Read honest reviews from past clients to make informed decisions</p>
+      </div>
+    </div>
+  </div>
+
+  <div style="padding: 60px 20px; background: var(--bg-gray);">
+    <h2 class="section-title">How It Works</h2>
+    <div style="max-width: 1000px; margin: 40px auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 32px;">
+      <div style="text-align: center;">
+        <div style="width: 60px; height: 60px; border-radius: 50%; background: var(--primary); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 700; margin: 0 auto 16px;">1</div>
+        <h4 style="font-size: 16px; font-weight: 700; margin-bottom: 8px;">Post Your Need</h4>
+        <p style="font-size: 14px; color: var(--text-light);">Tell us what you need in 2 minutes</p>
+      </div>
+      <div style="text-align: center;">
+        <div style="width: 60px; height: 60px; border-radius: 50%; background: var(--primary); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 700; margin: 0 auto 16px;">2</div>
+        <h4 style="font-size: 16px; font-weight: 700; margin-bottom: 8px;">Get Quotes</h4>
+        <p style="font-size: 14px; color: var(--text-light);">Experts send you personalized quotes</p>
+      </div>
+      <div style="text-align: center;">
+        <div style="width: 60px; height: 60px; border-radius: 50%; background: var(--primary); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 700; margin: 0 auto 16px;">3</div>
+        <h4 style="font-size: 16px; font-weight: 700; margin-bottom: 8px;">Choose & Hire</h4>
+        <p style="font-size: 14px; color: var(--text-light);">Pick the best expert and get started</p>
+      </div>
+      <div style="text-align: center;">
+        <div style="width: 60px; height: 60px; border-radius: 50%; background: var(--primary); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 700; margin: 0 auto 16px;">4</div>
+        <h4 style="font-size: 16px; font-weight: 700; margin-bottom: 8px;">Leave a Review</h4>
+        <p style="font-size: 14px; color: var(--text-light);">Rate your experience to help others</p>
+      </div>
+    </div>
+    <div style="text-align: center; margin-top: 40px;">
+      <button class="hero-btn hero-btn-primary" onclick="showPage('howItWorks')">Learn More</button>
+    </div>
+  </div>
+
+  <footer style="background: var(--bg); border-top: 1px solid var(--border); padding: 60px 20px 40px;">
+    <div style="max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 40px;">
+      <div>
+        <h3 style="font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 20px;">For Customers</h3>
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+          <a class="nav-link" onclick="showPage('findProfessionals')" style="cursor: pointer;">Find Professionals by Location</a>
+          <a class="nav-link" onclick="showPage('howItWorks')" style="cursor: pointer;">How it works</a>
+          <a class="nav-link" onclick="showPage('auth')" style="cursor: pointer;">Login</a>
+        </div>
+      </div>
+      <div>
+        <h3 style="font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 20px;">For Professionals</h3>
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+          <a class="nav-link" onclick="showHowItWorks('expert'); showPage('howItWorks')" style="cursor: pointer;">How it works</a>
+          <a class="nav-link" onclick="showPage('pricing')" style="cursor: pointer;">Pricing</a>
+          <a class="nav-link" onclick="showPage('auth')" style="cursor: pointer;">Join as a Professional</a>
+          <a class="nav-link" href="/cdn-cgi/l/email-protection#9ae9efeaeaf5e8eedaedf5e8f1f3f4feffe2b4f9f5f7" style="cursor: pointer;">Help centre</a>
+        </div>
+      </div>
+    </div>
+    <div style="max-width: 1200px; margin: 40px auto 0; padding-top: 24px; border-top: 1px solid var(--border); text-align: center;">
+      <p style="font-size: 14px; color: var(--text-muted);">© 2024 WorkIndex. All rights reserved.</p>
+    </div>
+  </footer>
+</div>
+
+
+<!-- FIND PROFESSIONALS PAGE -->
+<div id="findProfessionals" class="page">
+  <div class="landing-nav">
+    <div class="logo" onclick="showPage('landing')">
+      <div class="logo-icon">W</div>
+      <span class="logo-text">WorkIndex</span>
+    </div>
+    <button class="btn-primary" onclick="showPage('auth')">Sign In</button>
+  </div>
+
+  <div style="padding: 20px;">
+    <h1 class="section-title">Find Verified Professionals</h1>
+    <p class="section-subtitle">Browse experts across all services</p>
+
+    <div class="filter-bar">
+      <div class="filter-chip active" data-service="all" onclick="filterExperts('all')">All Services</div>
+      <div class="filter-chip" data-service="itr" onclick="filterExperts('itr')">ITR Filing</div>
+      <div class="filter-chip" data-service="gst" onclick="filterExperts('gst')">GST</div>
+      <div class="filter-chip" data-service="accounting" onclick="filterExperts('accounting')">Accounting</div>
+      <div class="filter-chip" data-service="audit" onclick="filterExperts('audit')">Audit</div>
+      <div class="filter-chip" data-service="photography" onclick="filterExperts('photography')">Photography</div>
+      <div class="filter-chip" data-service="development" onclick="filterExperts('development')">Development</div>
+    </div>
+
+  <div style="display: flex; gap: 12px; margin: 20px 0; align-items: flex-start;">
+  <div style="position: relative; flex: 1;">
+    <span style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); pointer-events: none;">🔍</span>
+    <input type="text" id="expertSearchInput"
+      placeholder="Search by service, city or pincode..."
+      style="width: 100%; padding: 12px 12px 12px 36px; border-radius: 10px; border: 1px solid var(--border); font-size: 15px; box-sizing: border-box; outline: none;"
+      oninput="handleExpertSearch(this.value)"
+      onblur="setTimeout(hideSearchSuggestions, 200)"
+      autocomplete="off">
+    <div id="searchSuggestions"
+      style="display:none; position:absolute; top:100%; left:0; right:0; background:#fff; border:1.5px solid var(--border); border-radius:10px; margin-top:4px; z-index:999; box-shadow:0 8px 24px rgba(0,0,0,0.12); overflow:hidden;">
+    </div>
+  </div>
+  <select id="expertSort" onchange="sortExperts(this.value)" style="padding: 12px; border-radius: 10px; border: 1px solid var(--border); font-size: 15px; flex-shrink: 0;">
+    <option value="rating">Highest Rated</option>
+    <option value="reviews">Most Reviews</option>
+    <option value="newest">Newest</option>
+  </select>
+</div>
+
+    <div id="expertGrid" class="expert-grid"></div>
+
+    <div id="expertsLoading" style="display: none; text-align: center; padding: 40px;">
+      <div class="spinner"></div>
+      <p style="margin-top: 16px; color: var(--text-muted);">Loading experts...</p>
+    </div>
+
+    <div id="expertsEmpty" style="display: none;" class="empty-state">
+      <div class="empty-icon">🔍</div>
+      <h3 class="empty-title">No experts found</h3>
+      <p class="empty-text">Try adjusting your filters or search criteria</p>
+    </div>
+  </div>
+</div>
+
+<!-- HOW IT WORKS PAGE -->
+<div id="howItWorks" class="page">
+  <div class="landing-nav">
+    <div class="logo" onclick="showPage('landing')">
+      <div class="logo-icon">W</div>
+      <span class="logo-text">WorkIndex</span>
+    </div>
+    <button class="btn-primary" onclick="showPage('auth')">Get Started</button>
+  </div>
+
+  <div style="padding: 20px; max-width: 800px; margin: 0 auto;">
+    <h1 class="section-title">How It Works</h1>
+    <p class="section-subtitle">Simple, transparent, and secure</p>
+
+    <div class="auth-toggle" style="max-width: 400px; margin: 40px auto;">
+      <button class="active" onclick="showHowItWorks('client')">For Customers</button>
+      <button onclick="showHowItWorks('expert')">For Professionals</button>
+    </div>
+
+    <div id="clientSteps" class="steps-container">
+      <div class="step">
+        <div class="step-number">1</div>
+        <div class="step-content">
+          <h3>Post Your Requirement</h3>
+          <p>Tell us what you need. Fill a simple form about your project or requirement. It takes less than 2 minutes.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-number">2</div>
+        <div class="step-content">
+          <h3>Get Expert Approaches</h3>
+          <p>Verified professionals will review your requirement and send you personalized approaches with quotes.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-number">3</div>
+        <div class="step-content">
+          <h3>Choose & Hire</h3>
+          <p>Review profiles, ratings, and quotes. Choose the best expert and start working together.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-number">4</div>
+        <div class="step-content">
+          <h3>Rate Your Experience</h3>
+          <p>After work completion, rate and review the expert to help others make informed decisions.</p>
+        </div>
+      </div>
+    </div>
+
+    <div id="expertSteps" class="steps-container" style="display: none;">
+      <div class="step">
+        <div class="step-number">1</div>
+        <div class="step-content">
+          <h3>Complete Your Profile</h3>
+          <p>Sign up and build your professional profile with your skills, experience, and certifications.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-number">2</div>
+        <div class="step-content">
+          <h3>Browse Client Requests</h3>
+          <p>See all available projects matching your expertise. Read detailed requirements and client questionnaires.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-number">3</div>
+        <div class="step-content">
+          <h3>Send Approaches</h3>
+          <p>Spend credits to unlock client contact details and send personalized proposals with your quote.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-number">4</div>
+        <div class="step-content">
+          <h3>Get Hired & Earn</h3>
+          <p>Build your reputation with 5-star ratings and grow your client base on WorkIndex.</p>
+        </div>
+      </div>
+    </div>
+
+    <div style="text-align: center; margin-top: 40px;">
+      <button class="hero-btn hero-btn-primary" onclick="showPage('auth')">Get Started Now</button>
+    </div>
+  </div>
+</div>
+
+<!-- PRICING PAGE -->
+<div id="pricing" class="page">
+  <div class="landing-nav">
+    <div class="logo" onclick="showPage('landing')">
+      <div class="logo-icon">W</div>
+      <span class="logo-text">WorkIndex</span>
+    </div>
+    <button class="btn-primary" onclick="showPage('auth')">Sign Up</button>
+  </div>
+
+  <div style="padding: 20px;">
+    <h1 class="section-title">Simple, Transparent Pricing</h1>
+    <p class="section-subtitle">Only pay for what you use. No subscriptions, no hidden fees.</p>
+
+    <div class="pricing-grid">
+      <div class="price-card">
+        <h3>Starter</h3>
+        <div class="price-amount">₹600<span>/20 credits</span></div>
+        <div class="price-per-credit">₹30 per credit</div>
+        <button class="btn-primary" style="width: 100%; margin-top: 20px;" onclick="showPage('auth')">Get Started</button>
+      </div>
+
+      <div class="price-card popular">
+        <div class="popular-badge">⭐ MOST POPULAR</div>
+        <h3>Popular</h3>
+        <div class="price-amount">₹2,700<span>/100 credits</span></div>
+        <div class="price-per-credit">₹27 per credit</div>
+        <div class="price-savings">Save 10%</div>
+        <button class="btn-primary" style="width: 100%; margin-top: 20px;" onclick="showPage('auth')">Get Started</button>
+      </div>
+
+      <div class="price-card">
+        <h3>Professional</h3>
+        <div class="price-amount">₹4,800<span>/200 credits</span></div>
+        <div class="price-per-credit">₹24 per credit</div>
+        <div class="price-savings">Save 20%</div>
+        <button class="btn-primary" style="width: 100%; margin-top: 20px;" onclick="showPage('auth')">Get Started</button>
+      </div>
+    </div>
+
+    <div style="max-width: 800px; margin: 60px auto 40px;">
+      <h2 class="section-title" style="font-size: 24px;">Frequently Asked Questions</h2>
+      <div class="settings-section">
+        <details style="cursor: pointer;">
+          <summary style="padding: 16px 0; font-weight: 600; color: var(--text);">How do credits work?</summary>
+          <p style="padding: 0 0 16px; color: var(--text-light); line-height: 1.6;">Credits are used to unlock client contact details and send approaches. Each request costs between 15-35 credits depending on the service type.</p>
+        </details>
+        <details style="cursor: pointer;">
+          <summary style="padding: 16px 0; font-weight: 600; color: var(--text); border-top: 1px solid var(--border);">Can I get a refund?</summary>
+          <p style="padding: 0 0 16px; color: var(--text-light); line-height: 1.6;">Unused credits never expire and can be used anytime. We don't offer refunds, but you can use credits whenever you're ready.</p>
+        </details>
+        <details style="cursor: pointer;">
+          <summary style="padding: 16px 0; font-weight: 600; color: var(--text); border-top: 1px solid var(--border);">Are there any hidden fees?</summary>
+          <p style="padding: 0 0 16px; color: var(--text-light); line-height: 1.6;">No hidden fees! The price you see is what you pay. We believe in transparent pricing.</p>
+        </details>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SETTINGS PAGE -->
+<div id="settings" class="page">
+  <div style="display: flex; align-items: center; padding: 16px 20px; border-bottom: 1px solid var(--border);">
+    <button onclick="goBack()" style="background: none; border: none; color: var(--text); font-size: 24px; cursor: pointer; padding: 0; margin-right: 12px;">←</button>
+    <h2 style="font-size: 18px; font-weight: 700; color: var(--text); flex: 1;">Settings</h2>
+  </div>
+
+  <div style="padding: 20px;">
+    <div class="settings-section">
+      <h3 class="settings-section-title">Appearance</h3>
+      <div class="settings-option">
+        <div class="settings-option-label">
+          <h4>Dark Mode</h4>
+          <p>Switch between light and dark theme</p>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="darkModeToggle" onchange="toggleDarkMode()">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <h3 class="settings-section-title">Notifications</h3>
+      <div class="settings-option">
+        <div class="settings-option-label">
+          <h4>Email Notifications</h4>
+          <p>Get updates via email</p>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="emailNotif" checked>
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <div class="settings-option">
+        <div class="settings-option-label">
+          <h4>SMS Notifications</h4>
+          <p>Get updates via SMS</p>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="smsNotif">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <h3 class="settings-section-title">Account</h3>
+      <div class="settings-option" onclick="logout()">
+        <div class="settings-option-label">
+          <h4 style="color: var(--red);">Logout</h4>
+          <p>Sign out of your account</p>
+        </div>
+        <span style="color: var(--red);">›</span>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <h3 class="settings-section-title">About</h3>
+      <div class="settings-option">
+        <div class="settings-option-label">
+          <h4>Version</h4>
+          <p>WorkIndex v2.0</p>
+        </div>
+      </div>
+      <div class="settings-option">
+        <div class="settings-option-label">
+          <h4>Help & Support</h4>
+          <p><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="6b181e1b1b04191f2b1c04190002050f0e1345080406">[email&#160;protected]</a></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- AUTH PAGE -->
+<div id="auth" class="page">
+  <!-- Back Button -->
+  <div style="display: flex; align-items: center; padding: 16px 20px; border-bottom: 1px solid var(--border);">
+    <button onclick="showPage('landing')" style="background: none; border: none; color: var(--text); font-size: 24px; cursor: pointer; padding: 0; margin-right: 12px;">←</button>
+    <h2 style="font-size: 18px; font-weight: 700; color: var(--text);">Back to Home</h2>
+  </div>
+
+  <div style="padding: 20px;">
+    <h1 class="section-title">Welcome to WorkIndex</h1>
+    <p class="section-subtitle">Sign in to continue</p>
+    
+    <div class="auth-card" style="max-width: 400px; margin: 40px auto;">
+      <div class="auth-toggle">
+        <button id="loginBtn" class="active" onclick="switchAuthMode('login')">Login</button>
+        <button id="signupBtn" onclick="switchAuthMode('signup')">Sign Up</button>
+      </div>
+
+      <!-- Login Form -->
+      <div id="loginForm">
+        <!-- Role Selection for Login -->
+        <div class="field">
+          <label>Login as</label>
+          <div class="role-pick">
+            <div class="role-card active" id="loginRoleClient" onclick="selectLoginRole('client')">
+              <div class="r-icon">👤</div>
+              <div class="r-label">Customer</div>
+            </div>
+            <div class="role-card" id="loginRoleExpert" onclick="selectLoginRole('expert')">
+              <div class="r-icon">⭐</div>
+              <div class="r-label">Professional</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Email</label>
+          <input type="email" id="loginEmail" placeholder="your@email.com">
+        </div>
+        <div class="field">
+          <label>Password</label>
+          <input type="password" id="loginPassword" placeholder="••••••••">
+        </div>
+        <button class="btn-primary" style="width: 100%;" onclick="handleLogin()">Login</button>
+      </div>
+
+      <!-- Signup Form -->
+      <div id="signupForm" style="display: none;">
+        <div class="field">
+          <label>Full Name</label>
+          <input type="text" id="signupName" placeholder="John Doe">
+        </div>
+        <div class="field">
+          <label>Email</label>
+          <input type="email" id="signupEmail" placeholder="your@email.com">
+        </div>
+        <div class="field">
+          <label>Phone</label>
+          <input type="tel" id="signupPhone" placeholder="9876543210" maxlength="10">
+        </div>
+        <div class="field">
+          <label>Password</label>
+          <input type="password" id="signupPassword" placeholder="••••••••">
+        </div>
+        <div class="field">
+          <label>I am a</label>
+          <div class="role-pick">
+            <div class="role-card" id="roleClient" onclick="selectRole('client')">
+              <div class="r-icon">👤</div>
+              <div class="r-label">Client</div>
+            </div>
+            <div class="role-card active" id="roleExpert" onclick="selectRole('expert')">
+              <div class="r-icon">⭐</div>
+              <div class="r-label">Expert</div>
+            </div>
+          </div>
+        </div>
+        <button class="btn-primary" style="width: 100%;" onclick="handleSignup()">Create Account</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- QUESTIONNAIRE PAGE -->
+<div id="questionnaire" class="page">
+  <!-- Progress Header -->
+  <div style="background: var(--bg); padding: 16px 20px; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 10;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+      <div id="qStepText" style="font-size: 14px; font-weight: 600; color: var(--text-muted);">Step 1 of 12</div>
+      <button onclick="if(confirm('Exit questionnaire? Progress will be lost.')){showPage(state.user.role === 'expert' ? 'expertDash' : 'clientDash')}" style="padding: 6px 14px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); font-size: 13px; font-weight: 600; cursor: pointer;">Exit</button>
+    </div>
+    <div style="height: 4px; background: var(--bg-gray); border-radius: 2px; overflow: hidden;">
+      <div id="qProgressFill" style="width: 0%; height: 100%; background: var(--primary); transition: width 0.3s;"></div>
+    </div>
+  </div>
+
+  <!-- Question Content -->
+  <div id="qContent" style="padding: 24px 20px 120px; min-height: calc(100vh - 200px);"></div>
+
+  <!-- Navigation Buttons -->
+  <div style="position: fixed; bottom: 0; left: 0; right: 0; padding: 16px 20px; background: var(--bg); border-top: 1px solid var(--border); display: flex; gap: 12px; z-index: 10;">
+    <button id="qBackBtn" onclick="qBack()" style="display: none; flex: 1; padding: 14px; border: 1.5px solid var(--border); border-radius: 10px; background: var(--bg); color: var(--text); font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.2s;">← Back</button>
+    <button id="qNextBtn" onclick="qNext()" style="flex: 2; padding: 14px; border: none; border-radius: 10px; background: var(--primary); color: #fff; font-size: 15px; font-weight: 700; cursor: pointer; opacity: 0.5; transition: all 0.2s;" disabled>Continue</button>
+  </div>
+</div>
+
+<!-- CLIENT DASHBOARD -->
+<div id="clientDash" class="page">
+  <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-bottom: 1px solid var(--border);">
+    <div class="logo">
+      <div class="logo-icon">W</div>
+      <span class="logo-text">WorkIndex</span>
+    </div>
+    <div style="display: flex; gap: 12px; align-items: center;">
+      <button onclick="showPage('settings')" style="padding: 8px; border: none; background: transparent; cursor: pointer;">⚙️</button>
+      <div class="avatar" id="clientAvatar">C</div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div style="display: flex; border-bottom: 1px solid var(--border); overflow-x: auto;">
+    <div class="dash-tab active" data-tab="requests" onclick="switchTab('requests')">
+      <span>📋</span>
+      <span>Requests</span>
+    </div>
+    <div class="dash-tab" data-tab="documents" onclick="switchTab('documents')">
+      <span>📄</span>
+      <span>Documents</span>
+    </div>
+    <div class="dash-tab" data-tab="access" onclick="switchTab('access')">
+      <span>🔐</span>
+      <span>Access</span>
+      <div id="accessBadge" style="display: none; background: var(--red); color: #fff; border-radius: 10px; padding: 2px 6px; font-size: 11px; margin-left: 4px;"></div>
+    </div>
+    <div class="dash-tab" data-tab="chat" onclick="switchTab('chat')">
+      <span>💬</span>
+      <span>Chat <span id="clientUnreadBadge" style="display:none; background:red; color:white; border-radius:50%; padding:1px 6px; font-size:11px;">0</span></span>
+    </div>
+    <div class="dash-tab" data-tab="profile" onclick="switchTab('profile')">
+      <span>👤</span>
+      <span>Profile</span>
+    </div>
+  </div>
+
+  <!-- Requests Tab -->
+  <div id="requestsTab" class="tab-content" style="padding: 20px;">
+    <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
+      <h2>My Requests</h2>
+      <button class="btn-primary" onclick="showNewRequestForm()">+ New Request</button>
+    </div>
+    <div id="requestsList"></div>
+  </div>
+
+  <!-- Documents Tab -->
+  <div id="documentsTab" class="tab-content" style="display: none; padding: 20px;">
+    <h2 style="margin-bottom: 20px;">My Documents</h2>
+    
+    <div class="upload-area" id="uploadArea" onclick="document.getElementById('fileInput').click()">
+      <div style="font-size: 48px; margin-bottom: 12px;">📁</div>
+      <div style="font-size: 16px; font-weight: 600; margin-bottom: 8px;">Click to upload or drag & drop</div>
+      <div style="font-size: 14px; color: var(--text-muted);">PDF, Excel, Images (Max 10MB)</div>
+      <input type="file" id="fileInput" style="display: none;" accept=".pdf,.xlsx,.xls,.jpg,.jpeg,.png" onchange="handleFileUpload(event)">
+    </div>
+
+    <div id="uploadProgress" style="display: none; margin: 20px 0;">
+      <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+        <span style="font-size: 14px; font-weight: 600;">Uploading...</span>
+        <span id="uploadPercent" style="font-size: 14px; color: var(--text-muted);">0%</span>
+      </div>
+      <div class="progress-bar">
+        <div id="uploadProgressBar" class="progress-fill" style="width: 0%"></div>
+      </div>
+    </div>
+
+    <div id="documentsList"></div>
+
+    <div id="documentsEmpty" class="empty-state">
+      <div class="empty-icon">📄</div>
+      <h3 class="empty-title">No documents yet</h3>
+      <p class="empty-text">Upload your first document to get started</p>
+    </div>
+  </div>
+
+  <!-- Access Requests Tab -->
+  <div id="accessTab" class="tab-content" style="display: none; padding: 20px;">
+    <h2 style="margin-bottom: 20px;">Access Requests</h2>
+    <p style="color: var(--text-muted); margin-bottom: 20px;">Manage document access requests from experts</p>
+    
+    <div id="accessRequestsList"></div>
+
+    <div id="accessEmpty" class="empty-state">
+      <div class="empty-icon">🔐</div>
+      <h3 class="empty-title">No access requests</h3>
+      <p class="empty-text">Experts will request access to your documents here</p>
+    </div>
+  </div>
+
+  <!-- Client Chat Tab -->
+  <div id="clientChatTab" class="tab-content" style="display:none;">
+    <div style="height:85vh; display:flex; flex-direction:column;">
+
+      <!-- Chat List View -->
+      <div id="clientChatListView" style="padding:20px; overflow-y:auto; flex:1;">
+        <h2 style="margin-bottom:16px;">Messages</h2>
+        <div id="clientChatConversations"></div>
+      </div>
+
+      <!-- Chat Message View (hidden by default) -->
+      <div id="clientChatMessageView" style="display:none; flex-direction:column; height:100%;">
+        <!-- Header -->
+        <div style="padding:12px 16px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:12px; flex-shrink:0;">
+          <button onclick="showChatList()" style="background:none; border:none; font-size:20px; cursor:pointer;">←</button>
+          <div class="avatar" id="chatWithAvatar">?</div>
+          <div>
+            <div style="font-weight:600;" id="chatWithName">Name</div>
+            <div style="font-size:12px; color:var(--text-muted);" id="chatRequestTitle">Request</div>
+          </div>
+        </div>
+        <!-- Messages -->
+        <div id="chatMessages" style="flex:1; overflow-y:auto; padding:16px; display:flex; flex-direction:column; gap:8px;"></div>
+        <!-- Input -->
+        <div style="padding:12px 16px; border-top:1px solid var(--border); display:flex; gap:8px; flex-shrink:0;">
+          <input id="chatInput" type="text" placeholder="Type a message..."
+            style="flex:1; padding:10px 14px; border:1px solid var(--border); border-radius:20px; outline:none;"
+            onkeypress="if(event.key==='Enter') sendMessage()">
+          <button onclick="sendMessage()"
+            style="padding:10px 18px; background:var(--primary); color:white; border:none; border-radius:20px; cursor:pointer; font-weight:600;">Send</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Profile Tab -->
+  <div id="profileTab" class="tab-content" style="display: none; padding: 20px;">
+    <div style="text-align: center; margin-bottom: 30px;">
+      <div class="avatar-upload">
+        <div class="avatar avatar-xl" id="profileAvatar">C</div>
+        <button class="avatar-upload-btn" onclick="document.getElementById('profilePhotoInput').click()">
+          📷
+        </button>
+        <input type="file" id="profilePhotoInput" style="display: none;" accept="image/*" onchange="uploadProfilePhoto(event)">
+      </div>
+      <h2 style="margin-top: 16px;" id="profileName">Client Name</h2>
+      <p style="color: var(--text-muted);" id="profileEmail">client@email.com</p>
+    </div>
+
+    <div class="settings-section">
+      <h3 class="settings-section-title">Account Details</h3>
+      <div style="padding: 12px 0; border-bottom: 1px solid var(--border);">
+        <div style="font-size: 13px; color: var(--text-muted); margin-bottom: 4px;">Phone</div>
+        <div style="font-size: 15px; font-weight: 600;" id="profilePhone">+91 9876543210</div>
+      </div>
+      <div style="padding: 12px 0;">
+        <div style="font-size: 13px; color: var(--text-muted); margin-bottom: 4px;">Member Since</div>
+        <div style="font-size: 15px; font-weight: 600;">February 2024</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+<!-- END CLIENT DASHBOARD -->
+
+
+<!-- EXPERT DASHBOARD -->
+<div id="expertDash" class="page">
+  <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-bottom: 1px solid var(--border);">
+    <div class="logo">
+      <div class="logo-icon">W</div>
+      <span class="logo-text">WorkIndex</span>
+    </div>
+    <div style="display: flex; gap: 12px; align-items: center;">
+      <div style="padding: 6px 12px; background: var(--primary); color: #fff; border-radius: 20px; font-size: 14px; font-weight: 600; cursor: pointer;" onclick="openCreditModal()">
+        💎 <span id="expertCredits" class="credit-display">0</span>
+      </div>
+      <button onclick="showPage('settings')" style="padding: 8px; border: none; background: transparent; cursor: pointer;">⚙️</button>
+      <div class="avatar" id="expertAvatar">E</div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div style="display: flex; border-bottom: 1px solid var(--border); overflow-x: auto;">
+    <div class="dash-tab active" data-tab="browse" onclick="switchTab('browse')">
+      <span>🔍</span>
+      <span>Browse</span>
+    </div>
+    <div class="dash-tab" data-tab="approaches" onclick="switchTab('approaches')">
+      <span>📨</span>
+      <span>Approaches</span>
+    </div>
+    <div class="dash-tab" data-tab="chat" onclick="switchTab('chat')">
+      <span>💬</span>
+      <span>Chat <span id="expertUnreadBadge" style="display:none; background:red; color:white; border-radius:50%; padding:1px 6px; font-size:11px;">0</span></span>
+    </div>
+    <div class="dash-tab" data-tab="ratings" onclick="switchTab('ratings')">
+      <span>⭐</span>
+      <span>Reviews</span>
+    </div>
+    <div class="dash-tab" data-tab="profile" onclick="switchTab('profile')">
+      <span>👤</span>
+      <span>Profile</span>
+    </div>
+  </div>
+
+  <!-- Browse Tab -->
+  <div id="browseTab" class="tab-content" style="padding: 20px;">
+    <h2 style="margin-bottom: 20px;">Available Requests</h2>
+    <div id="browseList"></div>
+  </div>
+
+  <!-- Approaches Tab -->
+  <div id="approachesTab" class="tab-content" style="display: none; padding: 20px;">
+    <h2 style="margin-bottom: 20px;">My Approaches</h2>
+    <div id="approachesList"></div>
+  </div>
+
+  <!-- Expert Chat Tab -->
+  <div id="expertChatTab" class="tab-content" style="display:none;">
+    <div style="height:85vh; display:flex; flex-direction:column;">
+
+      <!-- Chat List View -->
+      <div id="expertChatListView" style="padding:20px; overflow-y:auto; flex:1;">
+        <h2 style="margin-bottom:16px;">Messages</h2>
+        <div id="expertChatConversations"></div>
+      </div>
+
+      <!-- Chat Message View (hidden by default) -->
+      <div id="expertChatMessageView" style="display:none; flex-direction:column; height:100%;">
+        <!-- Header -->
+        <div style="padding:12px 16px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:12px; flex-shrink:0;">
+          <button onclick="showChatList()" style="background:none; border:none; font-size:20px; cursor:pointer;">←</button>
+          <div class="avatar" id="expertChatWithAvatar">?</div>
+          <div>
+            <div style="font-weight:600;" id="expertChatWithName">Name</div>
+            <div style="font-size:12px; color:var(--text-muted);" id="expertChatRequestTitle">Request</div>
+          </div>
+        </div>
+        <!-- Messages -->
+        <div id="expertChatMessages" style="flex:1; overflow-y:auto; padding:16px; display:flex; flex-direction:column; gap:8px;"></div>
+        <!-- Input -->
+        <div style="padding:12px 16px; border-top:1px solid var(--border); display:flex; gap:8px; flex-shrink:0;">
+          <input id="expertChatInput" type="text" placeholder="Type a message..."
+            style="flex:1; padding:10px 14px; border:1px solid var(--border); border-radius:20px; outline:none;"
+            onkeypress="if(event.key==='Enter') sendMessage()">
+          <button onclick="sendMessage()"
+            style="padding:10px 18px; background:var(--primary); color:white; border:none; border-radius:20px; cursor:pointer; font-weight:600;">Send</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Ratings Tab -->
+  <div id="ratingsTab" class="tab-content" style="display: none; padding: 20px;">
+    <h2 style="margin-bottom: 20px;">My Reviews</h2>
+    
+    <div class="settings-section">
+      <div style="display: flex; gap: 24px; margin-bottom: 24px;">
+        <div>
+          <div style="font-size: 48px; font-weight: 700;" id="avgRating">0.0</div>
+          <div class="rating-stars" style="pointer-events: none; display: flex; margin-top: 8px; margin-bottom: 8px;">
+            <span class="star">★</span>
+            <span class="star">★</span>
+            <span class="star">★</span>
+            <span class="star">★</span>
+            <span class="star">★</span>
+          </div>
+          <div style="font-size: 14px; color: var(--text-muted); margin-top: 4px; display: block; clear: both;" id="reviewCount">0 reviews</div>
+        </div>
+        <div style="flex: 1;">
+          <div id="ratingBars" class="rating-bars"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="reviewsList"></div>
+
+    <div id="reviewsEmpty" class="empty-state">
+      <div class="empty-icon">⭐</div>
+      <h3 class="empty-title">No reviews yet</h3>
+      <p class="empty-text">Complete projects to receive ratings from clients</p>
+    </div>
+  </div>
+
+  <!-- Expert Profile Tab -->
+  <div id="expertProfileTab" class="tab-content" style="display: none; padding: 20px;">
+    <div style="text-align: center; margin-bottom: 30px;">
+      <div class="avatar-upload">
+        <div class="avatar avatar-xl" id="expertProfileAvatar">E</div>
+        <button class="avatar-upload-btn" onclick="document.getElementById('expertPhotoInput').click()">
+          📷
+        </button>
+        <input type="file" id="expertPhotoInput" style="display: none;" accept="image/*" onchange="uploadProfilePhoto(event)">
+      </div>
+      <h2 style="margin-top: 16px;" id="expertProfileName">Expert Name</h2>
+      <p style="color: var(--text-muted);" id="expertProfileEmail">expert@email.com</p>
+    </div>
+  </div>
+
+</div>
+<!-- END EXPERT DASHBOARD -->
+
+
+<!-- ═══ MODALS ═══ -->
+
+<!-- Rating Modal -->
+<div id="ratingModal" class="modal-overlay" onclick="closeRatingModal(event)">
+  <div class="modal-sheet" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <h3 class="modal-title">Rate Expert</h3>
+      <p class="modal-subtitle" id="ratingExpertName"></p>
+    </div>
+    <div class="modal-body">
+      <div style="text-align: center; margin-bottom: 32px;">
+        <div style="font-size: 14px; font-weight: 600; margin-bottom: 12px;">How was your experience?</div>
+        <div class="rating-stars" style="justify-content: center;">
+          <span class="star large" data-rating="1" onclick="selectRating(1)">★</span>
+          <span class="star large" data-rating="2" onclick="selectRating(2)">★</span>
+          <span class="star large" data-rating="3" onclick="selectRating(3)">★</span>
+          <span class="star large" data-rating="4" onclick="selectRating(4)">★</span>
+          <span class="star large" data-rating="5" onclick="selectRating(5)">★</span>
+        </div>
+      </div>
+      <div class="field">
+        <label>Write your review</label>
+        <textarea id="reviewText" rows="4" placeholder="Share details of your experience..."></textarea>
+      </div>
+      <div class="field">
+        <label style="display: flex; align-items: center; gap: 12px; cursor: pointer;">
+          <input type="checkbox" id="wouldRecommend" checked style="width: 20px; height: 20px;">
+          <span>I would recommend this expert</span>
+        </label>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-outline" onclick="closeRatingModal()" style="flex: 1;">Cancel</button>
+      <button class="btn-primary" onclick="submitRating()" style="flex: 1;">Submit Review</button>
+    </div>
+  </div>
+</div>
+
+<!-- Credit Purchase Modal -->
+<div id="creditModal" class="modal-overlay" onclick="closeCreditModal(event)">
+  <div class="modal-sheet" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <h3 class="modal-title">Purchase Credits</h3>
+      <p class="modal-subtitle">Choose a package that suits you</p>
+    </div>
+    <div class="modal-body">
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        <label style="cursor: pointer; display: flex; align-items: center; padding: 16px; border: 2px solid var(--border); border-radius: 12px;">
+          <input type="radio" name="creditPack" value="20" data-price="600" style="margin-right: 12px;">
+          <div>
+            <div style="font-size: 16px; font-weight: 700;">20 Credits - ₹600</div>
+            <div style="font-size: 13px; color: var(--text-muted);">₹30 per credit</div>
+          </div>
+        </label>
+
+        <label style="cursor: pointer; display: flex; align-items: center; padding: 16px; border: 2px solid var(--primary); border-radius: 12px; background: rgba(252, 128, 25, 0.05); position: relative;">
+          <div style="position: absolute; top: -10px; right: 10px; background: var(--primary); color: #fff; padding: 4px 12px; border-radius: 12px; font-size: 11px; font-weight: 700;">⭐ POPULAR</div>
+          <input type="radio" name="creditPack" value="100" data-price="2700" checked style="margin-right: 12px;">
+          <div>
+            <div style="font-size: 16px; font-weight: 700;">100 Credits - ₹2,700</div>
+            <div style="font-size: 13px; color: var(--text-muted);">₹27 per credit • Save 10%</div>
+          </div>
+        </label>
+
+        <label style="cursor: pointer; display: flex; align-items: center; padding: 16px; border: 2px solid var(--border); border-radius: 12px;">
+          <input type="radio" name="creditPack" value="200" data-price="4800" style="margin-right: 12px;">
+          <div>
+            <div style="font-size: 16px; font-weight: 700;">200 Credits - ₹4,800</div>
+            <div style="font-size: 13px; color: var(--text-muted);">₹24 per credit • Save 20%</div>
+          </div>
+        </label>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-outline" onclick="closeCreditModal()" style="flex: 1;">Cancel</button>
+      <button class="btn-primary" onclick="proceedToPayment()" style="flex: 1;">Proceed to Payment</button>
+    </div>
+  </div>
+</div>
+
+<!-- Payment Modal (UPI Mockup) -->
+<div id="paymentModal" class="modal-overlay" onclick="closePaymentModal(event)">
+  <div class="modal-sheet" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <h3 class="modal-title">Complete Payment</h3>
+      <p class="modal-subtitle">Scan QR or pay via UPI</p>
+    </div>
+    <div class="modal-body" style="text-align: center;">
+      <div style="width: 200px; height: 200px; margin: 20px auto; background: var(--bg-gray); border: 2px solid var(--border); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 64px;">
+        📱
+      </div>
+      <div style="margin: 20px 0;">
+        <div style="font-size: 32px; font-weight: 700; color: var(--text);" id="paymentAmount">₹2,700</div>
+        <div style="font-size: 14px; color: var(--text-muted);" id="paymentCredits">100 Credits</div>
+      </div>
+      <div style="background: var(--bg-gray); padding: 16px; border-radius: 12px; margin: 20px 0;">
+        <div style="font-size: 13px; color: var(--text-muted); margin-bottom: 8px;">UPI ID</div>
+        <div style="font-size: 16px; font-weight: 600; color: var(--text);">workindex@upi</div>
+      </div>
+      <div style="font-size: 13px; color: var(--text-light); line-height: 1.6;">
+        This is a demo payment. In production, you'll use real UPI payment gateway.
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-outline" onclick="closePaymentModal()" style="flex: 1;">Cancel</button>
+      <button class="btn-primary" onclick="confirmPayment()" style="flex: 1;">I've Paid</button>
+    </div>
+  </div>
+</div>
+
+<!-- External JavaScript -->
+
+<!-- Questionnaire System -->
+<script>
+// ═══════════════════════════════════════════════════════════
+//  BARK-STYLE COMPLETE QUESTIONNAIRE SYSTEM
+// ═══════════════════════════════════════════════════════════
+
+const BARK_Q_FORMS = {
+  // ─── SERVICE SELECTION ───
+  service: {
+    title: "What service do you need?",
+    subtitle: "Select the category that best fits your requirement",
+    type: "single",
+    key: "service",
+    required: true,
+    options: [
+      { value: "itr", icon: "📄", label: "ITR Filing", desc: "Income Tax Return filing" },
+      { value: "gst", icon: "🏢", label: "GST Services", desc: "Registration, filing & compliance" },
+      { value: "accounting", icon: "📊", label: "Accounting / Bookkeeping", desc: "Maintain financial records" },
+      { value: "audit", icon: "🔍", label: "Audit Services", desc: "Statutory, internal & tax audit" },
+      { value: "photography", icon: "📸", label: "Photography", desc: "Events, products & commercial" },
+      { value: "development", icon: "💻", label: "App / Web Development", desc: "Build digital products" }
+    ]
+  },
+
+  // ─── ITR FILING QUESTIONS ───
+  itr_taxpayer_type: {
+    condition: { service: "itr" },
+    title: "Type of taxpayer",
+    subtitle: "Select your taxpayer category",
+    type: "single",
+    key: "itrTaxpayerType",
+    required: true,
+    options: [
+      { value: "salaried", label: "Salaried Individual", desc: "Earning from salary" },
+      { value: "business", label: "Business Owner", desc: "Running a business" },
+      { value: "freelancer", label: "Professional / Freelancer", desc: "Independent professional" },
+      { value: "investor", label: "Investor / Capital gains", desc: "Income from investments" },
+      { value: "other", label: "Other", desc: "Mixed or other sources" }
+    ]
+  },
+  
+  itr_annual_income: {
+    condition: { service: "itr" },
+    title: "Total Annual Income",
+    subtitle: "Select your total income bracket",
+    type: "single",
+    key: "itrAnnualIncome",
+    required: true,
+    options: [
+      { value: "below10", label: "Less than ₹10 lakh" },
+      { value: "10-15", label: "₹10 – ₹15 lakh" },
+      { value: "15-20", label: "₹15 – ₹20 lakh" },
+      { value: "above20", label: "Above ₹20 lakh" }
+    ]
+  },
+  
+  itr_income_sources: {
+    condition: { service: "itr" },
+    title: "Sources of income",
+    subtitle: "Select all that apply",
+    type: "multi",
+    key: "itrIncomeSources",
+    required: true,
+    options: [
+      { value: "salary", label: "Salary" },
+      { value: "business", label: "Business income" },
+      { value: "rental", label: "Rental income" },
+      { value: "capital", label: "Capital gains" },
+      { value: "foreign", label: "Foreign income" },
+      { value: "interest", label: "Interest income" },
+      { value: "other", label: "Other" }
+    ]
+  },
+  
+  itr_filing_requirement: {
+    condition: { service: "itr" },
+    title: "Filing requirement",
+    subtitle: "What type of return do you need?",
+    type: "single",
+    key: "itrFilingType",
+    required: true,
+    options: [
+      { value: "current", label: "Current year return" },
+      { value: "previous", label: "Previous year return" },
+      { value: "revised", label: "Revised return" },
+      { value: "notice", label: "Tax notice handling" }
+    ]
+  },
+  
+  itr_tax_planning: {
+    condition: { service: "itr" },
+    title: "Need tax planning advice?",
+    subtitle: "Get professional advice to optimize your taxes",
+    type: "single",
+    key: "itrTaxPlanning",
+    required: true,
+    options: [
+      { value: "yes", icon: "✅", label: "Yes, I need tax planning advice" },
+      { value: "no", icon: "❌", label: "No, just file my return" }
+    ]
+  },
+
+  // ─── GST SERVICES QUESTIONS ───
+  gst_service_type: {
+    condition: { service: "gst" },
+    title: "Type of GST service needed",
+    subtitle: "Select the GST service you require",
+    type: "single",
+    key: "gstServiceType",
+    required: true,
+    options: [
+      { value: "registration", label: "New GST Registration" },
+      { value: "filing", label: "GST Return Filing" },
+      { value: "notice", label: "GST Notice / Compliance" },
+      { value: "amendment", label: "GST Amendment" },
+      { value: "cancellation", label: "GST Cancellation" },
+      { value: "consultation", label: "Consultation" }
+    ]
+  },
+  
+  gst_business_type: {
+    condition: { service: "gst" },
+    title: "Business type",
+    subtitle: "Select your business structure",
+    type: "single",
+    key: "gstBusinessType",
+    required: true,
+    options: [
+      { value: "proprietorship", label: "Proprietorship" },
+      { value: "partnership", label: "Partnership" },
+      { value: "llp", label: "LLP" },
+      { value: "pvt_ltd", label: "Private Limited Company" },
+      { value: "opc", label: "OPC (One Person Company)" },
+      { value: "other", label: "Other" }
+    ]
+  },
+  
+  gst_turnover: {
+    condition: { service: "gst" },
+    title: "Monthly turnover",
+    subtitle: "Select your average monthly turnover",
+    type: "single",
+    key: "gstTurnover",
+    required: true,
+    options: [
+      { value: "below5", label: "Below ₹5 lakh" },
+      { value: "5-20", label: "₹5 – ₹20 lakh" },
+      { value: "20-50", label: "₹20 – ₹50 lakh" },
+      { value: "above50", label: "Above ₹50 lakh" }
+    ]
+  },
+  
+  gst_existing: {
+    condition: { service: "gst" },
+    title: "Existing GSTIN?",
+    subtitle: "Do you already have a GST registration?",
+    type: "single",
+    key: "gstExisting",
+    required: true,
+    options: [
+      { value: "yes", icon: "✅", label: "Yes, I have GSTIN" },
+      { value: "no", icon: "❌", label: "No, need new registration" }
+    ]
+  },
+
+  // ─── ACCOUNTING QUESTIONS ───
+  accounting_business_type: {
+    condition: { service: "accounting" },
+    title: "Business type",
+    subtitle: "Select your business structure",
+    type: "single",
+    key: "accountingBusinessType",
+    required: true,
+    options: [
+      { value: "proprietorship", label: "Proprietorship" },
+      { value: "partnership", label: "Partnership" },
+      { value: "llp", label: "LLP" },
+      { value: "pvt_ltd", label: "Private Limited Company" },
+      { value: "opc", label: "OPC" },
+      { value: "other", label: "Other" }
+    ]
+  },
+  
+  accounting_frequency: {
+    condition: { service: "accounting" },
+    title: "Frequency required",
+    subtitle: "How often do you need accounting support?",
+    type: "single",
+    key: "accountingFrequency",
+    required: true,
+    options: [
+      { value: "one-time", label: "One-time setup" },
+      { value: "monthly", label: "Monthly bookkeeping" },
+      { value: "quarterly", label: "Quarterly" },
+      { value: "ongoing", label: "Ongoing full-time support" }
+    ]
+  },
+  
+  accounting_software: {
+    condition: { service: "accounting" },
+    title: "Accounting software used",
+    subtitle: "Which software do you currently use?",
+    type: "single",
+    key: "accountingSoftware",
+    required: true,
+    options: [
+      { value: "tally", label: "Tally" },
+      { value: "zoho", label: "Zoho Books" },
+      { value: "quickbooks", label: "QuickBooks" },
+      { value: "busy", label: "Busy" },
+      { value: "none", label: "None" },
+      { value: "other", label: "Other" }
+    ]
+  },
+  
+  accounting_transactions: {
+    condition: { service: "accounting" },
+    title: "Approximate monthly transactions",
+    subtitle: "How many transactions per month?",
+    type: "single",
+    key: "accountingTransactions",
+    required: true,
+    options: [
+      { value: "below100", label: "Below 100" },
+      { value: "100-500", label: "100 – 500" },
+      { value: "500-2000", label: "500 – 2000" },
+      { value: "above2000", label: "Above 2000" }
+    ]
+  },
+
+  // ─── AUDIT SERVICES QUESTIONS ───
+  audit_type: {
+    condition: { service: "audit" },
+    title: "Type of audit",
+    subtitle: "Select the audit service you need",
+    type: "single",
+    key: "auditType",
+    required: true,
+    options: [
+      { value: "statutory", label: "Statutory Audit" },
+      { value: "internal", label: "Internal Audit" },
+      { value: "tax", label: "Tax Audit" },
+      { value: "compliance", label: "Compliance Audit" },
+      { value: "diligence", label: "Due Diligence" },
+      { value: "other", label: "Other" }
+    ]
+  },
+  
+  audit_org_type: {
+    condition: { service: "audit" },
+    title: "Organization type",
+    subtitle: "Select your organization structure",
+    type: "single",
+    key: "auditOrgType",
+    required: true,
+    options: [
+      { value: "proprietorship", label: "Proprietorship" },
+      { value: "partnership", label: "Partnership" },
+      { value: "llp", label: "LLP" },
+      { value: "pvt_ltd", label: "Private Limited Company" },
+      { value: "public", label: "Public Limited Company" },
+      { value: "other", label: "Other" }
+    ]
+  },
+  
+  audit_turnover: {
+    condition: { service: "audit" },
+    title: "Annual turnover",
+    subtitle: "Select your organization's annual turnover",
+    type: "single",
+    key: "auditTurnover",
+    required: true,
+    options: [
+      { value: "below1cr", label: "Below ₹1 Crore" },
+      { value: "1-5cr", label: "₹1 – ₹5 Crore" },
+      { value: "5-20cr", label: "₹5 – ₹20 Crore" },
+      { value: "above20cr", label: "Above ₹20 Crore" }
+    ]
+  },
+  
+  audit_deadline: {
+    condition: { service: "audit" },
+    title: "Audit deadline",
+    subtitle: "When do you need the audit completed?",
+    type: "date",
+    key: "auditDeadline",
+    required: true,
+    placeholder: "Select date"
+  },
+
+  // ─── PHOTOGRAPHY QUESTIONS ───
+  photography_type: {
+    condition: { service: "photography" },
+    title: "Type of photography",
+    subtitle: "What kind of photography do you need?",
+    type: "single",
+    key: "photographyType",
+    required: true,
+    options: [
+      { value: "wedding", label: "Wedding" },
+      { value: "pre-wedding", label: "Pre-wedding" },
+      { value: "event", label: "Event" },
+      { value: "product", label: "Product" },
+      { value: "portrait", label: "Portrait" },
+      { value: "commercial", label: "Commercial" },
+      { value: "other", label: "Other" }
+    ]
+  },
+  
+  photography_event_date: {
+    condition: { service: "photography" },
+    title: "Event date",
+    subtitle: "When is your event/photoshoot?",
+    type: "date",
+    key: "photographyEventDate",
+    required: true,
+    placeholder: "Select date"
+  },
+  
+  photography_duration: {
+    condition: { service: "photography" },
+    title: "Duration required",
+    subtitle: "How long do you need the photographer?",
+    type: "single",
+    key: "photographyDuration",
+    required: true,
+    options: [
+      { value: "few-hours", label: "Few hours" },
+      { value: "half-day", label: "Half day" },
+      { value: "full-day", label: "Full day" },
+      { value: "multiple", label: "Multiple days" }
+    ]
+  },
+  
+  photography_videography: {
+    condition: { service: "photography" },
+    title: "Need videography also?",
+    subtitle: "Do you also need video recording services?",
+    type: "single",
+    key: "photographyVideography",
+    required: true,
+    options: [
+      { value: "yes", icon: "🎥", label: "Yes, include videography" },
+      { value: "no", icon: "📷", label: "No, photography only" }
+    ]
+  },
+
+  // ─── DEVELOPMENT QUESTIONS ───
+  dev_project_type: {
+    condition: { service: "development" },
+    title: "Project type",
+    subtitle: "What do you want to build?",
+    type: "single",
+    key: "devProjectType",
+    required: true,
+    options: [
+      { value: "website", label: "Website" },
+      { value: "mobile-app", label: "Mobile App" },
+      { value: "web-app", label: "Web Application / SaaS" },
+      { value: "ecommerce", label: "E-commerce Store" },
+      { value: "custom", label: "Custom Software" },
+      { value: "other", label: "Other" }
+    ]
+  },
+  
+  dev_project_stage: {
+    condition: { service: "development" },
+    title: "Project stage",
+    subtitle: "What stage is your project at?",
+    type: "single",
+    key: "devProjectStage",
+    required: true,
+    options: [
+      { value: "idea", label: "Idea stage" },
+      { value: "requirements", label: "Requirements defined" },
+      { value: "design-ready", label: "Design ready" },
+      { value: "partial", label: "Partially developed" },
+      { value: "upgrade", label: "Existing system upgrade" }
+    ]
+  },
+  
+  dev_platform: {
+    condition: { service: "development" },
+    title: "Platform needed",
+    subtitle: "Which platforms should the app support?",
+    type: "multi",
+    key: "devPlatform",
+    required: true,
+    options: [
+      { value: "android", label: "Android" },
+      { value: "ios", label: "iOS" },
+      { value: "web", label: "Web" },
+      { value: "cross-platform", label: "Cross-platform" },
+      { value: "not-sure", label: "Not sure yet" }
+    ]
+  },
+  
+  dev_timeline: {
+    condition: { service: "development" },
+    title: "Timeline",
+    subtitle: "When do you need the project completed?",
+    type: "single",
+    key: "devTimeline",
+    required: true,
+    options: [
+      { value: "asap", label: "ASAP" },
+      { value: "1-2months", label: "1–2 months" },
+      { value: "3-6months", label: "3–6 months" },
+      { value: "flexible", label: "Flexible" }
+    ]
+  },
+  
+  dev_maintenance: {
+    condition: { service: "development" },
+    title: "Need ongoing maintenance?",
+    subtitle: "Do you need support after project completion?",
+    type: "single",
+    key: "devMaintenance",
+    required: true,
+    options: [
+      { value: "yes", icon: "✅", label: "Yes, need maintenance support" },
+      { value: "no", icon: "❌", label: "No, just build and handover" }
+    ]
+  },
+
+  // ─── COMMON QUESTIONS (ALL SERVICES) ───
+  service_location_type: {
+    title: "Where should the service be delivered?",
+    subtitle: "Select the service location",
+    type: "single",
+    key: "serviceLocationType",
+    required: true,
+    options: [
+      { value: "my-location", icon: "🏠", label: "At my location" },
+      { value: "professional-office", icon: "🏢", label: "At professional's office" },
+      { value: "online", icon: "💻", label: "Online / Remote" }
+    ]
+  },
+  
+  full_address: {
+    condition: { serviceLocationType: ["my-location", "professional-office"] },
+    title: "Full Address",
+    subtitle: "Provide complete address details",
+    type: "address",
+    key: "fullAddress",
+    required: true,
+    fields: {
+      building: { label: "House / Building name", placeholder: "e.g., Sunshine Apartments", required: true },
+      area: { label: "Area / Locality", placeholder: "e.g., Koramangala", required: true },
+      city: { label: "City", placeholder: "e.g., Bengaluru", required: true },
+      state: { label: "State", placeholder: "e.g., Karnataka", required: true },
+      pincode: { label: "PIN Code", placeholder: "e.g., 560034", required: true },
+      landmark: { label: "Landmark (Optional)", placeholder: "e.g., Near Metro Station", required: false }
+    }
+  },
+  
+  urgency: {
+    title: "When do you need this service?",
+    subtitle: "Select your timeline preference",
+    type: "single",
+    key: "urgency",
+    required: true,
+    options: [
+      { value: "immediate", icon: "🔴", label: "Immediately (within 24 hours)" },
+      { value: "2-3days", icon: "🟠", label: "Within 2–3 days" },
+      { value: "week", icon: "🟡", label: "Within a week" },
+      { value: "month", icon: "🟢", label: "Within a month" },
+      { value: "flexible", icon: "🔵", label: "Flexible / Just exploring" }
+    ]
+  },
+  
+  budget: {
+    title: "Budget range",
+    subtitle: "Set your budget for this service",
+    type: "slider",
+    key: "budget",
+    required: true,
+    min: 1000,
+    max: 100000,
+    step: 500,
+    format: "₹{value}",
+    defaultValue: 5000
+  },
+  
+  description: {
+    title: "Service description",
+    subtitle: "Please provide detailed information about your requirement",
+    type: "textarea",
+    key: "description",
+    required: true,
+    minLength: 50,
+    maxLength: 1000,
+    placeholder: "Describe your requirements in detail:\n\n• Scope of work\n• Documents needed\n• Timeline and expectations\n• Special requests or preferences\n• Any other relevant details",
+    validation: "Minimum 50 characters required"
+  },
+  
+  // ─── OPTIONAL MATCHING QUESTIONS ───
+  preferred_professional: {
+    title: "Preferred professional type",
+    subtitle: "Who would you like to work with?",
+    type: "single",
+    key: "preferredProfessional",
+    required: false,
+    options: [
+      { value: "freelancer", icon: "👤", label: "Individual freelancer" },
+      { value: "firm", icon: "🏢", label: "Firm / Company" },
+      { value: "no-preference", icon: "🤝", label: "No preference" }
+    ]
+  },
+  
+  contact_method: {
+    title: "Preferred contact method",
+    subtitle: "How should professionals reach you?",
+    type: "multi",
+    key: "contactMethod",
+    required: false,
+    options: [
+      { value: "phone", label: "Phone call" },
+      { value: "whatsapp", label: "WhatsApp" },
+      { value: "email", label: "Email" },
+      { value: "chat", label: "In-app chat" }
+    ]
+  }
+};
+
+// ─── EXPERT PROFILE QUESTIONS ───
+BARK_Q_FORMS.expert_services = {
+  title: "What services do you offer?",
+  subtitle: "Select all services you provide",
+  type: "multi",
+  key: "servicesOffered",
+  required: true,
+  options: [
+    { value: "itr", label: "ITR Filing" },
+    { value: "gst", label: "GST Services" },
+    { value: "accounting", label: "Accounting / Bookkeeping" },
+    { value: "audit", label: "Audit Services" },
+    { value: "photography", label: "Photography" },
+    { value: "development", label: "App / Web Development" }
+  ]
+};
+
+BARK_Q_FORMS.expert_specialization = {
+  title: "Your specialization",
+  subtitle: "What best describes your expertise?",
+  type: "single",
+  key: "specialization",
+  required: true,
+  options: [
+    { value: "Chartered Accountant", label: "Chartered Accountant (CA)" },
+    { value: "Tax Consultant", label: "Tax Consultant" },
+    { value: "GST Specialist", label: "GST Specialist" },
+    { value: "Accountant", label: "Accountant" },
+    { value: "Auditor", label: "Auditor" },
+    { value: "Photographer", label: "Photographer" },
+    { value: "Web Developer", label: "Web Developer" },
+    { value: "App Developer", label: "App Developer" },
+    { value: "Other", label: "Other" }
+  ]
+};
+
+BARK_Q_FORMS.expert_experience = {
+  title: "Years of experience",
+  subtitle: "How long have you been practicing?",
+  type: "single",
+  key: "experience",
+  required: true,
+  options: [
+    { value: "0-1", label: "Less than 1 year" },
+    { value: "1-3", label: "1 – 3 years" },
+    { value: "3-5", label: "3 – 5 years" },
+    { value: "5-10", label: "5 – 10 years" },
+    { value: "10+", label: "More than 10 years" }
+  ]
+};
+
+BARK_Q_FORMS.expert_location = {
+  title: "Your location",
+  subtitle: "Where are you based?",
+  type: "single",
+  key: "serviceLocationType",
+  required: true,
+  options: [
+    { value: "online", icon: "💻", label: "Online / Remote only" },
+    { value: "local", icon: "📍", label: "Local (in-person available)" },
+    { value: "both", icon: "🌐", label: "Both online and in-person" }
+  ]
+};
+BARK_Q_FORMS.expert_city = {
+  title: "Which city are you based in?",
+  subtitle: "Clients will use this to find local experts",
+  type: "text",
+  key: "city",
+  required: true,
+  placeholder: "e.g. Bengaluru, Mumbai, Delhi..."
+};
+
+BARK_Q_FORMS.expert_pincode = {
+  title: "Your service pincode",
+  subtitle: "Clients can search experts by pincode",
+  type: "pincode",
+  key: "pincode",
+  required: true,
+  placeholder: "Enter 6-digit pincode"
+};
+
+BARK_Q_FORMS.expert_bio = {
+  title: "About yourself",
+  subtitle: "Tell clients about your experience and expertise",
+  type: "textarea",
+  key: "bio",
+  required: true,
+  minLength: 30,
+  maxLength: 500,
+  placeholder: "e.g., I am a Chartered Accountant with 5 years of experience specializing in ITR filing and GST compliance for small businesses...",
+  validation: "Minimum 30 characters required"
+};
+// ─── QUESTIONNAIRE STATE ───
+let qState = {
+  step: 0,
+  sequence: [],
+  answers: {},
+  role: null
+};
+
+// ─── BUILD QUESTION SEQUENCE DYNAMICALLY ───
+function buildQuestionSequence() {
+  const answers = qState.answers;
+  const role = qState.role || state.user?.role || selectedRole;
+  let seq = [];
+  
+  if (role === 'expert') {
+    // Expert profile questions
+    seq = ['expert_services', 'expert_specialization', 'expert_experience', 'expert_location', 'expert_city', 'expert_pincode','expert_bio'];
+    return seq;
+  }
+  
+  // Client questions - start with service selection
+  seq = ['service'];
+  
+  const service = answers.service;
+  
+  // Add service-specific questions
+  if (service === 'itr') {
+    seq.push('itr_taxpayer_type', 'itr_annual_income', 'itr_income_sources', 'itr_filing_requirement', 'itr_tax_planning');
+  } else if (service === 'gst') {
+    seq.push('gst_service_type', 'gst_business_type', 'gst_turnover', 'gst_existing');
+  } else if (service === 'accounting') {
+    seq.push('accounting_business_type', 'accounting_frequency', 'accounting_software', 'accounting_transactions');
+  } else if (service === 'audit') {
+    seq.push('audit_type', 'audit_org_type', 'audit_turnover', 'audit_deadline');
+  } else if (service === 'photography') {
+    seq.push('photography_type', 'photography_event_date', 'photography_duration', 'photography_videography');
+  } else if (service === 'development') {
+    seq.push('dev_project_type', 'dev_project_stage', 'dev_platform', 'dev_timeline', 'dev_maintenance');
+  }
+  
+  // Add common questions
+  seq.push('service_location_type');
+  
+  // Add address if needed
+  if (answers.serviceLocationType === 'my-location' || answers.serviceLocationType === 'professional-office') {
+    seq.push('full_address');
+  }
+  
+  seq.push('urgency', 'budget', 'description', 'preferred_professional', 'contact_method');
+  
+  return seq;
+}
+
+// ─── START QUESTIONNAIRE ───
+function startQuestionnaire() {
+  qState = {
+    step: 0,
+    sequence: ['service'], // Start with service
+    answers: {},
+    role: state.user?.role || selectedRole
+  };
+  showPage('questionnaire');
+  renderQuestion();
+}
+
+// ─── RENDER CURRENT QUESTION ───
+function renderQuestion() {
+  const stepKey = qState.sequence[qState.step];
+  const question = BARK_Q_FORMS[stepKey];
+  
+  if (!question) {
+    console.error('Question not found:', stepKey);
+    return;
+  }
+  
+  const content = document.getElementById('qContent');
+  const nextBtn = document.getElementById('qNextBtn');
+  const backBtn = document.getElementById('qBackBtn');
+  
+  // Update progress
+  const progress = ((qState.step + 1) / qState.sequence.length) * 100;
+  document.getElementById('qProgressFill').style.width = progress + '%';
+  document.getElementById('qStepText').textContent = `Step ${qState.step + 1} of ${qState.sequence.length}`;
+  
+  // Show/hide back button
+  backBtn.style.display = qState.step > 0 ? 'block' : 'none';
+  
+  // Render question based on type
+  let html = `
+    <div style="margin-bottom: 32px;">
+      <h2 style="font-size: 26px; font-weight: 800; color: var(--text); margin-bottom: 12px; line-height: 1.2;">${question.title}</h2>
+      ${question.subtitle ? `<p style="font-size: 15px; color: var(--text-light); line-height: 1.5;">${question.subtitle}</p>` : ''}
+    </div>
+  `;
+  
+if (question.type === 'single') {
+  html += '<div style="display: flex; flex-direction: column; gap: 12px;">';
+  question.options.forEach(opt => {
+    const isSelected = qState.answers[question.key] === opt.value;
+    const questionKey = question.key;
+    const optValue = opt.value;
+    
+    html += `
+      <div data-question-key="${questionKey}" data-option-value="${optValue}" class="questionnaire-option" style="padding: 18px 20px; border: 2px solid ${isSelected ? 'var(--primary)' : 'var(--border)'}; border-radius: 12px; cursor: pointer; background: ${isSelected ? 'rgba(252, 128, 25, 0.05)' : 'var(--bg)'}; transition: all 0.2s; box-shadow: ${isSelected ? '0 4px 12px rgba(252, 128, 25, 0.15)' : 'none'};">
+        <div style="display: flex; align-items: center; gap: 14px;">
+          ${opt.icon ? `<span style="font-size: 28px;">${opt.icon}</span>` : ''}
+          <div style="flex: 1;">
+            <div style="font-size: 16px; font-weight: 600; color: var(--text); margin-bottom: 2px;">${opt.label}</div>
+            ${opt.desc ? `<div style="font-size: 14px; color: var(--text-muted);">${opt.desc}</div>` : ''}
+          </div>
+          <div style="width: 22px; height: 22px; border: 2px solid ${isSelected ? 'var(--primary)' : 'var(--border)'}; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+            ${isSelected ? '<div style="width: 12px; height: 12px; background: var(--primary); border-radius: 50%;"></div>' : ''}
+          </div>
+        </div>
+      </div>
+    `;
+  });
+  html += '</div>';
+}
+  else if (question.type === 'multi') {
+  html += '<div style="display: flex; flex-direction: column; gap: 12px;">';
+  question.options.forEach(opt => {
+    const isSelected = (qState.answers[question.key] || []).includes(opt.value);
+    const questionKey = question.key;
+    const optValue = opt.value;
+    
+    html += `
+      <div data-question-key="${questionKey}" data-option-value="${optValue}" class="questionnaire-multi-option" style="padding: 18px 20px; border: 2px solid ${isSelected ? 'var(--primary)' : 'var(--border)'}; border-radius: 12px; cursor: pointer; background: ${isSelected ? 'rgba(252, 128, 25, 0.05)' : 'var(--bg)'}; transition: all 0.2s;">
+        <div style="display: flex; align-items: center; gap: 14px;">
+          <div style="width: 22px; height: 22px; border: 2px solid ${isSelected ? 'var(--primary)' : 'var(--border)'}; border-radius: 4px; display: flex; align-items: center; justify-content: center; background: ${isSelected ? 'var(--primary)' : 'transparent'}; flex-shrink: 0;">
+            ${isSelected ? '<span style="color: #fff; font-size: 16px; font-weight: 700;">✓</span>' : ''}
+          </div>
+          <div style="font-size: 16px; font-weight: 600; color: var(--text);">${opt.label}</div>
+        </div>
+      </div>
+    `;
+  });
+  html += '</div>';
+}
+  else if (question.type === 'textarea') {
+    const value = qState.answers[question.key] || '';
+    const charCount = value.length;
+    const minLength = question.minLength || 0;
+    html += `
+      <div style="position: relative;">
+        <textarea id="qTextarea" rows="8" placeholder="${question.placeholder}" style="width: 100%; padding: 16px; border: 2px solid var(--border); border-radius: 12px; font-size: 15px; font-family: inherit; resize: vertical; line-height: 1.6;" oninput="updateTextInput('${question.key}', this.value)">${value}</textarea>
+        <div style="margin-top: 8px; display: flex; justify-content: space-between; font-size: 13px; color: var(--text-muted);">
+          <span>${question.validation || ''}</span>
+          <span>${charCount} / ${question.maxLength || 1000} characters</span>
+        </div>
+      </div>
+    `;
+  }
+  else if (question.type === 'input' || question.type === 'date') {
+    const value = qState.answers[question.key] || '';
+    const inputType = question.type === 'date' ? 'date' : (question.inputType || 'text');
+    html += `
+      <input type="${inputType}" id="qInput" value="${value}" placeholder="${question.placeholder || ''}" style="width: 100%; padding: 16px; border: 2px solid var(--border); border-radius: 12px; font-size: 16px; font-family: inherit;" oninput="updateTextInput('${question.key}', this.value)">
+    `;
+  }
+  else if (question.type === 'slider') {
+    const value = qState.answers[question.key] || question.defaultValue || question.min;
+    html += `
+      <div style="padding: 24px 20px; background: var(--bg-gray); border-radius: 12px;">
+        <div style="text-align: center; margin-bottom: 24px;">
+          <div style="font-size: 14px; color: var(--text-muted); margin-bottom: 8px;">Your budget</div>
+          <div id="sliderValue" style="font-size: 36px; font-weight: 800; color: var(--primary);">${question.format.replace('{value}', value.toLocaleString('en-IN'))}</div>
+        </div>
+        <input type="range" id="qSlider" min="${question.min}" max="${question.max}" step="${question.step}" value="${value}" style="width: 100%; height: 8px; border-radius: 4px; background: var(--border); outline: none; -webkit-appearance: none;" oninput="updateSliderValue('${question.key}', this.value, '${question.format}')">
+        <div style="display: flex; justify-content: space-between; margin-top: 12px; font-size: 13px; color: var(--text-muted);">
+          <span>₹${question.min.toLocaleString('en-IN')}</span>
+          <span>₹${question.max.toLocaleString('en-IN')}</span>
+        </div>
+      </div>
+    `;
+  }
+  else if (question.type === 'address') {
+    html += '<div style="display: flex; flex-direction: column; gap: 16px;">';
+    Object.entries(question.fields).forEach(([fieldKey, field]) => {
+      const value = (qState.answers[question.key] || {})[fieldKey] || '';
+      html += `
+        <div>
+          <label style="display: block; font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 8px;">${field.label}</label>
+          <input type="text" data-address-field="${fieldKey}" value="${value}" placeholder="${field.placeholder}" style="width: 100%; padding: 14px; border: 2px solid var(--border); border-radius: 10px; font-size: 15px;" oninput="updateAddressField('${question.key}', '${fieldKey}', this.value)">
+        </div>
+      `;
+    });
+    html += '</div>';
+  }
+  else if (question.type === 'text') {
+    const value = qState.answers[question.key] || '';
+    html += `
+      <input type="text" id="qInput" value="${value}" 
+        placeholder="${question.placeholder || ''}" 
+        style="width: 100%; padding: 16px; border: 2px solid var(--border); border-radius: 12px; font-size: 16px; font-family: inherit;" 
+        oninput="updateTextInput('${question.key}', this.value)">
+    `;
+  }
+  else if (question.type === 'pincode') {
+    const value = qState.answers[question.key] || '';
+    html += `
+      <input type="text" id="qPincodeInput" maxlength="6" value="${value}"
+        placeholder="${question.placeholder || 'Enter 6-digit pincode'}"
+        style="width: 100%; padding: 16px; border: 2px solid var(--border); border-radius: 12px; font-size: 16px; font-family: inherit; letter-spacing: 2px;"
+        oninput="
+          this.value = this.value.replace(/\\D/g,'');
+          updateTextInput('${question.key}', this.value);
+          lookupPincode(this.value);
+        ">
+      <div id="pincodeResult" style="margin-top: 8px;"></div>
+    `;
+  }
+  content.innerHTML = html;
+  checkCanProceed()
+  attachQuestionnaireListeners();
+}
+
+  // ─── ATTACH CLICK LISTENERS TO OPTIONS ───
+function attachQuestionnaireListeners() {
+  // Single select options
+  document.querySelectorAll('.questionnaire-option').forEach(option => {
+    option.addEventListener('click', function() {
+      const key = this.getAttribute('data-question-key');
+      const value = this.getAttribute('data-option-value');
+      selectSingleOption(key, value);
+    });
+  });
+  
+  // Multi select options
+  document.querySelectorAll('.questionnaire-multi-option').forEach(option => {
+    option.addEventListener('click', function() {
+      const key = this.getAttribute('data-question-key');
+      const value = this.getAttribute('data-option-value');
+      toggleMultiOption(key, value);
+    });
+  });
+}   
+// ─── OPTION SELECTION HANDLERS ───
+function selectSingleOption(key, value) {
+  qState.answers[key] = value;
+  
+  // If service selected, rebuild sequence
+  if (key === 'service') {
+    qState.sequence = buildQuestionSequence();
+  }
+  // If location type selected, rebuild to add/remove address
+  else if (key === 'serviceLocationType') {
+    qState.sequence = buildQuestionSequence();
+  }
+  
+  renderQuestion();
+}
+
+function toggleMultiOption(key, value) {
+  if (!qState.answers[key]) qState.answers[key] = [];
+  const idx = qState.answers[key].indexOf(value);
+  if (idx > -1) {
+    qState.answers[key].splice(idx, 1);
+  } else {
+    qState.answers[key].push(value);
+  }
+  renderQuestion();
+}
+
+function updateTextInput(key, value) {
+  qState.answers[key] = value;
+  checkCanProceed();
+}
+
+function updateSliderValue(key, value, format) {
+  qState.answers[key] = parseInt(value);
+  document.getElementById('sliderValue').textContent = format.replace('{value}', parseInt(value).toLocaleString('en-IN'));
+  checkCanProceed();
+}
+
+function updateAddressField(key, fieldKey, value) {
+  if (!qState.answers[key]) qState.answers[key] = {};
+  qState.answers[key][fieldKey] = value;
+  checkCanProceed();
+}
+     
+// ─── VALIDATION ───
+function checkCanProceed() {
+  const stepKey = qState.sequence[qState.step];
+  const question = BARK_Q_FORMS[stepKey];
+  const answer = qState.answers[question.key];
+  const nextBtn = document.getElementById('qNextBtn');
+  
+  let canProceed = false;
+  
+  if (question.type === 'multi') {
+    canProceed = answer && answer.length > 0;
+  } else if (question.type === 'textarea') {
+    canProceed = answer && answer.trim().length >= (question.minLength || 0);
+  } else if (question.type === 'address') {
+    const fields = question.fields;
+    canProceed = answer && Object.keys(fields).filter(k => fields[k].required).every(k => answer[k] && answer[k].trim().length > 0);
+  } else {
+    canProceed = answer !== undefined && answer !== null && (typeof answer === 'string' ? answer.trim().length > 0 : true);
+  }
+  
+  // If not required, can always proceed
+  if (!question.required) canProceed = true;
+  
+  if (canProceed) {
+    nextBtn.disabled = false;
+    nextBtn.style.opacity = '1';
+    nextBtn.style.cursor = 'pointer';
+  } else {
+    nextBtn.disabled = true;
+    nextBtn.style.opacity = '0.5';
+    nextBtn.style.cursor = 'not-allowed';
+  }
+}
+
+// ─── NAVIGATION ───
+function qNext() {
+  if (qState.step < qState.sequence.length - 1) {
+    qState.step++;
+    renderQuestion();
+  } else {
+    submitQuestionnaire();
+  }
+}
+
+function qBack() {
+  if (qState.step > 0) {
+    qState.step--;
+    renderQuestion();
+  }
+}
+
+// ─── SUBMIT QUESTIONNAIRE ───
+async function submitQuestionnaire() {
+  const role = qState.role || state.user?.role || selectedRole;
+  
+  showToast('Submitting...', 'info');
+  
+  if (role === 'expert') {
+    // Update expert profile
+    try {
+      const res = await fetch(`${API_URL}/users/profile`, {
+  method: 'PUT',
+  headers: {
+    'Authorization': `Bearer ${state.token}`,
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({ profile: qState.answers })  // ✅ Wrap in { profile: ... }
+});
+      
+      const data = await res.json();
+      if (data.success) {
+  // ✅ Save under profile key, not spread flat
+  state.user = { ...state.user, profile: qState.answers };
+  localStorage.setItem('user', JSON.stringify(state.user));
+  showToast('Profile completed successfully!', 'success');
+  showPage('expertDash');
+  loadExpertData();
+} else {
+        showToast(data.message || 'Failed to update profile', 'error');
+      }
+    } catch (error) {
+      console.error('Profile update error:', error);
+      showToast('Network error. Please try again.', 'error');
+    }
+  } else {
+    // Create client request
+    try {
+      const service = qState.answers.service;
+      const serviceLabels = {
+        itr: 'ITR Filing Service',
+        gst: 'GST Services',
+        accounting: 'Accounting / Bookkeeping',
+        audit: 'Audit Services',
+        photography: 'Photography Services',
+        development: 'App / Web Development'
+      };
+      
+      const title = serviceLabels[service] || 'Professional Service Request';
+      const description = qState.answers.description || 'Request details in questionnaire';
+      
+      const res = await fetch(`${API_URL}/requests`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${state.token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          service,
+          title,
+          description,
+          answers: qState.answers,
+          timeline: qState.answers.urgency || 'flexible',
+          budget: qState.answers.budget || 5000,
+          location: qState.answers.fullAddress ? 
+            `${qState.answers.fullAddress.city}, ${qState.answers.fullAddress.state}` : 
+            'Online'
+        })
+      });
+      
+      const data = await res.json();
+      if (data.success) {
+        showToast('Request posted successfully!', 'success');
+        showPage('clientDash');
+        loadClientData();
+      } else {
+        showToast(data.message || 'Failed to post request', 'error');
+      }
+    } catch (error) {
+      console.error('Post request error:', error);
+      showToast('Network error. Please try again.', 'error');
+    }
+  }
+}
+
+</script>
+
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script src="app.js"></script>
+
+<!-- Helper Functions -->
+<script>
+// Login role selection
+let selectedLoginRole = 'client';
+
+function selectLoginRole(role) {
+  selectedLoginRole = role;
+  document.getElementById('loginRoleClient').classList.toggle('active', role === 'client');
+  document.getElementById('loginRoleExpert').classList.toggle('active', role === 'expert');
+}
+
+// Auth mode switching
+function switchAuthMode(mode) {
+  const loginForm = document.getElementById('loginForm');
+  const signupForm = document.getElementById('signupForm');
+  const loginBtn = document.getElementById('loginBtn');
+  const signupBtn = document.getElementById('signupBtn');
+  
+  if (mode === 'login') {
+    loginForm.style.display = 'block';
+    signupForm.style.display = 'none';
+    loginBtn.classList.add('active');
+    signupBtn.classList.remove('active');
+  } else {
+    loginForm.style.display = 'none';
+    signupForm.style.display = 'block';
+    loginBtn.classList.remove('active');
+    signupBtn.classList.add('active');
+  }
+}
+
+// Signup role selection
+let selectedRole = 'expert';
+
+function selectRole(role) {
+  selectedRole = role;
+  document.getElementById('roleClient').classList.toggle('active', role === 'client');
+  document.getElementById('roleExpert').classList.toggle('active', role === 'expert');
+}
+
+// Login handler
+function handleLogin() {
+  const email = document.getElementById('loginEmail').value;
+  const password = document.getElementById('loginPassword').value;
+  
+  if (!email || !password) {
+    alert('Please fill all fields');
+    return;
+  }
+  
+  // Use app.js login function with role
+  login(email, password);
+}
+
+// Signup handler
+function handleSignup() {
+  const name = document.getElementById('signupName').value;
+  const email = document.getElementById('signupEmail').value;
+  const phone = document.getElementById('signupPhone').value;
+  const password = document.getElementById('signupPassword').value;
+  
+  if (!name || !email || !phone || !password) {
+    alert('Please fill all fields');
+    return;
+  }
+  
+  // Use app.js register function
+  register({ name, email, phone, password, role: selectedRole });
+}
+
+// New request form - Start questionnaire
+function showNewRequestForm() {
+  startQuestionnaire();
+}
+</script>
+
+</body>
+</html>
+
