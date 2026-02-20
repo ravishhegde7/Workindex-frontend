@@ -1736,7 +1736,29 @@ if (question.type === 'single') {
     });
     html += '</div>';
   }
-  
+  else if (question.type === 'text') {
+    const value = qState.answers[question.key] || '';
+    html += `
+      <input type="text" id="qInput" value="${value}" 
+        placeholder="${question.placeholder || ''}" 
+        style="width: 100%; padding: 16px; border: 2px solid var(--border); border-radius: 12px; font-size: 16px; font-family: inherit;" 
+        oninput="updateTextInput('${question.key}', this.value)">
+    `;
+  }
+  else if (question.type === 'pincode') {
+    const value = qState.answers[question.key] || '';
+    html += `
+      <input type="text" id="qPincodeInput" maxlength="6" value="${value}"
+        placeholder="${question.placeholder || 'Enter 6-digit pincode'}"
+        style="width: 100%; padding: 16px; border: 2px solid var(--border); border-radius: 12px; font-size: 16px; font-family: inherit; letter-spacing: 2px;"
+        oninput="
+          this.value = this.value.replace(/\\D/g,'');
+          updateTextInput('${question.key}', this.value);
+          lookupPincode(this.value);
+        ">
+      <div id="pincodeResult" style="margin-top: 8px;"></div>
+    `;
+  }
   content.innerHTML = html;
   checkCanProceed()
   attachQuestionnaireListeners();
