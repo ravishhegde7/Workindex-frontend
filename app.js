@@ -2582,16 +2582,11 @@ async function lookupPincode(value) {
       const post = data[0].PostOffice[0];
       const area = post.Name;
       const city = post.District;
-      const stateStr = post.State;
+      const stateStr = post.State;  // ✅ fixed
       
-      // Auto-fill city if empty
-      const cityInput = document.getElementById('q_city');
-      if (cityInput && !cityInput.value) {
-        cityInput.value = city;
-        qState.answers['city'] = city;
-      }
+      // Try to auto-fill city in qState
+      qState.answers['city'] = city;
       
-      // Show confirmation
       document.getElementById('pincodeResult').innerHTML = 
         `<div style="font-size: 13px; color: #4CAF50; margin-top: 6px;">
           📍 ${area}, ${city}, ${stateStr}
@@ -2604,6 +2599,7 @@ async function lookupPincode(value) {
     console.error('Pincode lookup error:', err);
   }
 }
+      
 // ─── EXPERT SEARCH WITH AUTOCOMPLETE ───
 const SEARCH_SUGGESTIONS = {
   services: [
