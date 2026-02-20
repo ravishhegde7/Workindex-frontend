@@ -2571,7 +2571,7 @@ async function lookupPincode(value) {
       const post = data[0].PostOffice[0];
       const area = post.Name;
       const city = post.District;
-      const state = post.State;
+      const stateStr = post.State;
       
       // Auto-fill city if empty
       const cityInput = document.getElementById('q_city');
@@ -2583,7 +2583,7 @@ async function lookupPincode(value) {
       // Show confirmation
       document.getElementById('pincodeResult').innerHTML = 
         `<div style="font-size: 13px; color: #4CAF50; margin-top: 6px;">
-          📍 ${area}, ${city}, ${state}
+          📍 ${area}, ${city}, ${stateStr}
         </div>`;
     } else {
       document.getElementById('pincodeResult').innerHTML = 
