@@ -52,15 +52,37 @@ function showPage(pageId) {
     
     // Load data for specific pages
     if (pageId === 'findProfessionals') {
-      loadExperts();
-    } else if (pageId === 'clientDash' && state.user?.role === 'client') {
-      loadClientData();
-    } else if (pageId === 'expertDash' && state.user?.role === 'expert') {
-      loadExpertData();
-    } else if (pageId === 'settings') {
-      loadSettings();
-    }
+  const pending = state.pendingSearch || {};
+  state.pendingSearch = null;
+
+  // Pre-fill search input if coming from landing
+  if (pending.location) {
+    setTimeout(() => {
+      const input = document.getElementById('expertSearchInput');
+      if (input) input.value = pending.location;
+    }, 100);
   }
+
+  // Activate service chip if service was typed
+  if (pending.service) {
+    setTimeout(() => {
+      document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+      document.querySelector(`[data-service="${pending.service}"]`)?.classList.add('active');
+    }, 100);
+  }
+
+  loadExperts({ 
+    service: pending.service || undefined, 
+    location: pending.location || undefined 
+  });
+} else if (pageId === 'clientDash' && state.user?.role === 'client') {
+  loadClientData();
+} else if (pageId === 'expertDash' && state.user?.role === 'expert') {
+  loadExpertData();
+} else if (pageId === 'settings') {
+  loadSettings();
+}
+}
 }
 
 function goBack() {
