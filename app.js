@@ -2626,6 +2626,15 @@ function showSearchSuggestions(value) {
   const lower = value.toLowerCase();
   const suggestions = [];
 
+  // ✅ If experts not loaded yet, load them then retry
+  if (!state.experts || state.experts.length === 0) {
+    loadExperts().then(() => {
+      if (document.getElementById('expertSearchInput')?.value === value) {
+        showSearchSuggestions(value);
+      }
+    });
+  }
+
   SEARCH_SUGGESTIONS.services.forEach(s => {
     if (s.label.toLowerCase().includes(lower)) suggestions.push(s);
   });
