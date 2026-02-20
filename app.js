@@ -2667,4 +2667,25 @@ function hideSearchSuggestions() {
   const el = document.getElementById('searchSuggestions');
   if (el) el.style.display = 'none';
 }
+// ─── LANDING SEARCH ───
+function landingSearch() {
+  const service = document.getElementById('landingServiceInput')?.value.trim().toLowerCase();
+  const location = document.getElementById('landingLocationInput')?.value.trim();
+
+  const serviceMap = {
+    'itr': 'itr', 'itr filing': 'itr', 'tax': 'itr',
+    'gst': 'gst', 'gst services': 'gst',
+    'accounting': 'accounting', 'bookkeeping': 'accounting',
+    'audit': 'audit',
+    'photography': 'photography', 'photo': 'photography',
+    'development': 'development', 'dev': 'development', 'web': 'development'
+  };
+
+  const mappedService = serviceMap[service] || null;
+
+  // Store so findProfessionals page can pick it up
+  state.pendingSearch = { service: mappedService, location: location || null };
+
+  showPage('findProfessionals');
+}
 // ═══ END OF JAVASCRIPT ═══
