@@ -797,6 +797,10 @@ async function loadExperts(filters = {}) {
     
     if (data.success && data.experts.length > 0) {
       state.experts = data.experts;
+      // ✅ Store all experts separately for autocomplete (not filtered)
+      if (!filters.location && !filters.service) {
+        state.allExperts = data.experts;
+      }
       renderExperts();
     } else {
       empty.style.display = 'block';
