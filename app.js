@@ -1001,7 +1001,29 @@ async function viewExpertProfile(expertId) {
             <div style="font-size: 14px; color: var(--text);">${locationLabels[locationType] || locationType}</div>
           </div>
         ` : ''}
-        
+
+         <!-- Customer Reviews -->
+        ${data.ratings && data.ratings.length > 0 ? `
+          <div style="margin-bottom: 20px;">
+            <h4 style="font-size: 14px; font-weight: 700; color: var(--text-muted); margin-bottom: 12px;">CUSTOMER REVIEWS</h4>
+            ${data.ratings.map(r => `
+              <div style="padding: 14px; background: var(--bg-gray); border-radius: 12px; margin-bottom: 10px;">
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                  <div style="width: 36px; height: 36px; border-radius: 50%; background: var(--primary); color: #fff; font-size: 14px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                    ${(r.client?.name || '?').charAt(0).toUpperCase()}
+                  </div>
+                  <div style="flex: 1;">
+                    <div style="font-size: 14px; font-weight: 600; color: var(--text);">${r.client?.name || 'Client'}</div>
+                    <div style="font-size: 12px; color: #f39c12;">${'★'.repeat(r.rating)}${'☆'.repeat(5 - r.rating)}</div>
+                  </div>
+                  <div style="font-size: 11px; color: var(--text-muted);">${new Date(r.createdAt).toLocaleDateString('en-IN', { month: 'short', year: 'numeric' })}</div>
+                </div>
+                <p style="font-size: 13px; color: var(--text-light); line-height: 1.5; margin: 0;">${r.review}</p>
+                ${r.wouldRecommend ? '<div style="font-size: 11px; color: #4CAF50; margin-top: 6px;">✓ Would recommend</div>' : ''}
+              </div>
+            `).join('')}
+          </div>
+        ` : ''}
         <button onclick="this.closest('[style*=fixed]').remove()" style="width: 100%; padding: 14px; border: 1.5px solid var(--border); border-radius: 10px; background: transparent; color: var(--text); font-size: 15px; font-weight: 600; cursor: pointer;">Close</button>
       </div>
     `;
