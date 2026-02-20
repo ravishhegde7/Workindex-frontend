@@ -2750,4 +2750,709 @@ function hideLandingSuggestions() {
   const el = document.getElementById('landingSuggestions');
   if (el) el.style.display = 'none';
 }
+// ═══════════════════════════════════════════════════════════
+//  WORKINDEX SUPPORT CHATBOT - Frontend JS
+//  Add this entire block to the end of your app.js
+// ═══════════════════════════════════════════════════════════
+
+// ─── CHATBOT STATE ───
+const supportChat = {
+  isOpen: false,
+  step: 'start',
+  userType: null,       // 'customer' or 'expert'
+  issueType: null,      // 'credits', 'approach', 'technical', etc.
+  subIssue: null,
+  geminiContext: [],    // conversation history for Gemini
+  evaluationResult: null,
+  ticketId: null
+};
+
+// ─── GEMINI API CONFIG ───
+// Replace with your actual Gemini API key from Google AI Studio
+const GEMINI_API_KEY = 'AIzaSyAYPil53zqpeD3tCnF5u7k6USi4ZBqJFgk';
+
+const WORKINDEX_SYSTEM_CONTEXT = `You are a helpful support assistant for WorkIndex, an Indian platform that connects clients with verified professionals (CAs, GST consultants, photographers, developers, etc.).
+
+Key facts about WorkIndex:
+- Experts buy credits to approach client requests (15-35 credits per approach)
+- Credits are NOT automatically refunded — refunds are evaluated case by case
+- If a client doesn't respond within 7 days, it may qualify for a goodwill credit refund
+- Clients post requests, experts approach them by spending credits
+- Services: ITR Filing, GST, Accounting, Audit, Photography, App/Web Development
+
+Tone: Friendly, empathetic, professional. Keep responses SHORT (2-3 sentences max). 
+If someone is very frustrated, acknowledge their feelings first before solving.
+Always end with a question or next step.`;
+
+// ─── TOGGLE CHAT WIDGET ───
+function toggleSupportChat() {
+  const widget = document.getElementById('supportChatWidget');
+  supportChat.isOpen = !supportChat.isOpen;
+
+  if (supportChat.isOpen) {
+    widget.style.display = 'flex';
+    document.getElementById('supportChatIcon').textContent = '×';
+    document.getElementById('supportUnreadDot').style.display = 'none';
+
+    // Only initialize if fresh start
+    if (supportChat.step === 'start') {
+      initSupportChat();
+    }
+  } else {
+    widget.style.display = 'none';
+    document.getElementById('supportChatIcon').textContent = '💬';
+  }
+}
+
+// ─── INITIALIZE CHAT ───
+function initSupportChat() {
+  clearSupportMessages();
+
+  setTimeout(() => {
+    addBotMessage("Hi there! 👋 I'm here to help you with WorkIndex.");
+  }, 300);
+
+  setTimeout(() => {
+    addBotMessage("Who are you today?");
+    showSupportOptions([
+      { label: '👤 I\'m a Customer', value: 'customer' },
+      { label: '⭐ I\'m a Professional', value: 'expert' }
+    ], (val) => handleUserTypeSelect(val));
+  }, 900);
+}
+
+// ─── HANDLE USER TYPE SELECTION ───
+function handleUserTypeSelect(type) {
+  supportChat.userType = type;
+  addUserMessage(type === 'customer' ? '👤 I\'m a Customer' : '⭐ I\'m a Professional');
+  clearSupportOptions();
+
+  setTimeout(() => {
+    if (type === 'expert') {
+      addBotMessage("Got it! What's the issue you're facing?");
+      showSupportOptions([
+        { label: '💎 Credits & Billing', value: 'credits' },
+        { label: '📨 My Approaches', value: 'approaches' },
+        { label: '⭐ Reviews & Ratings', value: 'reviews' },
+        { label: '🔧 Technical Problem', value: 'technical' },
+        { label: '❓ Something Else', value: 'other' }
+      ], (val) => handleExpertIssue(val));
+    } else {
+      addBotMessage("Sure! What do you need help with?");
+      showSupportOptions([
+        { label: '🔍 Finding the right expert', value: 'finding' },
+        { label: '📋 About my request', value: 'request' },
+        { label: '😟 Problem with an expert', value: 'expert_problem' },
+        { label: '🔧 Technical Problem', value: 'technical' },
+        { label: '❓ Something Else', value: 'other' }
+      ], (val) => handleClientIssue(val));
+    }
+  }, 600);
+}
+
+// ─── HANDLE EXPERT ISSUES ───
+function handleExpertIssue(issue) {
+  supportChat.issueType = issue;
+
+  const labels = {
+    credits: '💎 Credits & Billing',
+    approaches: '📨 My Approaches',
+    reviews: '⭐ Reviews & Ratings',
+    technical: '🔧 Technical Problem',
+    other: '❓ Something Else'
+  };
+  addUserMessage(labels[issue]);
+  clearSupportOptions();
+
+  setTimeout(() => {
+    if (issue === 'credits') {
+      addBotMessage("I understand — credits are important! What exactly happened?");
+      showSupportOptions([
+        { label: '😔 Experts didn\'t respond after I approached', value: 'no_response' },
+        { label: '💸 I was charged the wrong amount', value: 'wrong_charge' },
+        { label: '🔄 I want to buy credits but it\'s not working', value: 'cant_buy' },
+        { label: '📊 My credit balance looks wrong', value: 'wrong_balance' }
+      ], (val) => handleCreditIssue(val));
+
+    } else if (issue === 'approaches') {
+      addBotMessage("Let me help with your approaches. What's the problem?");
+      showSupportOptions([
+        { label: '❌ Client contact details not showing', value: 'no_contact' },
+        { label: '🚫 Approach button not working', value: 'cant_approach' },
+        { label: '📭 Client hasn\'t responded', value: 'no_reply' }
+      ], (val) => handleApproachIssue(val));
+
+    } else if (issue === 'technical') {
+      handleTechnicalIssue();
+
+    } else {
+      // Fall through to Gemini for open-ended issues
+      showFreeTextInput("Please describe your issue and I'll do my best to help:");
+    }
+  }, 600);
+}
+
+// ─── HANDLE CREDIT ISSUES (THE MAIN CASE) ───
+async function handleCreditIssue(subIssue) {
+  supportChat.subIssue = subIssue;
+
+  const labels = {
+    no_response: '😔 Experts didn\'t respond after I approached',
+    wrong_charge: '💸 Wrong amount charged',
+    cant_buy: '🔄 Can\'t buy credits',
+    wrong_balance: '📊 Wrong balance showing'
+  };
+  addUserMessage(labels[subIssue]);
+  clearSupportOptions();
+
+  if (subIssue === 'no_response') {
+    setTimeout(() => {
+      addBotMessage("That's really frustrating — spending credits and getting no response. 😞");
+    }, 500);
+
+    setTimeout(() => {
+      addBotMessage("How many clients didn't respond to you?");
+      showSupportOptions([
+        { label: '1 client', value: 1 },
+        { label: '2 clients', value: 2 },
+        { label: '3 or more clients', value: 3 }
+      ], async (count) => {
+        addUserMessage(`${count === 3 ? '3 or more' : count} client${count > 1 ? 's' : ''}`);
+        clearSupportOptions();
+        await evaluateAndRespond(count);
+      });
+    }, 1200);
+
+  } else if (subIssue === 'cant_buy') {
+    setTimeout(() => {
+      addBotMessage("Let's fix this! Try these steps:\n\n1. Refresh the page and try again\n2. Make sure your payment method is valid\n3. Try a different browser");
+    }, 500);
+    setTimeout(() => {
+      addBotMessage("Did any of those work?");
+      showSupportOptions([
+        { label: '✅ Yes, it worked!', value: 'resolved' },
+        { label: '❌ Still not working', value: 'unresolved' }
+      ], (val) => {
+        if (val === 'resolved') {
+          addUserMessage('✅ Yes, it worked!');
+          showResolved("Great! Happy to help. Anything else? 😊");
+        } else {
+          addUserMessage('❌ Still not working');
+          offerCallEscalation("Let me connect you with our team to sort this out.");
+        }
+      });
+    }, 1500);
+
+  } else {
+    // For wrong charge / wrong balance — always escalate
+    setTimeout(() => {
+      addBotMessage("For billing discrepancies, our team needs to verify your account directly.");
+      offerCallEscalation("I'll connect you with support right away.");
+    }, 600);
+  }
+}
+
+// ─── EVALUATE COMPLAINT AGAINST BACKEND ───
+async function evaluateAndRespond(clientCount) {
+  // Show thinking state
+  addBotMessage("⏳ Let me check your account details...", 'thinking');
+
+  try {
+    // Call backend evaluation API
+    const res = await fetch(`${API_URL}/support/evaluate`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(state.token ? { 'Authorization': `Bearer ${state.token}` } : {})
+      },
+      body: JSON.stringify({
+        userId: state.user?._id,
+        issueType: 'no_response',
+        clientCount: clientCount
+      })
+    });
+
+    const data = await res.json();
+    supportChat.evaluationResult = data.decision;
+    supportChat.ticketId = data.ticketId;
+
+    // Remove thinking message
+    removeThinkingMessage();
+
+    setTimeout(() => {
+      if (data.decision === 'AUTO_REFUND') {
+        handleAutoRefund(data);
+      } else if (data.decision === 'CLOSE_CHAT') {
+        handleCloseChat(data);
+      } else {
+        handleEscalateCall(data);
+      }
+    }, 500);
+
+  } catch (err) {
+    removeThinkingMessage();
+    // If backend fails, default to escalation
+    setTimeout(() => {
+      offerCallEscalation("I wasn't able to verify your account automatically. Let me connect you with our team.");
+    }, 500);
+  }
+}
+
+// ─── DECISION HANDLERS ───
+function handleAutoRefund(data) {
+  addBotMessage(`✅ Good news! We reviewed your account and confirmed that ${data.inactiveCount || 'some'} clients were inactive.`);
+
+  setTimeout(() => {
+    addBotMessage(`We'll add **${data.creditsToRefund} credits** back to your account as a goodwill gesture within 24 hours. 🎉`);
+  }, 800);
+
+  setTimeout(() => {
+    addBotMessage("Is there anything else I can help you with?");
+    showSupportOptions([
+      { label: '👍 No, that\'s great! Thank you', value: 'done' },
+      { label: '📞 I still want to speak to someone', value: 'call' }
+    ], (val) => {
+      if (val === 'done') {
+        addUserMessage("👍 No, that's great! Thank you");
+        showResolved("You're welcome! Have a great day! 😊");
+      } else {
+        addUserMessage("📞 I still want to speak to someone");
+        offerCallEscalation("Of course! Let me connect you.");
+      }
+    });
+  }, 1600);
+}
+
+function handleCloseChat(data) {
+  addBotMessage("Thank you for reaching out. We've reviewed your account history.");
+
+  setTimeout(() => {
+    addBotMessage("Our team will review this and contact you via email within 48 hours with a resolution.");
+  }, 800);
+
+  setTimeout(() => {
+    addBotMessage("We appreciate your patience! 🙏");
+    showSupportOptions([
+      { label: '✅ Okay, thank you', value: 'done' }
+    ], () => {
+      addUserMessage("✅ Okay, thank you");
+      clearSupportOptions();
+      addBotMessage("Take care! Feel free to reach out anytime. 😊");
+    });
+  }, 1600);
+}
+
+function handleEscalateCall(data) {
+  addBotMessage("We understand your frustration and want to make this right. 💛");
+
+  setTimeout(() => {
+    addBotMessage("Our team would like to speak with you directly about this.");
+    offerCallEscalation();
+  }, 800);
+}
+
+// ─── OFFER CALL / ESCALATION ───
+function offerCallEscalation(preMessage) {
+  if (preMessage) {
+    setTimeout(() => addBotMessage(preMessage), 300);
+  }
+
+  setTimeout(() => {
+    addBotMessage("How would you like us to reach you?");
+    showSupportOptions([
+      { label: '📞 Call me now', value: 'call_now' },
+      { label: '📅 Schedule a call', value: 'schedule' },
+      { label: '📧 Email me instead', value: 'email' },
+      { label: '💬 Continue chatting', value: 'chat' }
+    ], (val) => handleEscalationChoice(val));
+  }, preMessage ? 1000 : 300);
+}
+
+function handleEscalationChoice(choice) {
+  const labels = {
+    call_now: '📞 Call me now',
+    schedule: '📅 Schedule a call',
+    email: '📧 Email me instead',
+    chat: '💬 Continue chatting'
+  };
+  addUserMessage(labels[choice]);
+  clearSupportOptions();
+
+  if (choice === 'call_now') {
+    setTimeout(() => {
+      addBotMessage("Connecting you now! Our support number is:");
+      addBotMessage(`📞 **+91-XXXXX-XXXXX**\n\nOr tap to call directly:`);
+      showSupportOptions([
+        { label: '📞 Tap to Call', value: 'dial', isCall: true },
+        { label: '🔙 Back to chat', value: 'back' }
+      ], (val) => {
+        if (val === 'dial') {
+          window.location.href = 'tel:+91XXXXXXXXXX';
+        } else {
+          initSupportChat();
+        }
+      });
+    }, 600);
+
+  } else if (choice === 'schedule') {
+    setTimeout(() => {
+      addBotMessage("Please share your preferred time and we'll call you back:");
+      showFreeTextInput("e.g. Tomorrow 10am-12pm", async (text) => {
+        addBotMessage(`✅ Got it! We'll call you at **${text}**.\n\nYour ticket ID: **#${supportChat.ticketId || 'WI' + Date.now().toString().slice(-6)}**`);
+        setTimeout(() => showResolved("We'll be in touch soon! 😊"), 1000);
+      });
+    }, 600);
+
+  } else if (choice === 'email') {
+    const userEmail = state.user?.email || '';
+    setTimeout(() => {
+      addBotMessage(`We'll send a detailed response to **${userEmail || 'your registered email'}** within 4 hours.`);
+      setTimeout(() => showResolved("Keep an eye on your inbox! 📧"), 800);
+    }, 600);
+
+  } else {
+    // Continue chatting — open Gemini
+    showFreeTextInput("Sure! Ask me anything:");
+  }
+}
+
+// ─── CLIENT ISSUE HANDLERS ───
+function handleClientIssue(issue) {
+  const labels = {
+    finding: '🔍 Finding the right expert',
+    request: '📋 About my request',
+    expert_problem: '😟 Problem with an expert',
+    technical: '🔧 Technical Problem',
+    other: '❓ Something Else'
+  };
+  addUserMessage(labels[issue]);
+  clearSupportOptions();
+
+  if (issue === 'finding') {
+    setTimeout(() => {
+      addBotMessage("I can help! What service are you looking for?");
+      showSupportOptions([
+        { label: '📄 ITR Filing', value: 'itr' },
+        { label: '🏢 GST Services', value: 'gst' },
+        { label: '📊 Accounting', value: 'accounting' },
+        { label: '📸 Photography', value: 'photography' },
+        { label: '💻 Development', value: 'development' },
+        { label: '🔍 Other', value: 'other' }
+      ], (val) => {
+        addUserMessage(val);
+        clearSupportOptions();
+        setTimeout(() => {
+          addBotMessage(`Great! You can find ${val} experts by going to **Find Professionals** and searching for "${val}". Filter by your city or pincode for local experts! 🎯`);
+          setTimeout(() => askIfResolved(), 1000);
+        }, 500);
+      });
+    }, 600);
+
+  } else if (issue === 'expert_problem') {
+    setTimeout(() => {
+      addBotMessage("I'm sorry to hear that. What happened?");
+      showSupportOptions([
+        { label: '🚫 Expert was unprofessional', value: 'unprofessional' },
+        { label: '💸 Dispute over payment', value: 'payment' },
+        { label: '📵 Expert stopped responding', value: 'ghosted' },
+        { label: '⚠️ Fake or fraudulent profile', value: 'fraud' }
+      ], (val) => {
+        addUserMessage(val);
+        clearSupportOptions();
+        if (val === 'fraud') {
+          setTimeout(() => {
+            addBotMessage("⚠️ Thank you for reporting this. We take fraud very seriously.");
+            offerCallEscalation("Our trust & safety team will investigate immediately.");
+          }, 500);
+        } else {
+          setTimeout(() => offerCallEscalation("This needs our team's attention."), 500);
+        }
+      });
+    }, 600);
+
+  } else {
+    showFreeTextInput("Please describe your issue:");
+  }
+}
+
+// ─── APPROACH ISSUE HANDLER ───
+function handleApproachIssue(issue) {
+  const labels = {
+    no_contact: '❌ Client contact details not showing',
+    cant_approach: '🚫 Approach button not working',
+    no_reply: '📭 Client hasn\'t responded'
+  };
+  addUserMessage(labels[issue]);
+  clearSupportOptions();
+
+  if (issue === 'no_contact') {
+    setTimeout(() => {
+      addBotMessage("Contact details appear after your approach is accepted by the client.");
+      addBotMessage("If credits were deducted but contact is still hidden, that's a bug. Let me escalate.");
+      setTimeout(() => offerCallEscalation(), 800);
+    }, 500);
+  } else if (issue === 'no_reply') {
+    setTimeout(() => {
+      addBotMessage("Clients have 7 days to respond. If they don't, you may be eligible for a credit refund.");
+      addBotMessage("Has it been more than 7 days?");
+      showSupportOptions([
+        { label: '✅ Yes, more than 7 days', value: 'yes' },
+        { label: '⏳ Not yet', value: 'no' }
+      ], (val) => {
+        if (val === 'yes') {
+          addUserMessage('✅ Yes, more than 7 days');
+          clearSupportOptions();
+          evaluateAndRespond(1);
+        } else {
+          addUserMessage('⏳ Not yet');
+          clearSupportOptions();
+          setTimeout(() => {
+            addBotMessage("Please wait the full 7 days. If there's still no response, come back and we'll review your case! 😊");
+            setTimeout(() => showResolved(), 800);
+          }, 500);
+        }
+      });
+    }, 600);
+  } else {
+    offerCallEscalation("Let me connect you with technical support.");
+  }
+}
+
+// ─── TECHNICAL ISSUE HANDLER ───
+function handleTechnicalIssue() {
+  addBotMessage("Technical issues are usually quick to fix! Try these first:");
+
+  setTimeout(() => {
+    addBotMessage("1️⃣ Refresh the page\n2️⃣ Clear browser cache\n3️⃣ Try a different browser\n4️⃣ Check your internet connection");
+  }, 600);
+
+  setTimeout(() => {
+    addBotMessage("Did that fix it?");
+    showSupportOptions([
+      { label: '✅ Yes, working now!', value: 'fixed' },
+      { label: '❌ Still broken', value: 'broken' }
+    ], (val) => {
+      if (val === 'fixed') {
+        addUserMessage('✅ Yes, working now!');
+        showResolved("Excellent! 🎉 Let me know if anything else comes up.");
+      } else {
+        addUserMessage('❌ Still broken');
+        clearSupportOptions();
+        showFreeTextInput("Please describe what's happening and I'll escalate to our tech team:");
+      }
+    });
+  }, 1400);
+}
+
+// ─── GEMINI AI FALLBACK ───
+async function askGemini(userMessage) {
+  // Add to context
+  supportChat.geminiContext.push({ role: 'user', content: userMessage });
+
+  addBotMessage("🤔 Let me look into that...", 'thinking');
+
+  try {
+    const conversationText = supportChat.geminiContext
+      .map(m => `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.content}`)
+      .join('\n');
+
+    const prompt = `${WORKINDEX_SYSTEM_CONTEXT}\n\nConversation so far:\n${conversationText}\n\nAssistant:`;
+
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: { maxOutputTokens: 200, temperature: 0.7 }
+        })
+      }
+    );
+
+    const data = await res.json();
+    removeThinkingMessage();
+
+    const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || "I'm not sure about that. Let me connect you with our team.";
+    supportChat.geminiContext.push({ role: 'assistant', content: reply });
+
+    addBotMessage(reply);
+
+    // After Gemini reply, ask if resolved
+    setTimeout(() => askIfResolved(), 1000);
+
+  } catch (err) {
+    removeThinkingMessage();
+    addBotMessage("I had trouble fetching an answer. Let me connect you with our team instead.");
+    setTimeout(() => offerCallEscalation(), 600);
+  }
+}
+
+// ─── ASK IF RESOLVED ───
+function askIfResolved() {
+  addBotMessage("Did that answer your question?");
+  showSupportOptions([
+    { label: '✅ Yes, thanks!', value: 'yes' },
+    { label: '❓ I have another question', value: 'more' },
+    { label: '📞 I need more help', value: 'escalate' }
+  ], (val) => {
+    if (val === 'yes') {
+      addUserMessage('✅ Yes, thanks!');
+      showResolved("Wonderful! Have a great day! 😊");
+    } else if (val === 'more') {
+      addUserMessage('❓ I have another question');
+      clearSupportOptions();
+      showFreeTextInput("Go ahead, ask anything:");
+    } else {
+      addUserMessage('📞 I need more help');
+      clearSupportOptions();
+      offerCallEscalation();
+    }
+  });
+}
+
+// ─── SHOW RESOLVED STATE ───
+function showResolved(message) {
+  clearSupportOptions();
+  if (message) addBotMessage(message);
+
+  setTimeout(() => {
+    const optionsEl = document.getElementById('supportOptions');
+    optionsEl.innerHTML = `
+      <button onclick="restartSupportChat()"
+        style="width:100%; padding:12px; background:var(--bg-gray,#f5f5f5); border:1.5px solid var(--border,#eee); border-radius:10px; font-size:14px; font-weight:600; cursor:pointer; color:var(--text,#333);">
+        🔄 Start New Conversation
+      </button>
+    `;
+  }, 800);
+}
+
+// ─── RESTART CHAT ───
+function restartSupportChat() {
+  supportChat.step = 'start';
+  supportChat.userType = null;
+  supportChat.issueType = null;
+  supportChat.subIssue = null;
+  supportChat.geminiContext = [];
+  supportChat.evaluationResult = null;
+  clearSupportMessages();
+  hideInputArea();
+  initSupportChat();
+}
+
+// ─── FREE TEXT INPUT ───
+function showFreeTextInput(placeholder, onSend) {
+  clearSupportOptions();
+  const inputArea = document.getElementById('supportInputArea');
+  const input = document.getElementById('supportTextInput');
+  inputArea.style.display = 'block';
+  input.placeholder = placeholder || 'Type your message...';
+  input.focus();
+
+  // Store callback
+  supportChat._textCallback = onSend || null;
+}
+
+function hideInputArea() {
+  document.getElementById('supportInputArea').style.display = 'none';
+  document.getElementById('supportTextInput').value = '';
+}
+
+async function sendSupportMessage() {
+  const input = document.getElementById('supportTextInput');
+  const text = input.value.trim();
+  if (!text) return;
+
+  addUserMessage(text);
+  input.value = '';
+
+  if (supportChat._textCallback) {
+    const cb = supportChat._textCallback;
+    supportChat._textCallback = null;
+    hideInputArea();
+    cb(text);
+  } else {
+    hideInputArea();
+    await askGemini(text);
+  }
+}
+
+// ─── UI HELPERS ───
+function addBotMessage(text, type) {
+  const container = document.getElementById('supportMessages');
+  const div = document.createElement('div');
+  div.style.cssText = 'display:flex; gap:8px; align-items:flex-start;';
+  div.className = type === 'thinking' ? 'thinking-msg' : '';
+
+  const formatted = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
+
+  div.innerHTML = `
+    <div style="width:28px; height:28px; background:var(--primary,#FC8019); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:14px; flex-shrink:0; margin-top:2px;">🤖</div>
+    <div style="background:var(--bg,#fff); padding:10px 14px; border-radius:4px 16px 16px 16px; font-size:14px; line-height:1.5; color:var(--text,#333); max-width:80%; box-shadow:0 1px 4px rgba(0,0,0,0.08);">
+      ${type === 'thinking' ? '<span style="opacity:0.6;">⏳ ' + formatted + '</span>' : formatted}
+    </div>
+  `;
+  container.appendChild(div);
+  container.scrollTop = container.scrollHeight;
+}
+
+function addUserMessage(text) {
+  const container = document.getElementById('supportMessages');
+  const div = document.createElement('div');
+  div.style.cssText = 'display:flex; justify-content:flex-end;';
+  div.innerHTML = `
+    <div style="background:var(--primary,#FC8019); color:#fff; padding:10px 14px; border-radius:16px 4px 16px 16px; font-size:14px; line-height:1.5; max-width:80%;">
+      ${text}
+    </div>
+  `;
+  container.appendChild(div);
+  container.scrollTop = container.scrollHeight;
+}
+
+function showSupportOptions(options, callback) {
+  const el = document.getElementById('supportOptions');
+  el.innerHTML = options.map((opt, i) => `
+    <button onclick="supportOptionClick(${i})"
+      style="display:block; width:100%; text-align:left; padding:10px 14px; margin-bottom:6px; background:var(--bg,#fff); border:1.5px solid var(--border,#eee); border-radius:10px; font-size:13px; font-weight:600; cursor:pointer; color:var(--text,#333); transition:all 0.2s;"
+      onmouseover="this.style.borderColor='var(--primary,#FC8019)'; this.style.background='rgba(252,128,25,0.05)'"
+      onmouseout="this.style.borderColor='var(--border,#eee)'; this.style.background='var(--bg,#fff)'">
+      ${opt.label}
+    </button>
+  `).join('');
+
+  // Store callback and options
+  supportChat._optionsCallback = callback;
+  supportChat._currentOptions = options;
+}
+
+function supportOptionClick(index) {
+  const opt = supportChat._currentOptions[index];
+  const cb = supportChat._optionsCallback;
+  if (cb && opt) {
+    clearSupportOptions();
+    cb(opt.value);
+  }
+}
+
+function clearSupportOptions() {
+  const el = document.getElementById('supportOptions');
+  if (el) el.innerHTML = '';
+}
+
+function clearSupportMessages() {
+  const el = document.getElementById('supportMessages');
+  if (el) el.innerHTML = '';
+}
+
+function removeThinkingMessage() {
+  document.querySelectorAll('.thinking-msg').forEach(el => el.remove());
+}
+
+// ─── Show unread dot when chat is closed ───
+function notifyUserNewMessage() {
+  if (!supportChat.isOpen) {
+    document.getElementById('supportUnreadDot').style.display = 'block';
+  }
+}
+// ═══ END OF CHATBOT JS ═══
 // ═══ END OF JAVASCRIPT ═══
