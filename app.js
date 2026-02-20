@@ -52,7 +52,22 @@ function showPage(pageId) {
     
     // Load data for specific pages
     if (pageId === 'findProfessionals') {
-      loadExperts();
+  const pending = state.pendingSearch || {};
+  state.pendingSearch = null;
+  if (pending.service) {
+    document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+    document.querySelector(`[data-service="${pending.service}"]`)?.classList.add('active');
+  }
+  if (pending.location) {
+    setTimeout(() => {
+      const input = document.getElementById('expertSearchInput');
+      if (input) input.value = pending.location;
+    }, 100);
+  }
+  loadExperts({ 
+    service: pending.service || undefined, 
+    location: pending.location || undefined 
+  });
     } else if (pageId === 'clientDash' && state.user?.role === 'client') {
       loadClientData();
     } else if (pageId === 'expertDash' && state.user?.role === 'expert') {
