@@ -83,7 +83,6 @@ function showPage(pageId) {
   loadSettings();
 }
 }
-}
 
 function goBack() {
   if (state.user) {
