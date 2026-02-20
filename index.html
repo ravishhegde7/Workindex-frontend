@@ -47,14 +47,14 @@
       </button>
     </div>
 
-    <div style="margin-top: 40px; max-width: 600px; margin-left: auto; margin-right: auto;">
-      <div style="display: flex; gap: 12px; background: #fff; padding: 8px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08);">
-        <input type="text" placeholder="What service do you need?" style="flex: 1; padding: 12px; border: none; font-size: 15px; outline: none;">
-        <input type="text" placeholder="Location" style="width: 150px; padding: 12px; border: none; border-left: 1px solid var(--border); font-size: 15px; outline: none;">
-        <button class="btn-primary" onclick="showPage('findProfessionals')" style="padding: 12px 24px;">Search</button>
-      </div>
-    </div>
+    
+<div style="margin-top: 40px; max-width: 600px; margin-left: auto; margin-right: auto;">
+  <div style="display: flex; gap: 12px; background: #fff; padding: 8px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08);">
+    <input type="text" id="landingServiceInput" placeholder="What service do you need?" style="flex: 1; padding: 12px; border: none; font-size: 15px; outline: none;">
+    <input type="text" id="landingLocationInput" placeholder="City or pincode" style="width: 150px; padding: 12px; border: none; border-left: 1px solid var(--border); font-size: 15px; outline: none;">
+    <button class="btn-primary" onclick="landingSearch()" style="padding: 12px 24px;">Search</button>
   </div>
+</div>
 
   <div class="features-section">
     <h2 class="section-title">Why Choose WorkIndex?</h2>
