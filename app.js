@@ -2545,4 +2545,37 @@ async function expertStartChat(requestId, expertId, clientId) {
     showToast('Network error', 'error');
   }
 }
+async function lookupPincode(value) {
+  if (value.length !== 6 || !/^\d+$/.test(value)) return;
+  
+  try {
+    const res = await fetch(`https://api.postalpincode.in/pincode/${value}`);
+    const data = await res.json();
+    
+    if (data[0].Status === 'Success') {
+      const post = data[0].PostOffice[0];
+      const area = post.Name;
+      const city = post.District;
+      const state = post.State;
+      
+      // Auto-fill city if empty
+      const cityInput = document.getElementById('q_city');
+      if (cityInput && !cityInput.value) {
+        cityInput.value = city;
+        qState.answers['city'] = city;
+      }
+      
+      // Show confirmation
+      document.getElementById('pincodeResult').innerHTML = 
+        `<div style="font-size: 13px; color: #4CAF50; margin-top: 6px;">
+          📍 ${area}, ${city}, ${state}
+        </div>`;
+    } else {
+      document.getElementById('pincodeResult').innerHTML = 
+        `<div style="font-size: 13px; color: #e74c3c; margin-top: 6px;">Invalid pincode</div>`;
+    }
+  } catch (err) {
+    console.error('Pincode lookup error:', err);
+  }
+}
 // ═══ END OF JAVASCRIPT ═══
