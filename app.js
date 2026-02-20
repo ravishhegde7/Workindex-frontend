@@ -2594,7 +2594,7 @@ async function lookupPincode(value) {
       // Show confirmation
       document.getElementById('pincodeResult').innerHTML = 
         `<div style="font-size: 13px; color: #4CAF50; margin-top: 6px;">
-          📍 ${area}, ${city}, ${state}
+          📍 ${area}, ${city}, ${stateStr}
         </div>`;
     } else {
       document.getElementById('pincodeResult').innerHTML = 
