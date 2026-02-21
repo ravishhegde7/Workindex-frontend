@@ -894,7 +894,8 @@ function sortExperts(sortBy) {
 
 // ─── VIEW EXPERT PROFILE ───
 async function viewExpertProfile(expertId) {
-  try {
+ fetch(`${API_URL}/approaches/${approachId}/view-profile`, { method: 'PUT', headers: { 'Authorization': `Bearer ${state.token}` }});
+   try {
     const res = await fetch(`${API_URL}/users/expert/${expertId}`, {
       headers: { 'Authorization': `Bearer ${state.token}` }
     });
@@ -1798,7 +1799,8 @@ function showRequestApproaches(req, approaches) {
 
 // ─── CONTACT EXPERT ───
 async function contactExpert(expertId, requestId, clientId) {
-  showToast('Opening chat...', 'info');
+fetch(`${API_URL}/approaches/${approachId}/contact-sent`, { method: 'PUT', headers: { 'Authorization': `Bearer ${state.token}` }});
+   showToast('Opening chat...', 'info');
   await startChat(requestId, expertId, clientId);
 }
 
@@ -2135,7 +2137,8 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 // ─── SERVICE RECEIVED CONFIRMATION ───
 function confirmServiceReceived(requestId, expertId, expertName, approachId) {
-  // Close current modal first
+fetch(`${API_URL}/approaches/${approachId}/service-received`, { method: 'PUT', headers: { 'Authorization': `Bearer ${state.token}` }});
+   // Close current modal first
   document.querySelectorAll('[style*="position: fixed"]').forEach(m => {
     if (m.style.zIndex === '1000') m.remove();
   });
