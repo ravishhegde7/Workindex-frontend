@@ -2808,16 +2808,59 @@ function toggleSupportChat() {
 function initSupportChat() {
   clearSupportMessages();
 
+  const isLoggedIn = !!(state.token && state.user);
+  const userRole = state.user?.role;
+
   setTimeout(() => {
-    addBotMessage("Hi there! 👋 I'm here to help you with WorkIndex.");
+    if (isLoggedIn) {
+      // Personalised greeting
+      addBotMessage(`Hi ${state.user.name?.split(' ')[0] || 'there'}! 👋 How can I help you today?`);
+    } else {
+      addBotMessage("Hi there! 👋 Welcome to WorkIndex!");
+    }
   }, 300);
 
   setTimeout(() => {
-    addBotMessage("Who are you today?");
-    showSupportOptions([
-      { label: '👤 I\'m a Customer', value: 'customer' },
-      { label: '⭐ I\'m a Professional', value: 'expert' }
-    ], (val) => handleUserTypeSelect(val));
+    if (isLoggedIn && userRole === 'expert') {
+      // Jump straight to expert issues — we already know who they are
+      addBotMessage("What's the issue you're facing?");
+      showSupportOptions([
+        { label: '💎 Credits & Billing', value: 'credits' },
+        { label: '📨 My Approaches', value: 'approaches' },
+        { label: '⭐ Reviews & Ratings', value: 'reviews' },
+        { label: '🔧 Technical Problem', value: 'technical' },
+        { label: '❓ Something Else', value: 'other' }
+      ], (val) => {
+        supportChat.userType = 'expert';
+        handleExpertIssue(val);
+      });
+
+    } else if (isLoggedIn && userRole === 'client') {
+      // Jump straight to client issues
+      addBotMessage("What do you need help with?");
+      showSupportOptions([
+        { label: '🔍 Finding the right expert', value: 'finding' },
+        { label: '📋 About my request', value: 'request' },
+        { label: '😟 Problem with an expert', value: 'expert_problem' },
+        { label: '🔧 Technical Problem', value: 'technical' },
+        { label: '❓ Something Else', value: 'other' }
+      ], (val) => {
+        supportChat.userType = 'client';
+        handleClientIssue(val);
+      });
+
+    } else {
+      // NOT logged in — general FAQ only, no evaluation
+      addBotMessage("What can I help you with?");
+      showSupportOptions([
+        { label: '❓ How does WorkIndex work?', value: 'how_it_works' },
+        { label: '💎 How do credits work?', value: 'credits_info' },
+        { label: '📝 How do I register?', value: 'register_info' },
+        { label: '💰 Pricing information', value: 'pricing' },
+        { label: '🔧 Technical issue', value: 'technical' },
+        { label: '💬 Other question', value: 'other_general' }
+      ], (val) => handleGuestIssue(val));
+    }
   }, 900);
 }
 
@@ -3452,6 +3495,44 @@ function removeThinkingMessage() {
 function notifyUserNewMessage() {
   if (!supportChat.isOpen) {
     document.getElementById('supportUnreadDot').style.display = 'block';
+  }
+}
+// ─── GUEST (NOT LOGGED IN) HANDLER ───
+function handleGuestIssue(issue) {
+  const labels = {
+    how_it_works: '❓ How does WorkIndex work?',
+    credits_info: '💎 How do credits work?',
+    register_info: '📝 How do I register?',
+    pricing: '💰 Pricing information',
+    technical: '🔧 Technical issue',
+    other_general: '💬 Other question'
+  };
+  addUserMessage(labels[issue]);
+  clearSupportOptions();
+
+  const answers = {
+    how_it_works: "WorkIndex connects clients with verified professionals! 🎯\n\nClients post their requirements → Experts approach them → Client picks the best one → Work gets done!\n\nServices include ITR Filing, GST, Accounting, Photography, Development and more.",
+    
+    credits_info: "Credits are used by professionals to approach client requests. 💎\n\n• 20 credits = ₹600\n• 100 credits = ₹2,700 (save 10%)\n• 200 credits = ₹4,800 (save 20%)\n\nEach approach costs 15–35 credits depending on the service type.",
+    
+    register_info: "Registering is super easy and free! 🚀\n\nClick **Join** on the homepage → Fill your details → Choose if you're a Client or Professional → Complete your profile!\n\nThe whole thing takes less than 3 minutes.",
+    
+    pricing: "WorkIndex is **free for clients!** 🎉\n\nProfessionals pay only when they approach a client:\n• Starter: ₹600 for 20 credits\n• Popular: ₹2,700 for 100 credits\n• Pro: ₹4,800 for 200 credits\n\nNo subscriptions, no hidden fees!"
+  };
+
+  if (answers[issue]) {
+    setTimeout(() => {
+      addBotMessage(answers[issue]);
+      setTimeout(() => askIfResolved(), 1000);
+    }, 500);
+  } else if (issue === 'technical') {
+    handleTechnicalIssue();
+  } else {
+    // Open Gemini for anything else
+    setTimeout(() => {
+      addBotMessage("Sure! Ask me anything about WorkIndex and I'll do my best to help 😊");
+      showFreeTextInput("Type your question here...");
+    }, 500);
   }
 }
 // ═══ END OF CHATBOT JS ═══
