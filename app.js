@@ -2999,11 +2999,9 @@ async function handleCreditIssue(subIssue) {
 
 // ─── EVALUATE COMPLAINT AGAINST BACKEND ───
 async function evaluateAndRespond(clientCount) {
-  // Show thinking state
   addBotMessage("⏳ Let me check your account details...", 'thinking');
 
   try {
-    // Call backend evaluation API
     const res = await fetch(`${API_URL}/support/evaluate`, {
       method: 'POST',
       headers: {
@@ -3011,32 +3009,37 @@ async function evaluateAndRespond(clientCount) {
         ...(state.token ? { 'Authorization': `Bearer ${state.token}` } : {})
       },
       body: JSON.stringify({
-        userId: state.user?._id,
+        userId:    state.user?._id,
         issueType: 'no_response',
-        clientCount: clientCount
+        clientCount
       })
     });
 
     const data = await res.json();
     supportChat.evaluationResult = data.decision;
     supportChat.ticketId = data.ticketId;
+    supportChat.breakdown = data.breakdown || [];
 
-    // Remove thinking message
     removeThinkingMessage();
 
-    setTimeout(() => {
-      if (data.decision === 'AUTO_REFUND') {
-        handleAutoRefund(data);
-      } else if (data.decision === 'CLOSE_CHAT') {
-        handleCloseChat(data);
-      } else {
-        handleEscalateCall(data);
+    // ✅ Update credit display immediately if refunded
+    if (data.decision === 'AUTO_REFUND' && data.newBalance !== undefined) {
+      if (state.user) {
+        state.user.credits = data.newBalance;
+        localStorage.setItem('user', JSON.stringify(state.user));
+        const el = document.getElementById('expertCredits');
+        if (el) el.textContent = data.newBalance;
       }
+    }
+
+    setTimeout(() => {
+      if (data.decision === 'AUTO_REFUND')     handleAutoRefund(data);
+      else if (data.decision === 'CLOSE_CHAT') handleCloseChat(data);
+      else                                     handleEscalateCall(data);
     }, 500);
 
   } catch (err) {
     removeThinkingMessage();
-    // If backend fails, default to escalation
     setTimeout(() => {
       offerCallEscalation("I wasn't able to verify your account automatically. Let me connect you with our team.");
     }, 500);
@@ -3045,28 +3048,25 @@ async function evaluateAndRespond(clientCount) {
 
 // ─── DECISION HANDLERS ───
 function handleAutoRefund(data) {
-  addBotMessage(`✅ Good news! We reviewed your account and confirmed that ${data.inactiveCount || 'some'} clients were inactive.`);
+  const breakdown = data.breakdown?.filter(t => t.eligible) || [];
 
-  setTimeout(() => {
-    addBotMessage(`We'll add **${data.creditsToRefund} credits** back to your account as a goodwill gesture within 24 hours. 🎉`);
-  }, 800);
+  addBotMessage(`✅ Good news! We reviewed your account and found **${data.inactiveCount} inactive client${data.inactiveCount > 1 ? 's' : ''}**.`);
 
-  setTimeout(() => {
-    addBotMessage("Is there anything else I can help you with?");
-    showSupportOptions([
-      { label: '👍 No, that\'s great! Thank you', value: 'done' },
-      { label: '📞 I still want to speak to someone', value: 'call' }
-    ], (val) => {
-      if (val === 'done') {
-        addUserMessage("👍 No, that's great! Thank you");
-        showResolved("You're welcome! Have a great day! 😊");
-      } else {
-        addUserMessage("📞 I still want to speak to someone");
-        offerCallEscalation("Of course! Let me connect you.");
-      }
-    });
-  }, 1600);
-}
+  // ✅ Show per-transaction breakdown
+  if (breakdown.length > 0) {
+    setTimeout(() => {
+      let breakdownMsg = '📋 **Transaction breakdown:**\n\n';
+      breakdown.forEach((t, i) => {
+        const date = new Date(t.approachedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+        breakdownMsg += `${i + 1}. **${t.requestTitle}**\n`;
+        breakdownMsg += `   • Client: ${t.clientName}${t.clientCity ? ` (${t.clientCity})` : ''}\n`;
+        breakdownMsg += `   • Approached: ${date}\n`;
+        breakdownMsg += `   • Client inactive: ${t.daysSinceLogin === 999 ? 'Never logged in' : `${t.daysSinceLogin} days`}\n`;
+        breakdownMsg += `   • Credits: ${t.creditsSpent} ✅ eligible\n\n`;
+      });
+      addBotMessage(breakdownMsg);
+    }, 600);
+  }
 
 function handleCloseChat(data) {
   addBotMessage("Thank you for reaching out. We've reviewed your account history.");
