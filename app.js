@@ -3050,7 +3050,7 @@ async function evaluateAndRespond(clientCount) {
 function handleAutoRefund(data) {
   const breakdown = data.breakdown?.filter(t => t.eligible) || [];
 
-  addBotMessage(`✅ Good news! We reviewed your account and found **${data.inactiveCount} inactive client${data.inactiveCount > 1 ? 's' : ''}**.`);
+  addBotMessage(`⏳ We've reviewed your account and found ${data.inactiveCount} approach${data.inactiveCount > 1 ? 'es' : ''} where the client never responded after 7+ days.\n\n💎 **${data.eligibleCredits} credits** seem eligible for a refund.\n\nOur admin will review and confirm within 24 hours. You'll be notified once approved.`);
 
   // ✅ Show per-transaction breakdown
   if (breakdown.length > 0) {
