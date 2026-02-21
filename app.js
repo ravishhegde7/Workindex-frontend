@@ -2750,6 +2750,8 @@ function hideLandingSuggestions() {
   const el = document.getElementById('landingSuggestions');
   if (el) el.style.display = 'none';
 }
+// ─── CHATBOT STATE ───
+// Make sure this is OUTSIDE and AFTER all existing app.js code
 // ═══════════════════════════════════════════════════════════
 //  WORKINDEX SUPPORT CHATBOT - Frontend JS
 //  Add this entire block to the end of your app.js
