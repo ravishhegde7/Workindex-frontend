@@ -3067,6 +3067,45 @@ function handleAutoRefund(data) {
       addBotMessage(breakdownMsg);
     }, 600);
   }
+     // ✅ Show ineligible ones too for transparency
+  const ineligible = data.breakdown?.filter(t => !t.eligible) || [];
+  if (ineligible.length > 0) {
+    setTimeout(() => {
+      let ineligibleMsg = '❌ **Not eligible for refund:**\n\n';
+      ineligible.forEach((t, i) => {
+        const reason = t.daysSinceLogin <= 5
+          ? `Client was active ${t.daysSinceLogin} day${t.daysSinceLogin !== 1 ? 's' : ''} ago`
+          : 'Previous complaint exists';
+        ineligibleMsg += `• ${t.requestTitle} — ${reason}\n`;
+      });
+      addBotMessage(ineligibleMsg);
+    }, 1200);
+  }
+
+  setTimeout(() => {
+    addBotMessage(`💎 **${data.creditsToRefund} credits** have been added to your account right now!\n\nNew balance: **${data.newBalance} credits**`);
+  }, breakdown.length > 0 ? 2000 : 800);
+
+  setTimeout(() => {
+    addBotMessage("Is there anything else I can help you with?");
+    showSupportOptions([
+      { label: '👍 No, that\'s great! Thank you', value: 'done' },
+      { label: '📊 Show my full credit history', value: 'history' },
+      { label: '📞 I still want to speak to someone', value: 'call' }
+    ], (val) => {
+      if (val === 'done') {
+        addUserMessage("👍 No, that's great! Thank you");
+        showResolved("You're welcome! Have a great day! 😊");
+      } else if (val === 'history') {
+        addUserMessage('📊 Show my full credit history');
+        showCreditHistory();
+      } else {
+        addUserMessage("📞 I still want to speak to someone");
+        offerCallEscalation("Of course! Let me connect you.");
+      }
+    });
+  }, breakdown.length > 0 ? 3000 : 1600);
+}
 
 function handleCloseChat(data) {
   addBotMessage("Thank you for reaching out. We've reviewed your account history.");
