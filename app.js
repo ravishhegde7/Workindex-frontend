@@ -3537,5 +3537,57 @@ function handleGuestIssue(issue) {
     }, 500);
   }
 }
+   // ─── NEW: Show credit history in chat ───
+async function showCreditHistory() {
+  clearSupportOptions();
+  addBotMessage("⏳ Fetching your credit history...", 'thinking');
+
+  try {
+    const res = await fetch(`${API_URL}/support/ledger?limit=10`, {
+      headers: { 'Authorization': `Bearer ${state.token}` }
+    });
+    const data = await res.json();
+    removeThinkingMessage();
+
+    if (!data.success || !data.transactions.length) {
+      addBotMessage("No transaction history found yet.");
+      return;
+    }
+
+    // Summary
+    const s = data.summary;
+    addBotMessage(
+      `📊 **Credit Summary:**\n\n` +
+      `💎 Total Purchased: ${s.totalPurchased} credits\n` +
+      `📤 Total Spent: ${s.totalSpent} credits\n` +
+      `↩️ Total Refunded: ${s.totalRefunded} credits\n` +
+      `🎁 Bonus Received: ${s.totalBonus} credits`
+    );
+
+    // Recent transactions
+    setTimeout(() => {
+      const typeEmoji = { purchase: '💳', spent: '📤', refund: '↩️', bonus: '🎁', penalty: '⚠️' };
+      const typeLabel = { purchase: 'Purchased', spent: 'Spent', refund: 'Refunded', bonus: 'Bonus', penalty: 'Deducted' };
+
+      let historyMsg = '🕐 **Recent Transactions:**\n\n';
+      data.transactions.forEach(tx => {
+        const date = new Date(tx.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: '2-digit' });
+        const sign = tx.amount > 0 ? '+' : '';
+        historyMsg += `${typeEmoji[tx.type] || '•'} **${sign}${tx.amount} credits** — ${typeLabel[tx.type]}\n`;
+        historyMsg += `   ${tx.description || ''}\n`;
+        if (tx.relatedClient?.name) historyMsg += `   👤 Client: ${tx.relatedClient.name}\n`;
+        historyMsg += `   📅 ${date} | Balance: ${tx.balanceAfter}\n\n`;
+      });
+      addBotMessage(historyMsg);
+
+      setTimeout(() => askIfResolved(), 800);
+    }, 800);
+
+  } catch (err) {
+    removeThinkingMessage();
+    addBotMessage("Couldn't load history right now. Please check the app's credit section.");
+    setTimeout(() => askIfResolved(), 600);
+  }
+}
 // ═══ END OF CHATBOT JS ═══
 // ═══ END OF JAVASCRIPT ═══
