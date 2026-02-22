@@ -351,7 +351,41 @@ function getDocIcon(type) {
 }
 
 async function downloadDocument(docId) {
-  window.open(`${API_URL}/documents/${docId}/download`, '_blank');
+  try {
+    showToast('Preparing download...', 'info');
+    const res = await fetch(`${API_URL}/documents/${docId}/download`, {
+      headers: { 'Authorization': `Bearer ${state.token}` }
+    });
+
+    if (!res.ok) {
+      showToast('Download failed — access may have been revoked', 'error');
+      return;
+    }
+
+    // Get filename from response headers if available
+    const disposition = res.headers.get('Content-Disposition');
+    let filename = 'document';
+    if (disposition) {
+      const match = disposition.match(/filename="?([^"]+)"?/);
+      if (match) filename = match[1];
+    }
+
+    // Trigger browser download
+    const blob = await res.blob();
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href     = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    showToast('Download started!', 'success');
+  } catch (err) {
+    console.error('Download error:', err);
+    showToast('Download failed', 'error');
+  }
 }
 
 async function deleteDocument(docId) {
