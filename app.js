@@ -353,33 +353,25 @@ function getDocIcon(type) {
 async function downloadDocument(docId) {
   try {
     showToast('Preparing download...', 'info');
-    const res = await fetch(`${API_URL}/documents/${docId}/download`, {
+
+    const res = await fetch(`${API_URL}/documents/${docId}`, {
       headers: { 'Authorization': `Bearer ${state.token}` }
     });
 
-    if (!res.ok) {
+    const data = await res.json();
+
+    if (!data.success || !data.document?.fileUrl) {
       showToast('Download failed — access may have been revoked', 'error');
       return;
     }
 
-    // Get filename from response headers if available
-    const disposition = res.headers.get('Content-Disposition');
-    let filename = 'document';
-    if (disposition) {
-      const match = disposition.match(/filename="?([^"]+)"?/);
-      if (match) filename = match[1];
-    }
-
-    // Trigger browser download
-    const blob = await res.blob();
-    const url  = URL.createObjectURL(blob);
-    const a    = document.createElement('a');
-    a.href     = url;
-    a.download = filename;
+    // fileUrl is a base64 data URI — trigger download directly
+    const a = document.createElement('a');
+    a.href = data.document.fileUrl;
+    a.download = data.document.fileName || 'document';
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-    URL.revokeObjectURL(url);
 
     showToast('Download started!', 'success');
   } catch (err) {
