@@ -1980,7 +1980,7 @@ async function viewClientDocuments(clientId, requestId) {
                 <div style="font-size: 13px; color: var(--text-muted);">${sizeKB} KB • ${doc.fileType.toUpperCase()}</div>
                 <div style="font-size: 12px; color: #4CAF50; margin-top: 2px;">✅ Access granted</div>
               </div>
-              <a href="${doc.fileUrl}" download="${doc.originalFileName}" style="padding: 8px 16px; background: var(--primary); color: #fff; border-radius: 8px; text-decoration: none; font-size: 13px; font-weight: 600;">Download</a>
+              <button onclick="downloadDocument('${doc._id}')" style="padding: 8px 16px; background: var(--primary); color: #fff; border-radius: 8px; text-decoration: none; font-size: 13px; font-weight: 600; border: none; cursor: pointer;">Download</button>
             </div>
           </div>
         `;
