@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WorkIndex Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --primary: #FC8019;
+    --primary-dark: #e06b0a;
+    --bg: #0f0f11;
+    --bg2: #17171a;
+    --bg3: #1e1e23;
+    --border: #2a2a30;
+    --text: #f0f0f2;
+    --text-muted: #8888a0;
+    --green: #22c55e;
+    --red: #ef4444;
+    --yellow: #f59e0b;
+    --blue: #3b82f6;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+  /* ── LOGIN ── */
+  #loginScreen {
+    min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    background: var(--bg);
+    background-image: radial-gradient(ellipse at 20% 50%, rgba(252,128,25,0.08) 0%, transparent 60%),
+                      radial-gradient(ellipse at 80% 20%, rgba(59,130,246,0.05) 0%, transparent 50%);
+  }
+  .login-box {
+    width: 100%; max-width: 400px; padding: 48px 40px;
+    background: var(--bg2); border: 1px solid var(--border); border-radius: 20px;
+  }
+  .login-logo {
+    display: flex; align-items: center; gap: 12px; margin-bottom: 36px;
+  }
+  .login-logo .w-icon {
+    width: 44px; height: 44px; background: var(--primary); border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; font-weight: 800; color: #fff;
+  }
+  .login-logo h1 { font-size: 20px; font-weight: 700; }
+  .login-logo span { font-size: 12px; color: var(--text-muted); display: block; font-family: 'DM Mono', monospace; }
+  .login-box h2 { font-size: 26px; font-weight: 700; margin-bottom: 6px; }
+  .login-box p { color: var(--text-muted); font-size: 14px; margin-bottom: 32px; }
+  .field { margin-bottom: 18px; }
+  .field label { display: block; font-size: 12px; font-weight: 600; color: var(--text-muted); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 8px; }
+  .field input {
+    width: 100%; padding: 13px 16px; background: var(--bg3); border: 1px solid var(--border);
+    border-radius: 10px; color: var(--text); font-size: 15px; font-family: inherit; outline: none;
+    transition: border-color 0.2s;
+  }
+  .field input:focus { border-color: var(--primary); }
+  .btn-login {
+    width: 100%; padding: 14px; background: var(--primary); color: #fff; border: none;
+    border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer;
+    margin-top: 8px; transition: background 0.2s; font-family: inherit;
+  }
+  .btn-login:hover { background: var(--primary-dark); }
+  .login-error { color: var(--red); font-size: 13px; margin-top: 12px; text-align: center; }
+
+  /* ── LAYOUT ── */
+  #adminApp { display: none; min-height: 100vh; }
+  .sidebar {
+    position: fixed; left: 0; top: 0; bottom: 0; width: 220px;
+    background: var(--bg2); border-right: 1px solid var(--border);
+    display: flex; flex-direction: column; z-index: 100;
+  }
+  .sidebar-logo {
+    padding: 24px 20px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .sidebar-logo .w-icon { width: 34px; height: 34px; background: var(--primary); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 800; color: #fff; flex-shrink: 0; }
+  .sidebar-logo span { font-size: 15px; font-weight: 700; }
+  .sidebar-logo small { font-size: 10px; color: var(--primary); font-family: 'DM Mono', monospace; display: block; }
+  nav { flex: 1; padding: 16px 12px; }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px; padding: 10px 12px;
+    border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 500;
+    color: var(--text-muted); transition: all 0.15s; margin-bottom: 2px;
+  }
+  .nav-item:hover { background: var(--bg3); color: var(--text); }
+  .nav-item.active { background: rgba(252,128,25,0.12); color: var(--primary); }
+  .nav-item .icon { font-size: 18px; width: 22px; text-align: center; }
+  .sidebar-bottom { padding: 16px 12px; border-top: 1px solid var(--border); }
+  .admin-info { display: flex; align-items: center; gap: 10px; padding: 10px 12px; }
+  .admin-avatar { width: 32px; height: 32px; background: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: #fff; flex-shrink: 0; }
+  .admin-info-text { flex: 1; min-width: 0; }
+  .admin-info-text strong { font-size: 13px; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .admin-info-text small { font-size: 11px; color: var(--text-muted); font-family: 'DM Mono', monospace; }
+  .btn-logout { width: 100%; padding: 9px; background: transparent; border: 1px solid var(--border); border-radius: 8px; color: var(--text-muted); font-size: 13px; cursor: pointer; font-family: inherit; transition: all 0.15s; margin-top: 8px; }
+  .btn-logout:hover { border-color: var(--red); color: var(--red); }
+  .main { margin-left: 220px; padding: 32px; min-height: 100vh; }
+  .page-header { margin-bottom: 28px; }
+  .page-header h2 { font-size: 24px; font-weight: 700; }
+  .page-header p { color: var(--text-muted); font-size: 14px; margin-top: 4px; }
+
+  /* ── SECTIONS ── */
+  .section { display: none; }
+  .section.active { display: block; }
+
+  /* ── STATS ── */
+  .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 28px; }
+  .stat-card {
+    background: var(--bg2); border: 1px solid var(--border); border-radius: 14px; padding: 20px;
+  }
+  .stat-card .stat-label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.07em; font-weight: 600; margin-bottom: 10px; }
+  .stat-card .stat-value { font-size: 30px; font-weight: 700; font-family: 'DM Mono', monospace; }
+  .stat-card .stat-sub { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+  .stat-card.alert .stat-value { color: var(--yellow); }
+  .stat-card.green .stat-value { color: var(--green); }
+  .stat-card.blue .stat-value { color: var(--blue); }
+
+  /* ── TABLE ── */
+  .card { background: var(--bg2); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; margin-bottom: 20px; }
+  .card-header { padding: 18px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .card-header h3 { font-size: 15px; font-weight: 700; }
+  .search-bar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .search-bar input, .search-bar select {
+    padding: 8px 12px; background: var(--bg3); border: 1px solid var(--border);
+    border-radius: 8px; color: var(--text); font-size: 13px; font-family: inherit; outline: none;
+  }
+  .search-bar input { width: 200px; }
+  .search-bar input:focus, .search-bar select:focus { border-color: var(--primary); }
+  table { width: 100%; border-collapse: collapse; }
+  th { padding: 12px 16px; text-align: left; font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.07em; border-bottom: 1px solid var(--border); }
+  td { padding: 13px 16px; font-size: 13px; border-bottom: 1px solid rgba(255,255,255,0.04); vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(255,255,255,0.02); }
+  .badge { display: inline-block; padding: 3px 9px; border-radius: 20px; font-size: 11px; font-weight: 600; font-family: 'DM Mono', monospace; }
+  .badge-client  { background: rgba(59,130,246,0.15);  color: #60a5fa; }
+  .badge-expert  { background: rgba(252,128,25,0.15);  color: var(--primary); }
+  .badge-green   { background: rgba(34,197,94,0.15);   color: var(--green); }
+  .badge-yellow  { background: rgba(245,158,11,0.15);  color: var(--yellow); }
+  .badge-red     { background: rgba(239,68,68,0.15);   color: var(--red); }
+  .badge-gray    { background: rgba(255,255,255,0.08); color: var(--text-muted); }
+  .btn-sm {
+    padding: 5px 12px; border-radius: 6px; font-size: 12px; font-weight: 600;
+    cursor: pointer; border: none; font-family: inherit; transition: all 0.15s;
+  }
+  .btn-view   { background: rgba(255,255,255,0.06); color: var(--text); }
+  .btn-view:hover { background: rgba(255,255,255,0.12); }
+  .btn-approve { background: rgba(34,197,94,0.15); color: var(--green); }
+  .btn-approve:hover { background: rgba(34,197,94,0.25); }
+  .btn-reject  { background: rgba(239,68,68,0.1); color: var(--red); }
+  .btn-reject:hover { background: rgba(239,68,68,0.2); }
+  .btn-flag    { background: rgba(245,158,11,0.1); color: var(--yellow); }
+  .btn-flag:hover { background: rgba(245,158,11,0.2); }
+
+  /* ── DRAWER ── */
+  .drawer-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 200; }
+  .drawer-overlay.open { display: block; }
+  .drawer {
+    position: fixed; right: 0; top: 0; bottom: 0; width: 520px; max-width: 95vw;
+    background: var(--bg2); border-left: 1px solid var(--border);
+    z-index: 201; overflow-y: auto; transform: translateX(100%);
+    transition: transform 0.3s ease;
+  }
+  .drawer.open { transform: translateX(0); }
+  .drawer-header {
+    padding: 20px 24px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; background: var(--bg2); z-index: 1;
+  }
+  .drawer-header h3 { font-size: 17px; font-weight: 700; }
+  .drawer-close { background: none; border: none; color: var(--text-muted); font-size: 22px; cursor: pointer; line-height: 1; }
+  .drawer-body { padding: 24px; }
+  .user-hero { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; padding: 20px; background: var(--bg3); border-radius: 12px; }
+  .user-avatar { width: 56px; height: 56px; border-radius: 50%; background: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 700; color: #fff; flex-shrink: 0; overflow: hidden; }
+  .user-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+  .user-hero-info h3 { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+  .user-hero-info p { font-size: 13px; color: var(--text-muted); }
+  .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+  .info-cell { padding: 12px 14px; background: var(--bg3); border-radius: 10px; }
+  .info-cell label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.07em; font-weight: 600; display: block; margin-bottom: 5px; }
+  .info-cell span { font-size: 14px; font-weight: 600; font-family: 'DM Mono', monospace; }
+  .section-label { font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; margin: 20px 0 10px; }
+  .tx-item { display: flex; align-items: center; justify-content: space-between; padding: 11px 14px; background: var(--bg3); border-radius: 8px; margin-bottom: 6px; }
+  .tx-item .tx-left { display: flex; flex-direction: column; gap: 2px; }
+  .tx-item .tx-desc { font-size: 13px; font-weight: 500; }
+  .tx-item .tx-date { font-size: 11px; color: var(--text-muted); font-family: 'DM Mono', monospace; }
+  .tx-amount { font-size: 14px; font-weight: 700; font-family: 'DM Mono', monospace; }
+  .tx-amount.positive { color: var(--green); }
+  .tx-amount.negative { color: var(--red); }
+  .approach-item { padding: 12px 14px; background: var(--bg3); border-radius: 8px; margin-bottom: 6px; }
+  .approach-item .ap-title { font-size: 13px; font-weight: 600; margin-bottom: 3px; }
+  .approach-item .ap-meta { font-size: 11px; color: var(--text-muted); font-family: 'DM Mono', monospace; }
+  .drawer-actions { display: flex; gap: 10px; margin-top: 20px; }
+  .drawer-actions button { flex: 1; padding: 11px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit; }
+
+  /* ── TICKET CARDS ── */
+  .ticket-card { background: var(--bg3); border: 1px solid var(--border); border-radius: 12px; padding: 18px; margin-bottom: 12px; }
+  .ticket-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .ticket-user { display: flex; align-items: center; gap: 10px; }
+  .ticket-avatar { width: 38px; height: 38px; background: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; color: #fff; flex-shrink: 0; }
+  .ticket-user-info strong { font-size: 14px; display: block; }
+  .ticket-user-info small { font-size: 12px; color: var(--text-muted); }
+  .ticket-body { font-size: 13px; color: var(--text-muted); margin-bottom: 14px; line-height: 1.5; }
+  .ticket-credits { font-size: 20px; font-weight: 800; color: var(--yellow); font-family: 'DM Mono', monospace; margin-bottom: 12px; }
+  .ticket-breakdown { margin-bottom: 12px; }
+  .breakdown-row { display: flex; justify-content: space-between; padding: 7px 10px; background: var(--bg2); border-radius: 6px; margin-bottom: 4px; font-size: 12px; }
+  .breakdown-row .br-client { color: var(--text); font-weight: 500; }
+  .breakdown-row .br-reason { color: var(--text-muted); font-style: italic; }
+  .breakdown-row .br-credits { color: var(--yellow); font-family: 'DM Mono', monospace; font-weight: 600; }
+  .ticket-actions { display: flex; gap: 10px; }
+  .ticket-note { width: 100%; padding: 8px 12px; background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-size: 13px; font-family: inherit; outline: none; margin-bottom: 10px; resize: none; }
+  .ticket-note:focus { border-color: var(--primary); }
+  .empty-msg { text-align: center; padding: 48px 20px; color: var(--text-muted); font-size: 14px; }
+
+  /* ── LOADING ── */
+  .spinner { display: inline-block; width: 18px; height: 18px; border: 2px solid rgba(255,255,255,0.2); border-top-color: var(--primary); border-radius: 50%; animation: spin 0.7s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── TOAST ── */
+  .toast { position: fixed; bottom: 24px; right: 24px; padding: 12px 20px; border-radius: 10px; font-size: 14px; font-weight: 600; z-index: 999; animation: slideUp 0.3s ease; }
+  .toast.success { background: var(--green); color: #fff; }
+  .toast.error   { background: var(--red);   color: #fff; }
+  .toast.info    { background: var(--blue);  color: #fff; }
+  @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+  @media (max-width: 768px) {
+    .sidebar { width: 60px; }
+    .sidebar-logo span, .sidebar-logo small, .nav-item span { display: none; }
+    .nav-item { justify-content: center; padding: 12px; }
+    .admin-info-text, .btn-logout { display: none; }
+    .main { margin-left: 60px; padding: 20px 16px; }
+    .stats-grid { grid-template-columns: 1fr 1fr; }
+    .info-grid { grid-template-columns: 1fr; }
+    .drawer { width: 100vw; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ── LOGIN ── -->
+<div id="loginScreen">
+  <div class="login-box">
+    <div class="login-logo">
+      <div class="w-icon">W</div>
+      <div>
+        <h1>WorkIndex</h1>
+        <span>ADMIN CONSOLE</span>
+      </div>
+    </div>
+    <h2>Welcome back</h2>
+    <p>Sign in to access the admin dashboard</p>
+    <div class="field">
+      <label>Admin ID</label>
+      <input type="text" id="loginAdminId" placeholder="admin_workindex" autocomplete="off">
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <input type="password" id="loginPassword" placeholder="••••••••" onkeydown="if(event.key==='Enter')adminLogin()">
+    </div>
+    <button class="btn-login" onclick="adminLogin()">Sign In →</button>
+    <div class="login-error" id="loginError"></div>
+  </div>
+</div>
+
+<!-- ── ADMIN APP ── -->
+<div id="adminApp">
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-logo">
+      <div class="w-icon">W</div>
+      <div>
+        <span>WorkIndex</span>
+        <small>ADMIN</small>
+      </div>
+    </div>
+    <nav>
+      <div class="nav-item active" onclick="showSection('dashboard')" data-section="dashboard">
+        <span class="icon">📊</span><span>Dashboard</span>
+      </div>
+      <div class="nav-item" onclick="showSection('users')" data-section="users">
+        <span class="icon">👥</span><span>Users</span>
+      </div>
+      <div class="nav-item" onclick="showSection('refunds')" data-section="refunds">
+        <span class="icon">💰</span><span>Refunds</span>
+        <span id="refundBadge" style="margin-left:auto;background:var(--yellow);color:#000;font-size:10px;font-weight:700;padding:2px 6px;border-radius:10px;display:none;"></span>
+      </div>
+      <div class="nav-item" onclick="showSection('tickets')" data-section="tickets">
+        <span class="icon">🎫</span><span>All Tickets</span>
+      </div>
+    </nav>
+    <div class="sidebar-bottom">
+      <div class="admin-info">
+        <div class="admin-avatar" id="sidebarAvatar">A</div>
+        <div class="admin-info-text">
+          <strong id="sidebarName">Admin</strong>
+          <small id="sidebarId">—</small>
+        </div>
+      </div>
+      <button class="btn-logout" onclick="adminLogout()">↩ Logout</button>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main">
+
+    <!-- DASHBOARD -->
+    <div class="section active" id="section-dashboard">
+      <div class="page-header">
+        <h2>Dashboard</h2>
+        <p>Platform overview at a glance</p>
+      </div>
+      <div class="stats-grid" id="statsGrid">
+        <div class="stat-card"><div class="stat-label">Total Clients</div><div class="stat-value" id="statClients">—</div></div>
+        <div class="stat-card blue"><div class="stat-label">Total Experts</div><div class="stat-value" id="statExperts">—</div></div>
+        <div class="stat-card"><div class="stat-label">Total Requests</div><div class="stat-value" id="statRequests">—</div></div>
+        <div class="stat-card"><div class="stat-label">Total Approaches</div><div class="stat-value" id="statApproaches">—</div></div>
+        <div class="stat-card green"><div class="stat-label">Credits Sold</div><div class="stat-value" id="statCreditsSold">—</div></div>
+        <div class="stat-card"><div class="stat-label">Credits Spent</div><div class="stat-value" id="statCreditsSpent">—</div></div>
+        <div class="stat-card alert"><div class="stat-label">Pending Refunds</div><div class="stat-value" id="statPendingRefunds">—</div></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><h3>Recent Signups</h3></div>
+        <table>
+          <thead><tr><th>Name</th><th>Role</th><th>Email</th><th>Joined</th></tr></thead>
+          <tbody id="recentUsersTable"><tr><td colspan="4" class="empty-msg">Loading...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- USERS -->
+    <div class="section" id="section-users">
+      <div class="page-header">
+        <h2>Users</h2>
+        <p>All clients and experts on the platform</p>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <h3>All Users</h3>
+          <div class="search-bar">
+            <input type="text" id="userSearch" placeholder="Search name, email..." oninput="searchUsers()">
+            <select id="roleFilter" onchange="searchUsers()">
+              <option value="all">All Roles</option>
+              <option value="client">Clients</option>
+              <option value="expert">Experts</option>
+            </select>
+          </div>
+        </div>
+        <table>
+          <thead><tr><th>Name</th><th>Role</th><th>Email</th><th>Credits</th><th>Joined</th><th>Status</th><th></th></tr></thead>
+          <tbody id="usersTable"><tr><td colspan="7" class="empty-msg">Loading...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- REFUNDS (pending_review) -->
+    <div class="section" id="section-refunds">
+      <div class="page-header">
+        <h2>Pending Refunds</h2>
+        <p>Review and approve or reject credit refund requests</p>
+      </div>
+      <div id="refundsList"><div class="empty-msg">Loading...</div></div>
+    </div>
+
+    <!-- ALL TICKETS -->
+    <div class="section" id="section-tickets">
+      <div class="page-header">
+        <h2>Support Tickets</h2>
+        <p>All support tickets across the platform</p>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <h3>Tickets</h3>
+          <select id="ticketStatusFilter" onchange="loadAllTickets()" style="padding:8px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit;outline:none;">
+            <option value="pending_review">Pending Review</option>
+            <option value="escalated">Escalated</option>
+            <option value="resolved">Resolved</option>
+            <option value="open">Open</option>
+            <option value="all">All</option>
+          </select>
+        </div>
+        <table>
+          <thead><tr><th>User</th><th>Issue</th><th>Decision</th><th>Credits</th><th>Date</th><th>Status</th></tr></thead>
+          <tbody id="ticketsTable"><tr><td colspan="6" class="empty-msg">Loading...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div><!-- /main -->
+</div><!-- /adminApp -->
+
+<!-- USER DRAWER -->
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+<div class="drawer" id="userDrawer">
+  <div class="drawer-header">
+    <h3 id="drawerTitle">User Profile</h3>
+    <button class="drawer-close" onclick="closeDrawer()">×</button>
+  </div>
+  <div class="drawer-body" id="drawerBody">Loading...</div>
+</div>
+
+<script>
+const API_URL = 'https://workindex-production.up.railway.app/api';
+const ADMIN_API = API_URL.replace('/api', '/api/admin');
+
+let adminState = {
+  token: localStorage.getItem('adminToken') || null,
+  admin: JSON.parse(localStorage.getItem('adminUser') || 'null'),
+  users: []
+};
+
+// ── INIT ──
+window.addEventListener('DOMContentLoaded', () => {
+  if (adminState.token && adminState.admin) {
+    showApp();
+  }
+});
+
+// ── LOGIN ──
+async function adminLogin() {
+  const adminId  = document.getElementById('loginAdminId').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  const errEl    = document.getElementById('loginError');
+  errEl.textContent = '';
+
+  if (!adminId || !password) { errEl.textContent = 'Please fill in all fields'; return; }
+
+  try {
+    const res  = await fetch(`${ADMIN_API}/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ adminId, password })
+    });
+    const data = await res.json();
+
+    if (data.success) {
+      adminState.token = data.token;
+      adminState.admin = data.admin;
+      localStorage.setItem('adminToken', data.token);
+      localStorage.setItem('adminUser', JSON.stringify(data.admin));
+      showApp();
+    } else {
+      errEl.textContent = data.message || 'Invalid credentials';
+    }
+  } catch (e) {
+    errEl.textContent = 'Connection failed';
+  }
+}
+
+function showApp() {
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('adminApp').style.display    = 'block';
+  document.getElementById('sidebarName').textContent   = adminState.admin?.name || 'Admin';
+  document.getElementById('sidebarId').textContent     = adminState.admin?.adminId || '';
+  document.getElementById('sidebarAvatar').textContent = (adminState.admin?.name || 'A').charAt(0).toUpperCase();
+  loadDashboard();
+  loadUsers();
+  loadPendingRefunds();
+}
+
+function adminLogout() {
+  localStorage.removeItem('adminToken');
+  localStorage.removeItem('adminUser');
+  adminState = { token: null, admin: null, users: [] };
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('adminApp').style.display    = 'none';
+}
+
+// ── NAVIGATION ──
+function showSection(name) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('section-' + name).classList.add('active');
+  document.querySelector(`[data-section="${name}"]`).classList.add('active');
+  if (name === 'refunds')  loadPendingRefunds();
+  if (name === 'tickets')  loadAllTickets();
+  if (name === 'users')    loadUsers();
+  if (name === 'dashboard') loadDashboard();
+}
+
+// ── HELPERS ──
+function headers() { return { 'Authorization': `Bearer ${adminState.token}`, 'Content-Type': 'application/json' }; }
+function fmt(d) { return d ? new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'; }
+function fmtTime(d) { return d ? new Date(d).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : '—'; }
+
+function toast(msg, type = 'success') {
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 3000);
+}
+
+// ── DASHBOARD ──
+async function loadDashboard() {
+  try {
+    const res  = await fetch(`${ADMIN_API}/stats`, { headers: headers() });
+    const data = await res.json();
+    if (!data.success) return;
+
+    const s = data.stats;
+    document.getElementById('statClients').textContent      = s.totalClients;
+    document.getElementById('statExperts').textContent      = s.totalExperts;
+    document.getElementById('statRequests').textContent     = s.totalRequests;
+    document.getElementById('statApproaches').textContent   = s.totalApproaches;
+    document.getElementById('statCreditsSold').textContent  = s.credits.totalSold;
+    document.getElementById('statCreditsSpent').textContent = s.credits.totalSpent;
+    document.getElementById('statPendingRefunds').textContent = s.pendingRefunds;
+
+    if (s.pendingRefunds > 0) {
+      const badge = document.getElementById('refundBadge');
+      badge.textContent = s.pendingRefunds;
+      badge.style.display = 'inline-block';
+    }
+
+    document.getElementById('recentUsersTable').innerHTML = (data.recentUsers || []).map(u => `
+      <tr>
+        <td><strong>${u.name}</strong></td>
+        <td><span class="badge badge-${u.role}">${u.role}</span></td>
+        <td style="color:var(--text-muted)">${u.email}</td>
+        <td style="color:var(--text-muted)">${fmt(u.createdAt)}</td>
+      </tr>
+    `).join('') || '<tr><td colspan="4" class="empty-msg">No users yet</td></tr>';
+  } catch (e) { console.error(e); }
+}
+
+// ── USERS ──
+async function loadUsers() {
+  const search = document.getElementById('userSearch')?.value || '';
+  const role   = document.getElementById('roleFilter')?.value || 'all';
+  const params = new URLSearchParams({ limit: 100 });
+  if (role !== 'all') params.append('role', role);
+  if (search) params.append('search', search);
+
+  document.getElementById('usersTable').innerHTML = '<tr><td colspan="7" class="empty-msg"><div class="spinner"></div></td></tr>';
+
+  try {
+    const res  = await fetch(`${ADMIN_API}/users?${params}`, { headers: headers() });
+    const data = await res.json();
+    adminState.users = data.users || [];
+    renderUsersTable(adminState.users);
+  } catch (e) {
+    document.getElementById('usersTable').innerHTML = '<tr><td colspan="7" class="empty-msg">Failed to load</td></tr>';
+  }
+}
+
+let searchTimer;
+function searchUsers() {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(loadUsers, 300);
+}
+
+function renderUsersTable(users) {
+  if (!users.length) {
+    document.getElementById('usersTable').innerHTML = '<tr><td colspan="7" class="empty-msg">No users found</td></tr>';
+    return;
+  }
+  document.getElementById('usersTable').innerHTML = users.map(u => `
+    <tr>
+      <td><strong>${u.name}</strong></td>
+      <td><span class="badge badge-${u.role}">${u.role}</span></td>
+      <td style="color:var(--text-muted);font-size:12px">${u.email}</td>
+      <td><span style="font-family:'DM Mono',monospace;color:var(--yellow)">💎 ${u.credits || 0}</span></td>
+      <td style="color:var(--text-muted);font-size:12px">${fmt(u.createdAt)}</td>
+      <td>${u.isFlagged ? '<span class="badge badge-red">Flagged</span>' : '<span class="badge badge-green">Active</span>'}</td>
+      <td><button class="btn-sm btn-view" onclick="openUserDrawer('${u._id}')">View</button></td>
+    </tr>
+  `).join('');
+}
+
+// ── USER DRAWER ──
+async function openUserDrawer(userId) {
+  document.getElementById('drawerOverlay').classList.add('open');
+  document.getElementById('userDrawer').classList.add('open');
+  document.getElementById('drawerBody').innerHTML = '<div style="text-align:center;padding:40px"><div class="spinner"></div></div>';
+
+  try {
+    const res  = await fetch(`${ADMIN_API}/users/${userId}`, { headers: headers() });
+    const data = await res.json();
+    if (!data.success) { document.getElementById('drawerBody').innerHTML = '<p class="empty-msg">Failed to load user</p>'; return; }
+
+    const u  = data.user;
+    const profile = u.profile || {};
+    document.getElementById('drawerTitle').textContent = u.name;
+
+    // Transactions HTML
+    const txHTML = data.transactions?.length ? data.transactions.map(tx => `
+      <div class="tx-item">
+        <div class="tx-left">
+          <span class="tx-desc">${tx.description || tx.type}</span>
+          <span class="tx-date">${fmtTime(tx.createdAt)}</span>
+        </div>
+        <span class="tx-amount ${tx.amount > 0 ? 'positive' : 'negative'}">${tx.amount > 0 ? '+' : ''}${tx.amount}</span>
+      </div>
+    `).join('') : '<p style="color:var(--text-muted);font-size:13px;padding:8px 0;">No transactions yet</p>';
+
+    // Approaches HTML
+    const apHTML = data.approaches?.length ? data.approaches.map(ap => `
+      <div class="approach-item">
+        <div class="ap-title">${ap.request?.title || 'Unknown Request'}</div>
+        <div class="ap-meta">${fmt(ap.createdAt)} · ${ap.creditsSpent} credits · ${ap.status}</div>
+      </div>
+    `).join('') : '<p style="color:var(--text-muted);font-size:13px;padding:8px 0;">No approaches yet</p>';
+
+    // Requests HTML (for clients)
+    const reqHTML = data.requests?.length ? data.requests.map(r => `
+      <div class="approach-item">
+        <div class="ap-title">${r.title}</div>
+        <div class="ap-meta">${fmt(r.createdAt)} · ${r.service} · ${r.status}</div>
+      </div>
+    `).join('') : '';
+
+    document.getElementById('drawerBody').innerHTML = `
+      <div class="user-hero">
+        <div class="user-avatar">
+          ${u.profilePhoto ? `<img src="${u.profilePhoto}" alt="${u.name}">` : u.name.charAt(0).toUpperCase()}
+        </div>
+        <div class="user-hero-info">
+          <h3>${u.name}</h3>
+          <p>${u.email} · ${u.phone || 'No phone'}</p>
+          <div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap;">
+            <span class="badge badge-${u.role}">${u.role}</span>
+            ${u.isFlagged ? '<span class="badge badge-red">Flagged</span>' : '<span class="badge badge-green">Active</span>'}
+          </div>
+        </div>
+      </div>
+
+      <div class="info-grid">
+        <div class="info-cell"><label>Credits</label><span style="color:var(--yellow)">💎 ${u.credits || 0}</span></div>
+        <div class="info-cell"><label>Joined</label><span>${fmt(u.createdAt)}</span></div>
+        <div class="info-cell"><label>Last Login</label><span>${fmt(u.lastLogin)}</span></div>
+        <div class="info-cell"><label>Rating</label><span>⭐ ${u.rating || '—'} (${u.reviewCount || 0})</span></div>
+        ${profile.specialization ? `<div class="info-cell"><label>Specialization</label><span>${profile.specialization}</span></div>` : ''}
+        ${profile.experience ? `<div class="info-cell"><label>Experience</label><span>${profile.experience}</span></div>` : ''}
+      </div>
+
+      ${u.role === 'expert' ? `
+        <div class="section-label">Credit Transactions (${data.transactions?.length || 0})</div>
+        ${txHTML}
+        <div class="section-label">Approaches (${data.approaches?.length || 0})</div>
+        ${apHTML}
+      ` : ''}
+
+      ${u.role === 'client' && reqHTML ? `
+        <div class="section-label">Requests Posted</div>
+        ${reqHTML}
+      ` : ''}
+
+      ${data.tickets?.length ? `
+        <div class="section-label">Support Tickets</div>
+        ${data.tickets.map(t => `
+          <div class="tx-item">
+            <div class="tx-left">
+              <span class="tx-desc">${t.issueType || 'Support'} · ${t.decision}</span>
+              <span class="tx-date">${fmtTime(t.createdAt)}</span>
+            </div>
+            <span class="badge ${t.status === 'resolved' ? 'badge-green' : t.status === 'pending_review' ? 'badge-yellow' : 'badge-gray'}">${t.status}</span>
+          </div>
+        `).join('')}
+      ` : ''}
+
+      <div class="drawer-actions">
+        <button style="background:rgba(245,158,11,0.1);color:var(--yellow);border:none;" 
+          onclick="toggleFlag('${u._id}', this)">
+          ${u.isFlagged ? '✅ Unflag User' : '🚩 Flag User'}
+        </button>
+      </div>
+    `;
+  } catch (e) {
+    document.getElementById('drawerBody').innerHTML = '<p class="empty-msg">Error loading user</p>';
+  }
+}
+
+function closeDrawer() {
+  document.getElementById('drawerOverlay').classList.remove('open');
+  document.getElementById('userDrawer').classList.remove('open');
+}
+
+async function toggleFlag(userId, btn) {
+  try {
+    const res  = await fetch(`${ADMIN_API}/users/${userId}/flag`, { method: 'POST', headers: headers() });
+    const data = await res.json();
+    if (data.success) {
+      btn.textContent = data.isFlagged ? '✅ Unflag User' : '🚩 Flag User';
+      toast(data.isFlagged ? 'User flagged' : 'User unflagged');
+      loadUsers();
+    }
+  } catch (e) { toast('Failed', 'error'); }
+}
+
+// ── PENDING REFUNDS ──
+async function loadPendingRefunds() {
+  document.getElementById('refundsList').innerHTML = '<div class="empty-msg"><div class="spinner"></div></div>';
+  try {
+    const res  = await fetch(`${ADMIN_API}/tickets?status=pending_review&limit=50`, { headers: headers() });
+    const data = await res.json();
+    renderRefunds(data.tickets || []);
+  } catch (e) {
+    document.getElementById('refundsList').innerHTML = '<div class="empty-msg">Failed to load</div>';
+  }
+}
+
+function renderRefunds(tickets) {
+  const container = document.getElementById('refundsList');
+  if (!tickets.length) {
+    container.innerHTML = '<div class="empty-msg">🎉 No pending refunds</div>';
+    return;
+  }
+  container.innerHTML = tickets.map(t => {
+    const u = t.user || {};
+    const breakdown = t.transactionBreakdown || [];
+    const eligible  = breakdown.filter(b => b.eligible);
+
+    return `
+      <div class="ticket-card" id="ticket-${t._id}">
+        <div class="ticket-header">
+          <div class="ticket-user">
+            <div class="ticket-avatar">${(u.name || 'U').charAt(0).toUpperCase()}</div>
+            <div class="ticket-user-info">
+              <strong>${u.name || 'Unknown'}</strong>
+              <small>${u.email || ''} · 💎 ${u.credits || 0} current credits</small>
+            </div>
+          </div>
+          <span class="badge badge-yellow">Pending</span>
+        </div>
+
+        <div class="ticket-credits">+${t.eligibleCredits || 0} credits requested</div>
+
+        ${eligible.length ? `
+          <div class="ticket-breakdown">
+            <div style="font-size:11px;color:var(--text-muted);font-weight:700;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:6px;">Eligible Approaches</div>
+            ${eligible.map(b => `
+              <div class="breakdown-row">
+                <span class="br-client">${b.clientName || 'Client'}</span>
+                <span class="br-reason">${b.reason || ''}</span>
+                <span class="br-credits">${b.creditsSpent}cr</span>
+              </div>
+            `).join('')}
+          </div>
+        ` : ''}
+
+        <div class="ticket-body">Submitted ${fmtTime(t.createdAt)} · Ticket #${t._id}</div>
+
+        <textarea class="ticket-note" id="note-${t._id}" rows="2" placeholder="Add a note (optional)..."></textarea>
+        <div class="ticket-actions">
+          <button class="btn-sm btn-approve" style="flex:1;padding:10px;font-size:13px;" onclick="approveRefund('${t._id}')">
+            ✅ Approve ${t.eligibleCredits || 0} Credits
+          </button>
+          <button class="btn-sm btn-reject" style="flex:1;padding:10px;font-size:13px;" onclick="rejectRefund('${t._id}')">
+            ❌ Reject
+          </button>
+          <button class="btn-sm btn-view" style="padding:10px;" onclick="openUserDrawer('${u._id}')">
+            👤
+          </button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+async function approveRefund(ticketId) {
+  const note = document.getElementById(`note-${ticketId}`)?.value || '';
+  if (!confirm('Approve this refund?')) return;
+  try {
+    const res  = await fetch(`${ADMIN_API}/tickets/${ticketId}/approve`, {
+      method: 'POST', headers: headers(), body: JSON.stringify({ note })
+    });
+    const data = await res.json();
+    if (data.success) {
+      toast(`✅ ${data.creditsAdded} credits added to user`);
+      document.getElementById(`ticket-${ticketId}`)?.remove();
+      loadDashboard();
+    } else {
+      toast(data.message || 'Failed', 'error');
+    }
+  } catch (e) { toast('Error', 'error'); }
+}
+
+async function rejectRefund(ticketId) {
+  const note = document.getElementById(`note-${ticketId}`)?.value || '';
+  if (!confirm('Reject this refund request?')) return;
+  try {
+    const res  = await fetch(`${ADMIN_API}/tickets/${ticketId}/reject`, {
+      method: 'POST', headers: headers(), body: JSON.stringify({ note })
+    });
+    const data = await res.json();
+    if (data.success) {
+      toast('Refund rejected', 'info');
+      document.getElementById(`ticket-${ticketId}`)?.remove();
+    } else {
+      toast(data.message || 'Failed', 'error');
+    }
+  } catch (e) { toast('Error', 'error'); }
+}
+
+// ── ALL TICKETS ──
+async function loadAllTickets() {
+  const status = document.getElementById('ticketStatusFilter')?.value || 'pending_review';
+  document.getElementById('ticketsTable').innerHTML = '<tr><td colspan="6" class="empty-msg"><div class="spinner"></div></td></tr>';
+  try {
+    const res  = await fetch(`${ADMIN_API}/tickets?status=${status}&limit=100`, { headers: headers() });
+    const data = await res.json();
+    const tickets = data.tickets || [];
+
+    if (!tickets.length) {
+      document.getElementById('ticketsTable').innerHTML = '<tr><td colspan="6" class="empty-msg">No tickets</td></tr>';
+      return;
+    }
+
+    const statusBadge = {
+      pending_review: 'badge-yellow', escalated: 'badge-red',
+      resolved: 'badge-green', open: 'badge-gray'
+    };
+
+    document.getElementById('ticketsTable').innerHTML = tickets.map(t => `
+      <tr>
+        <td><strong>${t.user?.name || '—'}</strong><br><span style="font-size:11px;color:var(--text-muted)">${t.user?.email || ''}</span></td>
+        <td style="font-size:13px;color:var(--text-muted)">${t.issueType || '—'}</td>
+        <td><span style="font-size:12px;font-family:'DM Mono',monospace">${t.decision || '—'}</span></td>
+        <td><span style="color:var(--yellow);font-family:'DM Mono',monospace">💎 ${t.eligibleCredits || t.creditsRefunded || 0}</span></td>
+        <td style="font-size:12px;color:var(--text-muted)">${fmt(t.createdAt)}</td>
+        <td><span class="badge ${statusBadge[t.status] || 'badge-gray'}">${t.status}</span></td>
+      </tr>
+    `).join('');
+  } catch (e) {
+    document.getElementById('ticketsTable').innerHTML = '<tr><td colspan="6" class="empty-msg">Failed to load</td></tr>';
+  }
+}
+</script>
+</body>
+</html>
