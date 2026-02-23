@@ -359,16 +359,24 @@ async function downloadDocument(docId) {
     });
 
     const data = await res.json();
+    console.log('Download response:', data); // ← temp debug
 
-    if (!data.success || !data.document?.fileUrl) {
-      showToast('Download failed — access may have been revoked', 'error');
+    if (!data.success) {
+      showToast(data.message || 'Download failed', 'error');
       return;
     }
 
-    // fileUrl is a base64 data URI — trigger download directly
+    const fileUrl = data.document?.fileUrl;
+    const fileName = data.document?.fileName || data.document?.originalFileName || 'document';
+
+    if (!fileUrl) {
+      showToast('File not accessible — please ask client to re-approve access', 'error');
+      return;
+    }
+
     const a = document.createElement('a');
-    a.href = data.document.fileUrl;
-    a.download = data.document.fileName || 'document';
+    a.href = fileUrl;
+    a.download = fileName;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
