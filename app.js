@@ -2737,17 +2737,5 @@ function landingSearch() {
 
   showPage('findProfessionals');
 }
-app.get('/reset-admin', async (req, res) => {
-  const Admin = require('./models/Admin');
-  const bcrypt = require('bcryptjs');
-  const hashed = await bcrypt.hash('YourNewPassword123', 12);
-  await Admin.findOneAndUpdate(
-    { adminId: 'admin_workindex' },
-    { 
-      adminId: 'your_new_id',  // change this
-      password: hashed 
-    }
-  );
-  res.json({ message: 'Done! Remove this route now.' });
-});
+
 // ═══ END OF JAVASCRIPT ═══
