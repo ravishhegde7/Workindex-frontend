@@ -1758,8 +1758,7 @@
 
   function openCreateTicketModal(uid, name, role) {
     _tkCreateUid = uid; _tkCreateRole = role; _tkSelectedIssue = null;
-    g('tkCreateFor').innerHTML = '🎯 Creating ticket on behalf of: <strong style="color:#FC8019">' + esc(name) + '</strong> <span class="badge bgy">' + esc(role||'user') + '</span>';
-    // Build category list
+    g('tkCreateFor').innerHTML = 'Creating ticket for: <strong style="color:#FC8019">' + esc(name) + '</strong> <span class="badge bgy">' + esc(role||'user') + '</span>';
     var html = '';
     TICKET_CATEGORIES.forEach(function(cat) {
       html += '<div class="tk-cat-group">' + esc(cat.group) + '</div>';
@@ -1771,11 +1770,9 @@
     g('tkStep1').style.display = 'block';
     g('tkStep2').style.display = 'none';
     g('tkCreateSubmit').style.display = 'none';
-    // Click handler
     g('tkCatList').onclick = function(ev) {
       var item = ev.target.closest('.tk-cat-item');
       if (!item) return;
-      // Remove all selected
       document.querySelectorAll('.tk-cat-item').forEach(function(el) { el.classList.remove('sel'); });
       item.classList.add('sel');
       _tkSelectedIssue = item.dataset.issue;
@@ -1784,8 +1781,8 @@
       g('tkStep1').style.display = 'none';
       g('tkStep2').style.display = 'block';
       g('tkCreateSubmit').style.display = 'inline-flex';
-       g('tkCreateSubmit').onclick = submitCreateTicket;
-    }, { once: true });
+    };
+    g('tkCreateSubmit').onclick = submitCreateTicket;
     openModal('tkCreateModal');
   }
 
