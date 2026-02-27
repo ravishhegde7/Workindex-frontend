@@ -1784,6 +1784,7 @@
       g('tkStep1').style.display = 'none';
       g('tkStep2').style.display = 'block';
       g('tkCreateSubmit').style.display = 'inline-flex';
+       g('tkCreateSubmit').onclick = submitCreateTicket;
     }, { once: true });
     openModal('tkCreateModal');
   }
