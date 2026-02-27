@@ -862,7 +862,7 @@
       g('postTitle').value = p.title || '';
       g('postDesc').value = p.description || '';
       g('postStatus').value = p.status || '';
-      g('postCredits').value = p.creditsRequired || 0;
+      g('postCredits').value = p.credits || p.creditsRequired || 0;
       openModal('postModal');
     }).catch(function() { toast('Error loading post', 'e'); });
   }
