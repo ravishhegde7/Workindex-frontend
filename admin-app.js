@@ -61,6 +61,17 @@
     g('invDesc').oninput = previewInvoice;
     g('invAmt').oninput = previewInvoice;
     g('invDate').oninput = previewInvoice;
+    if (g('invDue')) g('invDue').oninput = previewInvoice;
+    if (g('invNotes')) g('invNotes').oninput = previewInvoice;
+    // Wire tax rate selectors directly in init so they always respond
+    if (g('invTaxRate')) {
+      g('invTaxRate').onchange = function() {
+        var box = g('invCustomTaxBox');
+        if (box) box.style.display = (this.value === 'custom') ? 'block' : 'none';
+        previewInvoice();
+      };
+    }
+    if (g('invCustomTax')) g('invCustomTax').oninput = previewInvoice;
     loadInvExperts();
 
     /* modal close buttons */
@@ -382,6 +393,7 @@
         sc('Requests', st.totalRequests, '', 'posts'),
         sc('Reviews', st.totalReviews || 0, 'cy', 'reviews'),
         sc('Credits Purchased', cr.totalPurchased || 0, 'cg', 'credits-purchase'),
+        sc('Amount Paid (₹)', '₹' + (((cr.totalAmountPaid || cr.totalPurchased || 0) * 10)).toLocaleString('en-IN'), 'cg', 'credits'),
         sc('Credits Spent', cr.totalSpent || 0, 'co', 'credits-spent'),
         sc('Credits Refunded', cr.totalRefunded || 0, 'cpu', 'credits-refund'),
         sc('Pending Refunds', st.pendingRefunds || 0, 'cy', 'refunds'),
@@ -499,25 +511,54 @@
 
   function closeDr() { g('ov1').classList.remove('on'); g('dr1').classList.remove('on'); }
 
-  /* ═══ CREDIT MODAL ═══════════════════════════════════════════════════════ */
+/* ═══ CREDIT MODAL ═══════════════════════════════════════════════════════ */
   function openCreditModal(uid, name, bal) {
     _creditUid = uid;
     g('creditModalInfo').innerHTML = '<strong>' + esc(name) + '</strong><br>Current balance: <span style="color:#f59e0b">' + bal + ' credits</span>';
     g('creditAmount').value = '';
     g('creditReason').value = '';
+    // Inject Type selector if not already in modal
+    if (!g('creditType')) {
+      var ref = g('creditAmount');
+      var wrap = ref && ref.parentNode;
+      if (wrap) {
+        var div = document.createElement('div');
+        div.style.cssText = 'margin-bottom:14px';
+        div.innerHTML =
+          '<label style="display:block;font-size:10px;color:#606078;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px">TRANSACTION TYPE</label>' +
+          '<select id="creditType" style="width:100%;padding:10px 12px;background:#18181d;border:1px solid rgba(255,255,255,.1);border-radius:8px;color:#f0f0f4;font-size:13px">' +
+            '<option value="refund">Refund (credit back to expert)</option>' +
+            '<option value="bonus">Bonus (reward/gift credits)</option>' +
+            '<option value="adjustment">Adjustment (manual correction)</option>' +
+            '<option value="purchase">Purchase (credit buy)</option>' +
+          '</select>';
+        wrap.parentNode.insertBefore(div, wrap);
+      }
+    }
+    // Reset type to refund when action is add
+    var ca = g('creditAction');
+    if (ca) ca.onchange = function() {
+      var ct = g('creditType');
+      if (!ct) return;
+      ct.value = this.value === 'add' ? 'refund' : 'adjustment';
+    };
     openModal('creditModal');
   }
 
   function submitCredit() {
     if (!_creditUid) return;
-    var action = g('creditAction').value;
+    var action = g('creditAction').value;   // add | deduct | set
     var amount = parseInt(g('creditAmount').value);
     var reason = g('creditReason').value;
+    var txType = (g('creditType') && g('creditType').value) || (action === 'add' ? 'refund' : 'adjustment');
     if (!amount || amount <= 0) { toast('Enter valid amount', 'e'); return; }
-    api('users/' + _creditUid + '/credits', 'POST', { action: action, amount: amount, reason: reason })
+    api('users/' + _creditUid + '/credits', 'POST', { action: action, amount: amount, reason: reason, type: txType })
       .then(function(d) {
-        if (d.success) { toast('Credits updated!'); closeModal('creditModal'); closeDr(); }
-        else toast(d.message || 'Failed', 'e');
+        if (d.success) {
+          toast('Credits updated! (' + txType + ')');
+          closeModal('creditModal');
+          closeDr();
+        } else toast(d.message || 'Failed', 'e');
       }).catch(function() { toast('Error', 'e'); });
   }
 
@@ -634,22 +675,46 @@
     g('chDrT').textContent = en + ' ↔ ' + cn;
     g('chDrMeta').innerHTML = '<span class="badge bgy" style="margin-bottom:10px">' + esc(rt) + '</span>';
     g('chDrMsgs').innerHTML = '<div style="text-align:center;padding:20px"><div class="spin"></div></div>';
-    // Try the /messages endpoint first, fall back to reading chat directly
-    function fetchAndRenderMsgs(msgs) {
+    // Render messages with smart name resolution using chat participants
+    function renderChatMsgs(msgs, chatInfo) {
       if (!msgs.length) {
-        g('chDrMsgs').innerHTML = '<div class="empty"><h3>No messages yet</h3><p style="font-size:13px;color:#606078">Conversation started but no messages exchanged</p></div>';
+        g('chDrMsgs').innerHTML = '<div class="empty"><h3>No messages yet</h3><p style="font-size:13px;color:#606078">Conversation started but no messages sent yet</p></div>';
         return;
       }
+      // Build lookup: expertId → expertName, clientId → clientName from backend response
+      var expertId = chatInfo && chatInfo.expertId;
+      var clientId = chatInfo && chatInfo.clientId;
+      var expertName = (chatInfo && chatInfo.expert && chatInfo.expert.name) || en;
+      var clientName = (chatInfo && chatInfo.client && chatInfo.client.name) || cn;
+
       g('chDrMsgs').innerHTML = msgs.map(function(m) {
-        var senderName = (m.sender && typeof m.sender === 'object' ? (m.sender.name||'Unknown') : (m.senderName||'Unknown'));
-        var senderRole = (m.sender && typeof m.sender === 'object' ? (m.sender.role||'') : '') || m.senderRole || '';
-        var isAdmin  = m.isAdminMessage || senderRole === 'admin';
-        var isExpert = !isAdmin && senderRole === 'expert';
+        var senderObj = (m.sender && typeof m.sender === 'object') ? m.sender : null;
+        // Try every possible field for sender name
+        var sName = (senderObj && senderObj.name)
+          || m.senderName || m.senderUsername || '';
+        var sRole = (senderObj && senderObj.role)
+          || m.senderRole || m.role || '';
+        var sid   = senderObj ? String(senderObj._id || '') : String(m.sender || '');
+
+        // If name still blank, resolve from chat participants by ID or role
+        if (!sName) {
+          if (expertId && sid && sid === String(expertId)) sName = expertName;
+          else if (clientId && sid && sid === String(clientId)) sName = clientName;
+          else if (sRole === 'expert') sName = expertName;
+          else if (sRole === 'client') sName = clientName;
+          else sName = en || cn || 'User';   // last resort
+        }
+
+        var isAdmin  = m.isAdminMessage || sRole === 'admin';
+        var isExpert = !isAdmin && (sRole === 'expert' || (!sRole && sName === expertName));
         var cls = isAdmin ? 'admin' : (isExpert ? 'out' : 'in');
-        var label = isAdmin ? '🔑 Admin' : (esc(senderName) + (senderRole ? ' (' + senderRole + ')' : ''));
+        var label = isAdmin ? '🔑 Admin' : esc(sName);
+        var msgText = m.text || m.message || m.content || m.body || '';
         return '<div class="cmsg ' + cls + '">' +
-          '<div class="cmeta">' + label + '</div>' +
-          '<div style="margin-top:3px">' + esc(m.text || m.message || m.content || '[media]') + '</div>' +
+          '<div class="cmeta">' + label +
+            (sRole && !isAdmin ? '<span style="opacity:.55;font-size:10px;margin-left:5px">(' + sRole + ')</span>' : '') +
+          '</div>' +
+          '<div style="margin-top:3px;white-space:pre-wrap">' + esc(msgText || '[media]') + '</div>' +
           '<div class="cmeta" style="margin-top:4px;text-align:right">' + fmtT(m.createdAt) + '</div>' +
           '</div>';
       }).join('');
@@ -657,19 +722,15 @@
     }
 
     api('chats/' + cid + '/messages').then(function(d) {
-      // Backend returns: d.messages (array) OR d.chat.messages (embedded)
       var msgs = d.messages || (d.chat && d.chat.messages) || [];
-      if (!msgs.length) {
-        g('chDrMsgs').innerHTML = '<div class="empty"><h3>No messages yet</h3><p>Conversation started but no messages exchanged</p></div>';
-        return;
-      }
-      fetchAndRenderMsgs(msgs);
+      var chatInfo = d.chat || {};
+      renderChatMsgs(msgs, chatInfo);
     }).catch(function() {
-      // Fallback: try getting chat directly and reading embedded messages
+      // Fallback: GET the chat object directly
       api('chats/' + cid).then(function(d2) {
         var msgs2 = (d2.chat && d2.chat.messages) || d2.messages || [];
-        fetchAndRenderMsgs(msgs2);
-      }).catch(function(err) {
+        renderChatMsgs(msgs2, d2.chat || {});
+      }).catch(function() {
         g('chDrMsgs').innerHTML = '<p style="text-align:center;color:#ef4444;padding:20px">Error loading messages</p>';
       });
     });
@@ -808,19 +869,29 @@
 
   function savePost() {
     if (!_editPostId) return;
-    // Only send status if user actually has a value selected (avoid defaulting to 'open')
     var statusVal = g('postStatus').value;
+    var creditsVal = parseInt(g('postCredits').value) || 0;
     var payload = {
       title: g('postTitle').value,
       description: g('postDesc').value,
-      creditsRequired: parseInt(g('postCredits').value) || 0
+      creditsRequired: creditsVal,
+      status: statusVal || 'open'
     };
-    if (statusVal) payload.status = statusVal;
+    var btn = g('savePostBtn');
+    if (btn) { btn.disabled = true; btn.textContent = 'Saving...'; }
     api('requests/' + _editPostId, 'PUT', payload)
       .then(function(d) {
-        if (d.success) { toast('Post updated'); closeModal('postModal'); loadPosts(); }
-        else toast(d.message || 'Failed', 'e');
-      }).catch(function() { toast('Error', 'e'); });
+        if (btn) { btn.disabled = false; btn.textContent = 'Save Changes'; }
+        if (d.success) {
+          toast('Post updated');
+          closeModal('postModal');
+          _editPostId = null;
+          loadPosts(); // fresh reload from server
+        } else toast(d.message || 'Failed', 'e');
+      }).catch(function() {
+        if (btn) { btn.disabled = false; btn.textContent = 'Save Changes'; }
+        toast('Error saving', 'e');
+      });
   }
 
   function deletePost() {
@@ -957,23 +1028,27 @@
     txSel.innerHTML = '<option value="">Loading transactions...</option>';
     txSel.disabled = true;
 
-    // Load expert's purchase transactions
+    // Load ALL credit transactions for this expert
     api('credits/expert/' + uid).then(function(d) {
-      var txs = (d.transactions||[]).filter(function(t) { return t.type === 'purchase' || t.type === 'bonus'; });
+      var txs = d.transactions || [];
       txSel.innerHTML = '<option value="">-- Select Transaction (optional) --</option>';
       if (!txs.length) {
-        txSel.innerHTML += '<option value="" disabled>No purchases found</option>';
+        txSel.innerHTML += '<option value="" disabled>No transactions found</option>';
       } else {
+        var typeIcon = { purchase:'🟢', bonus:'🟡', refund:'🟣', spent:'🔴', adjustment:'⚪' };
         txs.forEach(function(tx) {
           var opt = document.createElement('option');
           opt.value = tx._id;
           var dt = tx.createdAt ? new Date(tx.createdAt).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'}) : '';
-          var label = dt + ' — ' + esc(tx.description||tx.type) + ' — ' + (tx.amount>0?'+':'') + tx.amount + ' credits';
+          var icon = typeIcon[tx.type] || '⚫';
+          var sign = tx.amount > 0 ? '+' : '';
+          var label = icon + ' ' + dt + ' | ' + (tx.type||'?').toUpperCase() + ' | ' + sign + tx.amount + ' cr | ' + esc((tx.description||tx.type||'').substring(0,25));
           opt.textContent = label;
-          opt.dataset.amount = tx.amount || 0;
+          opt.dataset.amount = Math.abs(tx.amount) || 0;
           opt.dataset.desc = tx.description || tx.type || '';
           opt.dataset.date = tx.createdAt ? tx.createdAt.split('T')[0] : '';
-          txSel.appendChild(opt);
+          opt.dataset.type = tx.type || '';
+          sel.appendChild(opt);
         });
       }
       txSel.disabled = false;
@@ -1017,13 +1092,14 @@
       return;
     }
 
-    // Tax rate — custom or preset
+    // Tax rate — ALWAYS read live from select, never hardcode 18
     var taxRateSel = g('invTaxRate');
-    var taxRate = 18; // default
+    var taxRate = 0; // default to 0, let user pick
     if (taxRateSel) {
       var tv = taxRateSel.value;
       if (tv === 'custom') {
-        taxRate = parseFloat((g('invCustomTax')&&g('invCustomTax').value)||0) || 0;
+        var ctEl = g('invCustomTax');
+        taxRate = parseFloat((ctEl && ctEl.value) || '0') || 0;
       } else {
         taxRate = parseFloat(tv) || 0;
       }
@@ -1179,37 +1255,250 @@
       });
   }
 
-  function renderHeatmapIndia(byState, total) {
-    var maxVal = 0;
-    Object.keys(byState).forEach(function(s) { if (byState[s].count > maxVal) maxVal = byState[s].count; });
-    var states = Object.keys(byState).filter(function(s) { return s !== 'Unknown'; }).sort(function(a,b) { return byState[b].count - byState[a].count; });
-    var unknownCount = byState['Unknown'] ? byState['Unknown'].count : 0;
+  // ── Leaflet map instance (kept so we can destroy/recreate on refresh) ──
+  var _leafletMap = null;
 
-    if (!states.length) {
-      g('hmMapArea').innerHTML = '<div style="text-align:center;padding:30px;color:#606078;font-size:13px">No location data found.<br><small>Users need to have city/state set in their profile.</small></div>';
-      return;
+  // ── City lat/lng lookup for heatmap dots ──
+  var CITY_LL = {
+    'Bengaluru':[12.972,77.594],'Bangalore':[12.972,77.594],'Delhi':[28.613,77.209],
+    'New Delhi':[28.613,77.209],'Mumbai':[19.076,72.877],'Pune':[18.520,73.856],
+    'Hyderabad':[17.385,78.487],'Chennai':[13.083,80.270],'Kolkata':[22.573,88.364],
+    'Ahmedabad':[23.023,72.571],'Jaipur':[26.912,75.787],'Surat':[21.170,72.831],
+    'Lucknow':[26.847,80.947],'Chandigarh':[30.733,76.779],'Kochi':[9.931,76.267],
+    'Bhopal':[23.260,77.413],'Nagpur':[21.145,79.082],'Coimbatore':[11.016,76.956],
+    'Mysuru':[12.296,76.644],'Mysore':[12.296,76.644],'Indore':[22.719,75.857],
+    'Patna':[25.594,85.137],'Vadodara':[22.307,73.181],'Visakhapatnam':[17.686,83.218],
+    'Gurgaon':[28.459,77.026],'Gurugram':[28.459,77.026],'Noida':[28.535,77.391],
+    'Agra':[27.176,78.008],'Varanasi':[25.320,82.974],'Thane':[19.218,72.978],
+    'Meerut':[28.984,77.706],'Nashik':[19.998,73.789],'Aurangabad':[19.877,75.343],
+    'Faridabad':[28.408,77.313],'Rajkot':[22.303,70.802],'Ludhiana':[30.901,75.857],
+    'Amritsar':[31.634,74.872],'Jodhpur':[26.300,73.017],'Madurai':[9.939,78.121],
+    'Raipur':[21.251,81.629],'Kozhikode':[11.258,75.780],'Bhubaneswar':[20.296,85.825],
+    'Dehradun':[30.316,78.032],'Thiruvananthapuram':[8.524,76.936],'Guwahati':[26.144,91.736]
+  };
+
+  function renderHeatmapIndia(byState, total) {
+    var container = g('hmMapArea');
+    // Destroy existing Leaflet map cleanly
+    if (_leafletMap) {
+      try { _leafletMap.off(); _leafletMap.remove(); } catch(e) {}
+      _leafletMap = null;
+    }
+    container.innerHTML = '<div id="indiaLeafletMap" style="width:100%;height:470px;border-radius:10px;background:#0d0d14"></div>';
+
+    function normName(s) { return (s || '').toLowerCase().replace(/[^a-z]/g, ''); }
+
+    function matchStateData(geoName) {
+      // exact match
+      if (byState[geoName]) return byState[geoName];
+      var n = normName(geoName);
+      for (var k in byState) {
+        if (normName(k) === n) return byState[k];
+      }
+      // partial match
+      for (var k in byState) {
+        var kn = normName(k);
+        if (n.indexOf(kn) >= 0 || kn.indexOf(n) >= 0) return byState[k];
+      }
+      return null;
     }
 
-    // Build colored tile grid (reliable, no external deps)
+    function getStateColor(count, maxVal) {
+      if (!count || !maxVal) return '#1a1a2e';
+      var pct = count / maxVal;
+      // dark background → bright orange
+      var r = Math.round(26 + pct * 226);
+      var gv = Math.round(26 + pct * 102);
+      var b  = Math.round(36 + pct * -11);
+      return 'rgb(' + r + ',' + gv + ',' + Math.max(0,b) + ')';
+    }
+
+    function initMap() {
+      var L = window.L;
+      if (!L) { fallbackTiles(byState, total, container); return; }
+
+      var map = L.map('indiaLeafletMap', {
+        center: [22.5, 80.5],
+        zoom: 4,
+        minZoom: 3,
+        maxZoom: 10,
+        zoomControl: true,
+        scrollWheelZoom: true,
+        attributionControl: false
+      });
+      _leafletMap = map;
+
+      // Dark tile base layer
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        maxZoom: 19,
+        opacity: 0.6
+      }).addTo(map);
+
+      var maxCount = 0;
+      Object.keys(byState).forEach(function(s) {
+        if (byState[s].count > maxCount) maxCount = byState[s].count;
+      });
+
+      // India state GeoJSON — well-known public CDN
+      var GEO_URL = 'https://raw.githubusercontent.com/geohacker/india/master/state/india_telengana.geojson';
+
+      fetch(GEO_URL)
+        .then(function(r) { return r.ok ? r.json() : Promise.reject('geo-fail'); })
+        .then(function(geo) {
+          var geoLayer = L.geoJSON(geo, {
+            style: function(feat) {
+              var name = feat.properties.NAME_1 || feat.properties.st_nm || feat.properties.name || '';
+              var data = matchStateData(name);
+              var cnt  = data ? data.count : 0;
+              return {
+                fillColor:   getStateColor(cnt, maxCount),
+                fillOpacity: cnt > 0 ? 0.80 : 0.20,
+                color:       '#FC8019',
+                weight:      0.8,
+                opacity:     0.7
+              };
+            },
+            onEachFeature: function(feat, layer) {
+              var stName = feat.properties.NAME_1 || feat.properties.st_nm || feat.properties.name || '';
+              var data   = matchStateData(stName);
+              var cnt    = data ? data.count : 0;
+
+              // Tooltip
+              var cities = data && data.cities ? Object.keys(data.cities)
+                .sort(function(a,b){ return data.cities[b]-data.cities[a]; })
+                .slice(0,4).map(function(c){ return c + ' (' + data.cities[c] + ')'; }).join(', ') : '';
+              layer.bindTooltip(
+                '<div style="font-weight:700;color:#FC8019;font-size:13px">' + stName + '</div>' +
+                '<div style="color:#f0f0f4;margin-top:2px">' + cnt + ' user' + (cnt!==1?'s':'') + '</div>' +
+                (cities ? '<div style="color:#a0a0b8;font-size:11px;margin-top:3px">' + cities + '</div>' : ''),
+                { sticky: true, className: 'hm-lf-tip', opacity: 1 }
+              );
+
+              // State abbreviation label
+              try {
+                var center = layer.getBounds().getCenter();
+                var abbr = stName.split(' ').map(function(w){ return w[0]; }).join('').substring(0,3);
+                L.marker(center, {
+                  icon: L.divIcon({
+                    className:'',
+                    html: '<div class="hm-state-lbl">' + abbr +
+                      (cnt > 0 ? '<br><span class="hm-state-cnt">' + cnt + '</span>' : '') + '</div>',
+                    iconSize: [44, 26],
+                    iconAnchor: [22, 13]
+                  }),
+                  interactive: false
+                }).addTo(map);
+              } catch(e) {}
+
+              // Click → drill to cities
+              layer.on('click', function() {
+                if (data && data.cities && Object.keys(data.cities).length) {
+                  drillHeatmapState(stName);
+                } else {
+                  toast('No city data for ' + stName, 'i');
+                }
+              });
+
+              // Hover highlight
+              layer.on('mouseover', function() {
+                this.setStyle({ weight: 2, color: '#ffffff', opacity: 1 });
+              });
+              layer.on('mouseout', function() {
+                geoLayer.resetStyle(this);
+              });
+            }
+          }).addTo(map);
+
+          // Fit to India bounds
+          try { map.fitBounds(geoLayer.getBounds(), { padding: [10,10] }); } catch(e){}
+
+          // ── Heat dots: circle markers for cities with known coords ──
+          Object.keys(byState).forEach(function(stKey) {
+            var stData = byState[stKey];
+            if (!stData.cities) return;
+            Object.keys(stData.cities).forEach(function(city) {
+              var cnt = stData.cities[city];
+              var ll  = CITY_LL[city];
+              if (!ll) return;
+              var radius = Math.max(5, Math.min(26, 5 + cnt * 3));
+              L.circleMarker(ll, {
+                radius:      radius,
+                fillColor:   '#FC8019',
+                color:       '#fff',
+                weight:      1.5,
+                opacity:     0.9,
+                fillOpacity: 0.75
+              })
+                .bindTooltip('<strong style="color:#FC8019">' + city + '</strong><br>' + cnt + ' user' + (cnt!==1?'s':''),
+                  { sticky:true, className:'hm-lf-tip' })
+                .addTo(map);
+            });
+          });
+
+          // Legend
+          g('hmLegend').innerHTML =
+            '<div class="hm-lswatch" style="background:#1a1a2e;border:1px solid rgba(252,128,25,.3)"></div><span>0</span>' +
+            '<div class="hm-lswatch" style="background:rgb(80,40,10)"></div><span>Low</span>' +
+            '<div class="hm-lswatch" style="background:rgb(170,80,15)"></div><span>Mid</span>' +
+            '<div class="hm-lswatch" style="background:rgb(252,128,25)"></div><span>High</span>';
+          g('hmBarTitle').textContent = 'Top States';
+        })
+        .catch(function() {
+          // GeoJSON CDN blocked — fall back to tile grid
+          fallbackTiles(byState, total, container);
+        });
+    }
+
+ // Load Leaflet JS + CSS on demand
+    function loadLeaflet(cb) {
+      if (window.L) { cb(); return; }
+      if (!document.querySelector('link[href*="leaflet"]')) {
+        var css = document.createElement('link');
+        css.rel = 'stylesheet';
+        css.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+        document.head.appendChild(css);
+      }
+      if (!document.querySelector('script[src*="leaflet"]')) {
+        var sc = document.createElement('script');
+        sc.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+        sc.onload  = cb;
+        sc.onerror = function() { fallbackTiles(byState, total, container); };
+        document.head.appendChild(sc);
+      } else {
+        // script already in DOM but may still be loading
+        var t = setInterval(function() {
+          if (window.L) { clearInterval(t); cb(); }
+        }, 50);
+      }
+    }
+
+    loadLeaflet(initMap);
+  }
+
+  // ── Tile-grid fallback (used when Leaflet / GeoJSON CDN is blocked) ──
+  function fallbackTiles(byState, total, container) {
+    var maxVal = 0;
+    Object.keys(byState).forEach(function(s) { if (byState[s].count>maxVal) maxVal=byState[s].count; });
+    var states = Object.keys(byState).filter(function(s){return s!=='Unknown';}).sort(function(a,b){return byState[b].count-byState[a].count;});
+    if (!states.length) {
+      container.innerHTML = '<div style="text-align:center;padding:30px;color:#606078">No location data — users need a city/state in their profile.</div>';
+      return;
+    }
     var html = '<div style="display:flex;flex-wrap:wrap;gap:5px;padding:8px">';
-    states.forEach(function(state) {
-      var cnt = byState[state].count;
-      var pct = maxVal > 0 ? cnt / maxVal : 0;
-      var r = Math.round(50 + pct * 202), gv = Math.round(20 + pct * 108), b = Math.round(0 + pct * 25);
-      var bg = 'rgb(' + r + ',' + gv + ',' + b + ')';
-      var w = Math.max(55, Math.round(45 + pct * 130));
-      html += '<div data-hm-state="' + esc(state) + '" style="background:' + bg + ';border-radius:6px;padding:6px 10px;cursor:pointer;width:' + w + 'px;flex-shrink:0;transition:opacity .2s;box-shadow:0 2px 8px rgba(0,0,0,.3)" title="' + esc(state) + ': ' + cnt + '">';
-      html += '<div style="font-size:10px;font-weight:700;color:rgba(255,255,255,.9);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(state.substring(0,14)) + '</div>';
-      html += '<div style="font-size:15px;font-weight:800;color:#fff">' + cnt + '</div>';
-      html += '</div>';
+    states.forEach(function(st) {
+      var c = byState[st].count, pct = maxVal>0?c/maxVal:0;
+      var r=Math.round(50+pct*202), gv=Math.round(20+pct*108), b=Math.round(0+pct*25);
+      html += '<div data-hm-state="' + esc(st) + '" style="background:rgb('+r+','+gv+','+b+');border-radius:6px;padding:6px 10px;cursor:pointer;min-width:55px;flex-shrink:0" title="' + esc(st)+': '+c+'">' +
+        '<div style="font-size:10px;font-weight:700;color:rgba(255,255,255,.9);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(st.substring(0,13))+'</div>' +
+        '<div style="font-size:15px;font-weight:800;color:#fff">'+c+'</div></div>';
     });
-    html += '</div>';
-    if (unknownCount) html += '<div style="font-size:11px;color:#606078;margin-top:6px;padding:0 8px">' + unknownCount + ' users without location</div>';
-    html += '<div style="font-size:11px;color:#606078;margin-top:4px;padding:0 8px">Total: <strong style="color:#f0f0f4">' + total + '</strong> &bull; Click a state to see cities</div>';
-    g('hmMapArea').innerHTML = html;
-    g('hmLegend').innerHTML = '<div class="hm-lswatch" style="background:rgb(50,20,0)"></div><span>Low</span><div class="hm-lswatch" style="background:rgb(150,64,12)"></div><span>Med</span><div class="hm-lswatch" style="background:rgb(252,128,25)"></div><span>High</span>';
+    var unk = byState['Unknown'] ? byState['Unknown'].count : 0;
+    html += '</div>' + (unk?'<div style="font-size:11px;color:#606078;padding:4px 8px">'+unk+' without location</div>':'') +
+      '<div style="font-size:11px;color:#606078;padding:2px 8px">Total: <strong style="color:#f0f0f4">'+total+'</strong> · Click to drill</div>';
+    container.innerHTML = html;
+    g('hmLegend').innerHTML = '<div class="hm-lswatch" style="background:rgb(50,20,0)"></div><span>Low</span><div class="hm-lswatch" style="background:rgb(252,128,25)"></div><span>High</span>';
     g('hmBarTitle').textContent = 'Top States';
-    return; // tile view done — SVG below is kept as reference
+    return;
     /*
     /*
     var maxVal = 0;
@@ -1519,13 +1808,22 @@
       adminNote: g('tkAdminNote').value,
       createdByAdmin: true
     };
+    var btn = g('tkCreateSubmit');
+    if (btn) { btn.disabled = true; btn.textContent = 'Creating...'; }
     api('tickets/create-for-user', 'POST', payload).then(function(d) {
+      if (btn) { btn.disabled = false; btn.innerHTML = '🎫 Create Ticket'; }
       if (d.success) {
-        toast('Ticket created: #' + (d.ticket&&d.ticket._id||'').slice(-6).toUpperCase());
+        var tid = (d.ticket && d.ticket._id) ? '#' + d.ticket._id.slice(-6).toUpperCase() : '';
+        toast('Ticket ' + tid + ' created!');
         closeModal('tkCreateModal');
-        loadTickets();
-      } else toast(d.message||'Failed to create ticket', 'e');
-    }).catch(function() { toast('Error creating ticket', 'e'); });
+        goTo('tickets');   // ← navigate to Tickets main tab
+      } else {
+        toast(d.message || 'Failed to create ticket', 'e');
+      }
+    }).catch(function(err) {
+      if (btn) { btn.disabled = false; btn.innerHTML = '🎫 Create Ticket'; }
+      toast('Connection error — ticket not created', 'e');
+    });
   }
 
   /* ═══════════════════════════════════════════════════════════
