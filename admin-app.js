@@ -1772,7 +1772,7 @@
     g('tkStep2').style.display = 'none';
     g('tkCreateSubmit').style.display = 'none';
     // Click handler
-    g('tkCatList').addEventListener('click', function handler(ev) {
+    g('tkCatList').onclick = function(ev) {
       var item = ev.target.closest('.tk-cat-item');
       if (!item) return;
       // Remove all selected
