@@ -1668,11 +1668,12 @@ function buildQuestionSequence() {
   
   // Add common questions
   seq.push('service_location_type');
-  
-  // Add address if needed
-  if (answers.serviceLocationType === 'my-location' || answers.serviceLocationType === 'professional-office') {
+
+if (answers.serviceLocationType === 'my-location' || answers.serviceLocationType === 'professional-office') {
     seq.push('full_address');
-  }
+} else if (answers.serviceLocationType === 'online') {
+    seq.push('client_location');
+}
   
   seq.push('urgency', 'budget', 'description', 'preferred_professional', 'contact_method');
   
