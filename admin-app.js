@@ -855,13 +855,13 @@
     }).catch(function() { setT('poTbl', ''); });
   }
 
-  function openPostModal(pid) {
+    function openPostModal(pid) {
     _editPostId = pid;
     api('requests/' + pid).then(function(d) {
       var p = d.request || {};
       g('postTitle').value = p.title || '';
       g('postDesc').value = p.description || '';
-      g('postStatus').value = p.status || 'open';
+      g('postStatus').value = p.status || '';
       g('postCredits').value = p.creditsRequired || 0;
       openModal('postModal');
     }).catch(function() { toast('Error loading post', 'e'); });
@@ -874,9 +874,10 @@
     var payload = {
       title: g('postTitle').value,
       description: g('postDesc').value,
-      creditsRequired: creditsVal,
-      status: statusVal || 'open'
+      creditsRequired: creditsVal
     };
+    // Only send status if admin explicitly chose one - empty means keep current
+    if (statusVal) payload.status = statusVal;
     var btn = g('savePostBtn');
     if (btn) { btn.disabled = true; btn.textContent = 'Saving...'; }
     api('requests/' + _editPostId, 'PUT', payload)
