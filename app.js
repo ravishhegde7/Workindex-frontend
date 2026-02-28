@@ -49,7 +49,7 @@ function showPage(pageId) {
   if (page) {
     page.classList.add('active');
     state.currentPage = pageId;
-   if (page === 'myTickets') {
+   if (pageId === 'myTickets') {
     loadMyTickets();
   }   
     // Load data for specific pages
