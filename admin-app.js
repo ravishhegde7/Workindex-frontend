@@ -1693,7 +1693,10 @@
         var label = typeof doc === 'object' ? (doc.name || doc.label || 'Document ' + (i+1)) : 'Document ' + (i+1);
         docs.push({ label: label, url: url, icon: '\ud83d\udcce' });
       });
-
+      // Inject new KYC base64 doc at top
+      if (u.kyc && u.kyc.docBase64) {
+        docs.unshift({ label: (u.kyc.docType || 'KYC Document') + ' (New)', url: u.kyc.docBase64, icon: '🛡️' });
+      }
       var realDocs = docs.filter(function(d) { return d.url; });
       var html = '';
       if (!realDocs.length) {
