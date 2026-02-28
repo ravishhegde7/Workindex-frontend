@@ -1671,7 +1671,15 @@
       var u = d.user;
       var pr = u.profile || {};
       // Collect all possible doc fields
-      var docs = [
+           // New KYC system (base64 stored in u.kyc.docBase64)
+      if (u.kyc && u.kyc.docBase64) {
+        docs.splice(0, 0, {
+          label: u.kyc.docType || 'KYC Document',
+          url: u.kyc.docBase64,
+          icon: '🛡️'
+        });
+      }
+       var docs = [
         { label: 'Aadhar Card', url: u.aadharDoc || pr.aadhar || pr.aadharUrl || pr.aadharDoc || null, icon: '\ud83d\udcb3' },
         { label: 'PAN Card', url: u.panDoc || pr.pan || pr.panUrl || pr.panDoc || null, icon: '\ud83d\udccb' },
         { label: 'Certificate / Degree', url: u.certificateDoc || pr.certificate || pr.certificateUrl || pr.certDoc || null, icon: '\ud83c\udf93' },
