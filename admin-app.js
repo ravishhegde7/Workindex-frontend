@@ -948,7 +948,14 @@
 var kycBtn = kycCount > 0
   ? '<button class="btn bpri" data-kyc-uid="' + u._id + '" data-kyc-name="' + esc(u.name) + '">' + (u.kyc && u.kyc.docType ? u.kyc.docType : kycCount + ' doc') + '</button>'
   : '<span style="font-size:11px;color:#606078">No docs</span>';
-        return '<tr><td>' + uLnk(u._id, u.name) + '</td><td style="font-size:12px;color:#a0a0b8">' + esc(u.email) + '</td><td style="font-size:12px">' + (u.phone||'-') + '</td><td style="font-size:12px">' + esc(pr.specialization||u.specialization||'-') + '</td><td>' + kycBtn + '</td><td>' + (u.isApproved ? '<span class="badge bgr">Approved</span>' : u.isBanned ? '<span class="badge brd">Rejected</span>' : '<span class="badge byw">Pending</span>') + '</td><td style="font-size:12px;color:#a0a0b8">' + fmt(u.createdAt) + '</td><td>' + actions + '</td></tr>';
+                var kycStatusMap = {
+          not_submitted: '<span class="badge bgy">—</span>',
+          pending:       '<span class="badge byw">⏳ Under Review</span>',
+          approved:      '<span class="badge bgr">✅ Verified</span>',
+          rejected:      '<span class="badge brd">❌ Rejected</span>'
+        };
+        var kycStatusBadge = kycStatusMap[(u.kyc && u.kyc.status) || 'not_submitted'];
+        return '<tr><td>' + uLnk(u._id, u.name) + '</td><td style="font-size:12px;color:#a0a0b8">' + esc(u.email) + '</td><td style="font-size:12px">' + (u.phone||'-') + '</td><td style="font-size:12px">' + esc(pr.specialization||u.specialization||'-') + '</td><td>' + kycBtn + '</td><td>' + kycStatusBadge + '</td><td>' + (u.isApproved ? '<span class="badge bgr">Approved</span>' : u.isBanned ? '<span class="badge brd">Rejected</span>' : '<span class="badge byw">Pending</span>') + '</td><td style="font-size:12px;color:#a0a0b8">' + fmt(u.createdAt) + '</td><td>' + actions + '</td></tr>';
       }).join(''));
     }).catch(function() { setT('rgTbl', ''); });
   }
