@@ -1740,23 +1740,23 @@ else html += '<a class="btn bgho" href="' + esc(doc.url) + '" target="_blank">Do
   }
 
     function processKyc(action) {
-    if (!_kycUid) return;
-    if (action === 'reject') {
-      var reason = prompt('Rejection reason:') || 'Document unclear or invalid';
-      api('kyc/' + _kycUid + '/reject', 'POST', { reason: reason })
-        .then(function(d) {
-          if (d.success) { toast('KYC rejected'); closeModal('kycModal'); loadKycRequests(); loadRegistrations(); }
-          else toast(d.message || 'Failed', 'e');
-        }).catch(function() { toast('Error', 'e'); });
-    } else {
-      if (!confirm('Approve KYC?')) return;
-      api('kyc/' + _kycUid + '/approve', 'POST', {})
-        .then(function(d) {
-          if (d.success) { toast('KYC approved ✅'); closeModal('kycModal'); loadKycRequests(); loadRegistrations(); }
-          else toast(d.message || 'Failed', 'e');
-        }).catch(function() { toast('Error', 'e'); });
-    }
+  if (!_kycUid) return;
+  if (action === 'reject') {
+    var reason = prompt('Rejection reason:') || 'Document unclear or invalid';
+    api('kyc/' + _kycUid + '/reject', 'POST', { reason: reason })
+      .then(function(d) {
+        if (d.success) { toast('KYC rejected'); closeModal('kycModal'); loadKycRequests(); loadRegistrations(); }
+        else toast(d.message || 'Failed', 'e');
+      }).catch(function() { toast('Error', 'e'); });
+  } else {
+    if (!confirm('Approve KYC?')) return;
+    api('kyc/' + _kycUid + '/approve', 'POST', {})
+      .then(function(d) {
+        if (d.success) { toast('KYC approved ✅'); closeModal('kycModal'); loadKycRequests(); loadRegistrations(); }
+        else toast(d.message || 'Failed', 'e');
+      }).catch(function() { toast('Error', 'e'); });
   }
+}
   /* ═══ KYC REQUESTS TAB ══════════════════════════════════════════════════ */
   function loadKycRequests() {
     setT('kycTbl', spin());
