@@ -2359,109 +2359,491 @@ function showRatingPrompt(expertId, expertName, requestId, approachId) {
 
   document.body.appendChild(modal);
 }
-// ─── RENDER EXPERT PROFILE ───
+// ═══════════════════════════════════════════════════════════
+//  EXPERT PROFILE ENHANCEMENT — COMPLETE REPLACEMENT
+//  Replace the existing renderExpertProfile() in app.js
+//  Also add all new functions below it
+// ═══════════════════════════════════════════════════════════
+
+// ─── PROFILE STRENGTH CALCULATOR ───
+function calculateProfileStrength(user, profile) {
+  const scores = {
+    basic: { earned: 0, max: 40, items: [] },
+    professional: { earned: 0, max: 40, items: [] },
+    trust: { earned: 0, max: 10, items: [] },
+    response: { earned: 0, max: 10, items: [] }
+  };
+
+  // ── BASIC INFO (40%) ──
+  if (user.profilePhoto)                        { scores.basic.earned += 10; scores.basic.items.push({ done: true,  label: 'Profile photo' }); }
+  else                                          {                             scores.basic.items.push({ done: false, label: 'Profile photo' }); }
+  if (profile.bio && profile.bio.length >= 30)  { scores.basic.earned += 10; scores.basic.items.push({ done: true,  label: 'Bio (30+ chars)' }); }
+  else                                          {                             scores.basic.items.push({ done: false, label: 'Bio (30+ chars)' }); }
+  if (profile.specialization)                   { scores.basic.earned += 10; scores.basic.items.push({ done: true,  label: 'Specialization' }); }
+  else                                          {                             scores.basic.items.push({ done: false, label: 'Specialization' }); }
+  if (profile.city && profile.pincode)          { scores.basic.earned += 10; scores.basic.items.push({ done: true,  label: 'Location (city + pincode)' }); }
+  else                                          {                             scores.basic.items.push({ done: false, label: 'Location (city + pincode)' }); }
+
+  // ── PROFESSIONAL DETAILS (40%) ──
+  const profItems = [
+    { key: 'gstNumber',          label: 'GST number',           points: 8  },
+    { key: 'licenseNumber',      label: 'Professional license', points: 8  },
+    { key: 'certificationNumber',label: 'Certification number', points: 8  },
+    { key: 'education',          label: 'Education details',    points: 8  },
+    { key: 'portfolio',          label: 'Portfolio / Proof of work', points: 8 },
+  ];
+  profItems.forEach(item => {
+    const val = profile[item.key];
+    const done = val && (typeof val === 'string' ? val.trim().length > 0 : true);
+    if (done) scores.professional.earned += item.points;
+    scores.professional.items.push({ done, label: item.label, points: item.points });
+  });
+
+  // ── TRUST SIGNALS (10%) ──
+  const hasReview = (user.reviewCount || 0) >= 1;
+  const hasApproach = (user.totalApproaches || 0) >= 1;
+  if (hasReview)  { scores.trust.earned += 5;  scores.trust.items.push({ done: true,  label: 'Min 1 client review' }); }
+  else            {                             scores.trust.items.push({ done: false, label: 'Min 1 client review' }); }
+  if (hasApproach){ scores.trust.earned += 5;  scores.trust.items.push({ done: true,  label: 'Min 1 approach sent' }); }
+  else            {                             scores.trust.items.push({ done: false, label: 'Min 1 approach sent' }); }
+
+  // ── RESPONSE RATE (10%) ──
+  const responseRate = user.responseRate || 0;
+  if (responseRate >= 80)       { scores.response.earned = 10; scores.response.items.push({ done: true,  label: `Response rate: ${responseRate}%` }); }
+  else if (responseRate >= 50)  { scores.response.earned = 5;  scores.response.items.push({ done: false, label: `Response rate: ${responseRate}% (need 80%+)` }); }
+  else                          {                               scores.response.items.push({ done: false, label: 'Response rate (approach more requests)' }); }
+
+  const total = scores.basic.earned + scores.professional.earned + scores.trust.earned + scores.response.earned;
+
+  return { total, scores };
+}
+
+function getStrengthLabel(pct) {
+  if (pct >= 90) return { label: 'Elite', color: '#10b981', bg: 'rgba(16,185,129,0.12)' };
+  if (pct >= 70) return { label: 'Strong', color: '#3b82f6', bg: 'rgba(59,130,246,0.12)' };
+  if (pct >= 50) return { label: 'Good',   color: '#f59e0b', bg: 'rgba(245,158,11,0.12)' };
+  if (pct >= 30) return { label: 'Fair',   color: '#f97316', bg: 'rgba(249,115,22,0.12)' };
+  return                { label: 'Starter', color: '#ef4444', bg: 'rgba(239,68,68,0.12)' };
+}
+
+function renderStrengthMeter(user, profile) {
+  const { total, scores } = calculateProfileStrength(user, profile);
+  const { label, color, bg } = getStrengthLabel(total);
+
+  // Ring SVG
+  const radius = 32, circ = 2 * Math.PI * radius;
+  const dash = (total / 100) * circ;
+
+  const sections = [
+    { key: 'basic',        icon: '👤', title: 'Basic Info',           pct: 40 },
+    { key: 'professional', icon: '💼', title: 'Professional Details', pct: 40 },
+    { key: 'trust',        icon: '🛡️', title: 'Trust Signals',        pct: 10 },
+    { key: 'response',     icon: '⚡', title: 'Response Rate',        pct: 10 },
+  ];
+
+  const sectionsHTML = sections.map(s => {
+    const sec = scores[s.key];
+    const secPct = Math.round((sec.earned / sec.max) * 100);
+    const itemsHTML = sec.items.map(i =>
+      `<div style="display:flex;align-items:center;gap:8px;padding:4px 0;">
+        <span style="font-size:13px;color:${i.done ? '#10b981' : '#cbd5e1'};">${i.done ? '✓' : '○'}</span>
+        <span style="font-size:13px;color:${i.done ? 'var(--text)' : 'var(--text-muted)'};">${i.label}</span>
+      </div>`
+    ).join('');
+
+    return `
+      <details style="border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:8px;">
+        <summary style="padding:12px 14px;cursor:pointer;display:flex;align-items:center;gap:10px;list-style:none;user-select:none;">
+          <span style="font-size:16px;">${s.icon}</span>
+          <span style="flex:1;font-size:14px;font-weight:600;color:var(--text);">${s.title}</span>
+          <span style="font-size:12px;font-weight:700;color:${sec.earned === sec.max ? '#10b981' : color};">${sec.earned}/${sec.max}pts</span>
+        </summary>
+        <div style="padding:4px 14px 12px 14px;border-top:1px solid var(--border);">${itemsHTML}</div>
+      </details>`;
+  }).join('');
+
+  return `
+    <div id="profileStrengthMeter" style="background:var(--bg);border:1.5px solid var(--border);border-radius:16px;padding:20px;margin-bottom:20px;">
+      <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px;">
+        <!-- Ring -->
+        <div style="position:relative;flex-shrink:0;width:80px;height:80px;">
+          <svg width="80" height="80" style="transform:rotate(-90deg);">
+            <circle cx="40" cy="40" r="${radius}" fill="none" stroke="var(--border)" stroke-width="7"/>
+            <circle cx="40" cy="40" r="${radius}" fill="none" stroke="${color}" stroke-width="7"
+              stroke-dasharray="${dash} ${circ}" stroke-linecap="round"
+              style="transition:stroke-dasharray 0.8s ease;"/>
+          </svg>
+          <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+            <span style="font-size:18px;font-weight:800;color:var(--text);line-height:1;">${total}</span>
+            <span style="font-size:9px;color:var(--text-muted);font-weight:600;">/ 100</span>
+          </div>
+        </div>
+        <!-- Label + bar -->
+        <div style="flex:1;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+            <span style="font-size:16px;font-weight:700;color:var(--text);">Profile Strength</span>
+            <span style="padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700;background:${bg};color:${color};">${label}</span>
+          </div>
+          <div style="height:8px;background:var(--border);border-radius:4px;overflow:hidden;">
+            <div style="height:100%;width:${total}%;background:${color};border-radius:4px;transition:width 0.8s ease;"></div>
+          </div>
+          <p style="font-size:12px;color:var(--text-muted);margin-top:6px;">
+            ${total < 100 ? `Complete your profile to attract more clients` : '🎉 Perfect profile!'}
+          </p>
+        </div>
+      </div>
+      <!-- Breakdown accordion -->
+      <div>${sectionsHTML}</div>
+    </div>`;
+}
+
+// ─── KYC STATUS BADGE ───
+function kycBadgeHTML(status) {
+  const map = {
+    not_submitted: { icon: '📋', text: 'Not submitted',  color: '#94a3b8', bg: 'rgba(148,163,184,0.1)' },
+    pending:       { icon: '⏳', text: 'Under review',   color: '#f59e0b', bg: 'rgba(245,158,11,0.1)'  },
+    approved:      { icon: '✅', text: 'KYC Verified',   color: '#10b981', bg: 'rgba(16,185,129,0.1)'  },
+    rejected:      { icon: '❌', text: 'Rejected - resubmit', color: '#ef4444', bg: 'rgba(239,68,68,0.1)' },
+  };
+  const s = map[status] || map.not_submitted;
+  return `<span style="padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700;background:${s.bg};color:${s.color};">${s.icon} ${s.text}</span>`;
+}
+
+// ─── RENDER EXPERT PROFILE (FULL REPLACEMENT) ───
 function renderExpertProfile() {
-  console.log('🔍 Rendering profile with user data:', state.user);
-  
-  if (!state.user) {
-    console.log('❌ No user data in state!');
+  if (!state.user) return;
+
+  const user    = state.user;
+  const profile = user.profile || {};
+  const kyc     = user.kyc    || {};
+
+  const profileTab = document.getElementById('expertProfileTab');
+  if (!profileTab) return;
+
+  // Service display labels
+  const serviceLabels = { itr: 'ITR Filing', gst: 'GST Services', accounting: 'Accounting', audit: 'Audit', photography: 'Photography', development: 'Development' };
+  const locationLabels = { online: '💻 Online / Remote', local: '📍 Local (in-person)', both: '🌐 Both online & in-person' };
+
+  const memberSince = user.createdAt
+    ? new Date(user.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+    : 'Recently joined';
+
+  // Services badges
+  const servicesBadges = (profile.servicesOffered || []).map(s =>
+    `<span style="padding:5px 12px;background:rgba(252,128,25,0.1);color:var(--primary);border-radius:20px;font-size:13px;font-weight:600;">${serviceLabels[s] || s}</span>`
+  ).join('');
+
+  profileTab.innerHTML = `
+    <!-- ── AVATAR SECTION ── -->
+    <div style="text-align:center;padding:24px 20px 0;">
+      <div class="avatar-upload" style="display:inline-block;position:relative;margin-bottom:12px;">
+        <div class="avatar avatar-xl" id="expertProfileAvatar" style="width:88px;height:88px;font-size:32px;">
+          ${user.profilePhoto ? `<img src="${user.profilePhoto}" alt="${user.name}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">` : (user.name || 'E').substring(0,2).toUpperCase()}
+        </div>
+        <button class="avatar-upload-btn" onclick="document.getElementById('expertPhotoInput').click()" style="position:absolute;bottom:0;right:0;width:28px;height:28px;border-radius:50%;background:var(--primary);color:#fff;border:2px solid var(--bg);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;">📷</button>
+        <input type="file" id="expertPhotoInput" style="display:none;" accept="image/*" onchange="uploadProfilePhoto(event)">
+      </div>
+      <h2 style="font-size:22px;font-weight:800;color:var(--text);margin-bottom:4px;" id="expertProfileName">${user.name || 'Expert'}</h2>
+      <p style="color:var(--text-muted);font-size:14px;margin-bottom:4px;" id="expertProfileEmail">${user.email || ''}</p>
+      ${profile.specialization ? `<p style="color:var(--primary);font-size:14px;font-weight:600;">${profile.specialization}</p>` : ''}
+      <div style="display:flex;align-items:center;justify-content:center;gap:16px;margin-top:12px;margin-bottom:20px;flex-wrap:wrap;">
+        <span style="font-size:14px;color:var(--text-muted);">⭐ ${user.rating || '0.0'} (${user.reviewCount || 0} reviews)</span>
+        <span style="font-size:14px;color:var(--text-muted);">💎 ${user.credits || 0} credits</span>
+        ${profile.city ? `<span style="font-size:14px;color:var(--text-muted);">📍 ${profile.city}</span>` : ''}
+      </div>
+    </div>
+
+    <div style="padding:0 20px 40px;">
+
+      <!-- ── PROFILE STRENGTH ── -->
+      ${renderStrengthMeter(user, profile)}
+
+      <!-- ── KYC VERIFICATION ── -->
+      <div class="settings-section" style="margin-bottom:20px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+          <h3 class="settings-section-title" style="margin:0;">🛡️ KYC Verification</h3>
+          ${kycBadgeHTML(kyc.status || 'not_submitted')}
+        </div>
+        ${kyc.status === 'approved' ? `
+          <div style="padding:12px;background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.3);border-radius:10px;font-size:13px;color:#10b981;">
+            Your identity has been verified. A ✅ verified badge appears on your public profile.
+          </div>
+        ` : kyc.status === 'pending' ? `
+          <div style="padding:12px;background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.3);border-radius:10px;font-size:13px;color:#f59e0b;">
+            ⏳ Documents submitted. Admin will review within 24–48 hours.
+          </div>
+        ` : `
+          <p style="font-size:13px;color:var(--text-muted);margin-bottom:14px;">Upload one government ID to get a verified badge on your profile. Verified experts get 3× more client trust.</p>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
+            ${['Aadhaar Card','PAN Card','Voter ID','Driving License'].map(doc => `
+              <label style="display:flex;align-items:center;gap:8px;padding:10px 12px;border:1.5px solid var(--border);border-radius:10px;cursor:pointer;font-size:13px;font-weight:500;transition:all 0.2s;"
+                id="kyc_label_${doc.replace(/\s/g,'_')}"
+                onmouseover="this.style.borderColor='var(--primary)'"
+                onmouseout="if(window._kycSelected!==this.querySelector('input').value)this.style.borderColor='var(--border)'">
+                <input type="radio" name="kycDocType" value="${doc}" onchange="selectKycDocType('${doc}')" style="accent-color:var(--primary);">
+                ${doc}
+              </label>`).join('')}
+          </div>
+          <div id="kycUploadArea" style="display:none;">
+            <div id="kycPreview" style="display:none;margin-bottom:10px;"></div>
+            <label style="display:flex;flex-direction:column;align-items:center;gap:8px;padding:20px;border:2px dashed var(--border);border-radius:12px;cursor:pointer;background:var(--bg-gray);" onclick="document.getElementById('kycFileInput').click()">
+              <span style="font-size:32px;">📄</span>
+              <span style="font-size:14px;font-weight:600;color:var(--text);">Tap to upload document</span>
+              <span style="font-size:12px;color:var(--text-muted);">JPG, PNG or PDF • Max 5MB</span>
+            </label>
+            <input type="file" id="kycFileInput" style="display:none;" accept="image/*,.pdf" onchange="previewKycDoc(event)">
+            <button id="kycSubmitBtn" onclick="submitKycDocument()" style="display:none;width:100%;margin-top:12px;padding:14px;background:var(--primary);color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;">
+              🛡️ Submit for Verification
+            </button>
+          </div>
+          ${kyc.status === 'rejected' ? `
+            <div style="padding:10px 12px;background:rgba(239,68,68,0.08);border-radius:8px;font-size:13px;color:#ef4444;margin-top:8px;">
+              ❌ Rejection reason: ${kyc.rejectionReason || 'Document unclear or unreadable. Please resubmit.'}
+            </div>` : ''}
+        `}
+      </div>
+
+      <!-- ── SERVICES OFFERED ── -->
+      ${(profile.servicesOffered || []).length > 0 ? `
+        <div class="settings-section" style="margin-bottom:20px;">
+          <h3 class="settings-section-title">Services Offered</h3>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;">${servicesBadges}</div>
+        </div>` : ''}
+
+      <!-- ── PROFESSIONAL DETAILS (inline editable) ── -->
+      <div class="settings-section" style="margin-bottom:20px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+          <h3 class="settings-section-title" style="margin:0;">💼 Professional Details</h3>
+          <button onclick="toggleEditMode()" id="editModeBtn" style="padding:6px 14px;border:1.5px solid var(--primary);border-radius:8px;background:transparent;color:var(--primary);font-size:13px;font-weight:600;cursor:pointer;">✏️ Edit</button>
+        </div>
+
+        ${renderInlineField('specialization', 'Specialization', profile.specialization, 'text', 'e.g. Chartered Accountant')}
+        ${renderInlineField('experience', 'Experience', profile.experience, 'text', 'e.g. 5-10 years')}
+        ${renderInlineField('certificationNumber', 'Certification Number', profile.certificationNumber, 'text', 'e.g. ICAI-MRN-123456')}
+        ${renderInlineField('gstNumber', 'GST Number', profile.gstNumber, 'text', 'e.g. 29ABCDE1234F1Z5')}
+        ${renderInlineField('licenseNumber', 'Professional License No.', profile.licenseNumber, 'text', 'e.g. LIC/2023/00123')}
+        ${renderInlineField('education', 'Education', profile.education, 'text', 'e.g. B.Com, CA Final')}
+        ${renderInlineField('professionalAddress', 'Professional Address', profile.professionalAddress, 'text', 'Office address')}
+        ${renderInlineField('bio', 'About / Bio', profile.bio, 'textarea', 'Tell clients about your expertise...')}
+        ${renderInlineField('portfolio', 'Portfolio & Proof of Work', profile.portfolio, 'textarea', 'Links, achievements, notable projects...')}
+
+        <div id="editSaveRow" style="display:none;margin-top:16px;">
+          <button onclick="saveProfileEdits()" style="width:100%;padding:14px;background:var(--primary);color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;">💾 Save Changes</button>
+        </div>
+      </div>
+
+      <!-- ── CONTACT & ACCOUNT ── -->
+      <div class="settings-section" style="margin-bottom:20px;">
+        <h3 class="settings-section-title">Contact Information</h3>
+        <div style="padding:12px 0;border-bottom:1px solid var(--border);">
+          <div style="font-size:13px;color:var(--text-muted);margin-bottom:4px;">Phone</div>
+          <div style="font-size:15px;font-weight:600;color:var(--text);">${user.phone || 'Not provided'}</div>
+        </div>
+        <div style="padding:12px 0;border-bottom:1px solid var(--border);">
+          <div style="font-size:13px;color:var(--text-muted);margin-bottom:4px;">Service Location</div>
+          <div style="font-size:15px;font-weight:600;color:var(--text);">${locationLabels[profile.serviceLocationType] || '—'}</div>
+        </div>
+        <div style="padding:12px 0;">
+          <div style="font-size:13px;color:var(--text-muted);margin-bottom:4px;">Member Since</div>
+          <div style="font-size:15px;font-weight:600;color:var(--text);">${memberSince}</div>
+        </div>
+      </div>
+
+    </div><!-- end padding wrapper -->
+  `;
+}
+
+// ─── INLINE FIELD RENDERER ───
+function renderInlineField(key, label, value, type, placeholder) {
+  const displayVal = value ? value : `<span style="color:var(--text-muted);font-style:italic;">Not set</span>`;
+  const inputEl = type === 'textarea'
+    ? `<textarea id="edit_${key}" rows="3" placeholder="${placeholder}" style="display:none;width:100%;padding:10px 12px;border:1.5px solid var(--primary);border-radius:8px;font-size:14px;font-family:inherit;resize:vertical;background:var(--bg);color:var(--text);">${value || ''}</textarea>`
+    : `<input type="text" id="edit_${key}" value="${value || ''}" placeholder="${placeholder}" style="display:none;width:100%;padding:10px 12px;border:1.5px solid var(--primary);border-radius:8px;font-size:14px;background:var(--bg);color:var(--text);">`;
+
+  return `
+    <div style="padding:12px 0;border-bottom:1px solid var(--border);" class="profile-field-row">
+      <div style="font-size:13px;color:var(--text-muted);margin-bottom:4px;">${label}</div>
+      <div id="display_${key}" style="font-size:14px;font-weight:500;color:var(--text);line-height:1.5;">${displayVal}</div>
+      ${inputEl}
+    </div>`;
+}
+
+// ─── TOGGLE EDIT MODE ───
+let _editMode = false;
+function toggleEditMode() {
+  _editMode = !_editMode;
+  const btn = document.getElementById('editModeBtn');
+  const saveRow = document.getElementById('editSaveRow');
+
+  document.querySelectorAll('.profile-field-row').forEach(row => {
+    const displays = row.querySelectorAll('[id^="display_"]');
+    const inputs   = row.querySelectorAll('input[id^="edit_"], textarea[id^="edit_"]');
+    displays.forEach(d => d.style.display = _editMode ? 'none' : 'block');
+    inputs.forEach(i => i.style.display   = _editMode ? 'block' : 'none');
+  });
+
+  if (btn) btn.textContent = _editMode ? '✕ Cancel' : '✏️ Edit';
+  if (saveRow) saveRow.style.display = _editMode ? 'block' : 'none';
+
+  if (!_editMode) {
+    // Cancelled — refresh to restore original values
+    renderExpertProfile();
+  }
+}
+
+// ─── SAVE PROFILE EDITS ───
+async function saveProfileEdits() {
+  const fields = ['specialization','experience','certificationNumber','gstNumber','licenseNumber','education','professionalAddress','bio','portfolio'];
+  const updatedProfile = { ...(state.user.profile || {}) };
+
+  fields.forEach(key => {
+    const el = document.getElementById('edit_' + key);
+    if (el) updatedProfile[key] = el.value.trim();
+  });
+
+  const btn = document.querySelector('#editSaveRow button');
+  if (btn) { btn.disabled = true; btn.textContent = 'Saving...'; }
+
+  try {
+    const res = await fetch(`${API_URL}/users/profile`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${state.token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ profile: updatedProfile })
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      state.user.profile = updatedProfile;
+      localStorage.setItem('user', JSON.stringify(state.user));
+      _editMode = false;
+      showToast('Profile updated successfully!', 'success');
+      renderExpertProfile();
+    } else {
+      showToast(data.message || 'Failed to save', 'error');
+      if (btn) { btn.disabled = false; btn.textContent = '💾 Save Changes'; }
+    }
+  } catch (err) {
+    console.error('Save profile error:', err);
+    showToast('Network error. Please try again.', 'error');
+    if (btn) { btn.disabled = false; btn.textContent = '💾 Save Changes'; }
+  }
+}
+
+// ─── KYC DOC TYPE SELECTION ───
+window._kycSelected = null;
+window._kycBase64   = null;
+window._kycFileName = null;
+window._kycMime     = null;
+
+function selectKycDocType(docType) {
+  window._kycSelected = docType;
+  // Highlight selected card
+  document.querySelectorAll('[id^="kyc_label_"]').forEach(el => el.style.borderColor = 'var(--border)');
+  const lbl = document.getElementById('kyc_label_' + docType.replace(/\s/g,'_'));
+  if (lbl) lbl.style.borderColor = 'var(--primary)';
+  // Show upload area
+  const area = document.getElementById('kycUploadArea');
+  if (area) area.style.display = 'block';
+}
+
+// ─── KYC DOC PREVIEW ───
+function previewKycDoc(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  if (file.size > 5 * 1024 * 1024) {
+    showToast('File too large. Max 5MB.', 'error');
     return;
   }
-  
-  const user = state.user;
-const profile = user.profile || {};  // ✅ ADD THIS LINE
-  
-  // Update basic info
-  document.getElementById('expertProfileName').textContent = user.name || 'Expert';
-  document.getElementById('expertProfileEmail').textContent = user.email || '';
-  
-  const avatar = document.getElementById('expertProfileAvatar');
-  if (user.profilePhoto) {
-    avatar.innerHTML = '<img src="' + user.profilePhoto + '" alt="' + user.name + '">';
-  } else {
-    avatar.textContent = (user.name || 'E').substring(0, 2).toUpperCase();
-  }
-  
-  // Check if profile tab already has content sections
-  const profileTab = document.getElementById('expertProfileTab');
-  const existingSections = profileTab.querySelectorAll('.settings-section');
-  
-  // Remove old sections (keep only avatar section)
-  existingSections.forEach(function(section) {
-    section.remove();
-  });
-  
-// Build profile details HTML
-var profileHTML = '';
 
-// Services Offered - READ FROM PROFILE
-if (profile.servicesOffered && profile.servicesOffered.length > 0) {  // ✅ CHANGED
-  var serviceLabels = {
-    itr: 'ITR Filing',
-    gst: 'GST Services',
-    accounting: 'Accounting',
-    audit: 'Audit',
-    photography: 'Photography',
-    development: 'Development'
+  window._kycFileName = file.name;
+  window._kycMime     = file.type;
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    window._kycBase64 = e.target.result; // full data URL
+
+    const preview = document.getElementById('kycPreview');
+    const submitBtn = document.getElementById('kycSubmitBtn');
+
+    if (preview) {
+      preview.style.display = 'block';
+      if (file.type.startsWith('image/')) {
+        preview.innerHTML = `
+          <div style="position:relative;border-radius:10px;overflow:hidden;border:1.5px solid var(--border);">
+            <img src="${e.target.result}" style="width:100%;max-height:180px;object-fit:cover;display:block;">
+            <div style="position:absolute;bottom:0;left:0;right:0;padding:8px 12px;background:rgba(0,0,0,0.6);font-size:12px;color:#fff;">
+              📄 ${file.name}
+            </div>
+          </div>`;
+      } else {
+        preview.innerHTML = `
+          <div style="display:flex;align-items:center;gap:12px;padding:12px;background:var(--bg-gray);border-radius:10px;border:1.5px solid var(--border);">
+            <span style="font-size:32px;">📄</span>
+            <div>
+              <div style="font-size:14px;font-weight:600;">${file.name}</div>
+              <div style="font-size:12px;color:var(--text-muted);">${(file.size/1024).toFixed(1)} KB • PDF</div>
+            </div>
+          </div>`;
+      }
+    }
+    if (submitBtn) submitBtn.style.display = 'block';
   };
-  
-  var serviceBadges = profile.servicesOffered.map(function(s) {  // ✅ CHANGED
-    return '<span class="badge badge-primary">' + (serviceLabels[s] || s) + '</span>';
-  }).join('');
-  
-  profileHTML += '<div class="settings-section"><h3 class="settings-section-title">Services Offered</h3><div style="display: flex; flex-wrap: wrap; gap: 8px;">' + serviceBadges + '</div></div>';
+  reader.readAsDataURL(file);
 }
 
-// Specialization & Experience
-profileHTML += '<div class="settings-section"><h3 class="settings-section-title">Professional Details</h3>';
+// ─── SUBMIT KYC DOCUMENT ───
+async function submitKycDocument() {
+  if (!window._kycSelected) { showToast('Please select document type', 'error'); return; }
+  if (!window._kycBase64)   { showToast('Please upload a document', 'error');    return; }
 
-if (profile.specialization) {  // ✅ CHANGED
-  profileHTML += '<div style="padding: 12px 0; border-bottom: 1px solid var(--border);"><div style="font-size: 13px; color: var(--text-muted); margin-bottom: 4px;">Specialization</div><div style="font-size: 15px; font-weight: 600;">' + profile.specialization + '</div></div>';
-}
+  const btn = document.getElementById('kycSubmitBtn');
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Uploading...'; }
 
-if (profile.experience) {  // ✅ CHANGED
-  profileHTML += '<div style="padding: 12px 0; border-bottom: 1px solid var(--border);"><div style="font-size: 13px; color: var(--text-muted); margin-bottom: 4px;">Experience</div><div style="font-size: 15px; font-weight: 600;">' + profile.experience + '</div></div>';
-}
+  try {
+    const res = await fetch(`${API_URL}/users/kyc`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${state.token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        docType:  window._kycSelected,
+        docBase64: window._kycBase64,
+        fileName:  window._kycFileName,
+        mimeType:  window._kycMime
+      })
+    });
 
-profileHTML += '<div style="padding: 12px 0; border-bottom: 1px solid var(--border);"><div style="font-size: 13px; color: var(--text-muted); margin-bottom: 4px;">Rating</div><div style="font-size: 15px; font-weight: 600;">⭐ ' + (user.rating || '0.0') + ' (' + (user.reviewCount || 0) + ' reviews)</div></div>';
+    const data = await res.json();
 
-profileHTML += '<div style="padding: 12px 0;"><div style="font-size: 13px; color: var(--text-muted); margin-bottom: 4px;">Credits Balance</div><div style="font-size: 15px; font-weight: 600;">💎 ' + (user.credits || 0) + ' credits</div></div>';
+    if (data.success) {
+      // Update local state
+      if (!state.user.kyc) state.user.kyc = {};
+      state.user.kyc.status  = 'pending';
+      state.user.kyc.docType = window._kycSelected;
+      localStorage.setItem('user', JSON.stringify(state.user));
 
-profileHTML += '</div>';
+      showToast('KYC submitted! Admin will review within 24–48 hours.', 'success');
 
-// Bio - READ FROM PROFILE
-if (profile.bio) {  // ✅ CHANGED
-  profileHTML += '<div class="settings-section"><h3 class="settings-section-title">About</h3><p style="font-size: 15px; color: var(--text-light); line-height: 1.6;">' + profile.bio + '</p></div>';
-}
+      // Reset globals
+      window._kycSelected = null;
+      window._kycBase64   = null;
+      window._kycFileName = null;
 
-// Service Location Type - READ FROM PROFILE
-if (profile.serviceLocationType) {  // ✅ CHANGED
-  var locationLabels = {
-    online: '💻 Online / Remote only',
-    local: '📍 Local (in-person available)',
-    both: '🌐 Both online and in-person'
-  };
-  
-  profileHTML += '<div class="settings-section"><h3 class="settings-section-title">Service Location</h3><div style="font-size: 15px; font-weight: 600;">' + (locationLabels[profile.serviceLocationType] || profile.serviceLocationType) + '</div></div>';
-}
-
-// Rest stays same (user.phone, user.createdAt)
-  
-  // Contact Info
-  profileHTML += '<div class="settings-section"><h3 class="settings-section-title">Contact Information</h3><div style="padding: 12px 0; border-bottom: 1px solid var(--border);"><div style="font-size: 13px; color: var(--text-muted); margin-bottom: 4px;">Phone</div><div style="font-size: 15px; font-weight: 600;">' + (user.phone || 'Not provided') + '</div></div>';
-  
-  var memberSince = 'Recently joined';
-  if (user.createdAt) {
-    var date = new Date(user.createdAt);
-    memberSince = date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-  }
-  
-  profileHTML += '<div style="padding: 12px 0;"><div style="font-size: 13px; color: var(--text-muted); margin-bottom: 4px;">Member Since</div><div style="font-size: 15px; font-weight: 600;">' + memberSince + '</div></div></div>';
-  
-  // Insert all sections after the avatar section
-  const avatarSection = profileTab.querySelector('[style*="text-align: center"]');
-  if (avatarSection) {
-    avatarSection.insertAdjacentHTML('afterend', profileHTML);
+      renderExpertProfile();
+    } else {
+      showToast(data.message || 'KYC submission failed', 'error');
+      if (btn) { btn.disabled = false; btn.textContent = '🛡️ Submit for Verification'; }
+    }
+  } catch (err) {
+    console.error('KYC submit error:', err);
+    showToast('Network error. Please try again.', 'error');
+    if (btn) { btn.disabled = false; btn.textContent = '🛡️ Submit for Verification'; }
   }
 }
 // ─── CHAT STATE ───
