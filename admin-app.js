@@ -317,6 +317,7 @@
       posts: loadPosts,
       reviews: loadReviews,
       registrations: loadRegistrations,
+             kyc: loadKycRequests,
       payments: loadPayments,
       communication: function() { loadCommHistory(); },
       invoices: function() { loadInvExperts(); },
