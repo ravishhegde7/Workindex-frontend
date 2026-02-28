@@ -1717,8 +1717,8 @@ if (u.kyc && u.kyc.docBase64) {
           html += '<div class="kyc-doc-actions">';
           var isBase64Img = doc.url && doc.url.startsWith('data:image');
 var isBase64Pdf = doc.url && doc.url.startsWith('data:application/pdf');
-if (isImg || isBase64Img) html += '<button class="btn bgho" onclick="showKycPreview(\'' + esc(doc.url) + '\',\'' + esc(doc.label) + '\')">View</button>';
-else if (isPdf || isBase64Pdf) html += '<a class="btn bgho" href="' + esc(doc.url) + '" target="_blank">Open PDF</a>';
+if (isImg || isBase64Img) html += '<button class="btn bgho kyc-view-btn">View</button>';
+else if (isPdf || isBase64Pdf) html += '<button class="btn bgho kyc-view-btn">Open PDF</button>';
 else html += '<a class="btn bgho" href="' + esc(doc.url) + '" target="_blank">Download</a>';
           html += '</div></div>';
           if (isImg) html += '<div id="kp-' + esc(doc.label.replace(/\s/g,'')) + '" style="display:none;margin-bottom:8px"><img src="' + esc(doc.url) + '" class="kyc-img-preview" onerror="this.style.display=\'none\'"></div>';
@@ -1729,7 +1729,14 @@ else html += '<a class="btn bgho" href="' + esc(doc.url) + '" target="_blank">Do
       html += '<strong style="color:#f0f0f4">' + esc(u.name) + '</strong> &bull; ' + esc(u.email) + ' &bull; ' + (u.phone||'-');
       html += '<br>Status: ' + (u.isApproved ? '<span style="color:#22c55e">Approved</span>' : u.isBanned ? '<span style="color:#ef4444">Rejected</span>' : '<span style="color:#f59e0b">Pending</span>');
       html += '</div>';
-      g('kycModalBody').innerHTML = html;
+            g('kycModalBody').innerHTML = html;
+      // Wire up view buttons with stored URLs (avoids base64 in onclick attribute)
+      var viewBtns = g('kycModalBody').querySelectorAll('.kyc-view-btn');
+      viewBtns.forEach(function(btn, i) {
+        btn.addEventListener('click', function() {
+          showKycPreview(realDocs[i].url, realDocs[i].label);
+        });
+      });
       // Show/hide approve reject based on status
       g('kycApproveBtn').style.display = u.isApproved ? 'none' : 'inline-flex';
       g('kycRejectBtn').style.display = u.isBanned ? 'none' : 'inline-flex';
