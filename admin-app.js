@@ -1712,9 +1712,11 @@ if (u.kyc && u.kyc.docBase64) {
           html += '<div class="kyc-doc-icon">' + doc.icon + '</div>';
           html += '<div class="kyc-doc-info"><strong>' + esc(doc.label) + '</strong><small>' + esc(doc.url.substring(0, 60)) + (doc.url.length > 60 ? '...' : '') + '</small></div>';
           html += '<div class="kyc-doc-actions">';
-          if (isImg) html += '<button class="btn bgho" onclick="showKycPreview(\'' + esc(doc.url) + '\',\'' + esc(doc.label) + '\')">View</button>';
-          else if (isPdf) html += '<a class="btn bgho" href="' + esc(doc.url) + '" target="_blank">Open PDF</a>';
-          else html += '<a class="btn bgho" href="' + esc(doc.url) + '" target="_blank">Download</a>';
+          var isBase64Img = doc.url && doc.url.startsWith('data:image');
+var isBase64Pdf = doc.url && doc.url.startsWith('data:application/pdf');
+if (isImg || isBase64Img) html += '<button class="btn bgho" onclick="showKycPreview(\'' + esc(doc.url) + '\',\'' + esc(doc.label) + '\')">View</button>';
+else if (isPdf || isBase64Pdf) html += '<a class="btn bgho" href="' + esc(doc.url) + '" target="_blank">Open PDF</a>';
+else html += '<a class="btn bgho" href="' + esc(doc.url) + '" target="_blank">Download</a>';
           html += '</div></div>';
           if (isImg) html += '<div id="kp-' + esc(doc.label.replace(/\s/g,'')) + '" style="display:none;margin-bottom:8px"><img src="' + esc(doc.url) + '" class="kyc-img-preview" onerror="this.style.display=\'none\'"></div>';
         });
