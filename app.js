@@ -2691,26 +2691,148 @@ async function lookupPincode(value) {
       const post = data[0].PostOffice[0];
       const area = post.Name;
       const city = post.District;
-      const state = post.State;
+      const stateVal = post.State;
       
-      // Auto-fill city if empty
+      // Auto-fill city if empty (expert)
       const cityInput = document.getElementById('q_city');
       if (cityInput && !cityInput.value) {
         cityInput.value = city;
         qState.answers['city'] = city;
       }
       
-      // Show confirmation
-      document.getElementById('pincodeResult').innerHTML = 
-        `<div style="font-size: 13px; color: #4CAF50; margin-top: 6px;">
-          📍 ${area}, ${city}, ${state}
-        </div>`;
+      // Auto-fill state if empty (expert) — targets the select dropdown
+      if (!qState.answers['state']) {
+        qState.answers['state'] = stateVal;
+        // Re-render so the dropdown shows the selected state
+        renderQuestion();
+        return; // renderQuestion resets pincodeResult so we stop here
+      }
+      
+      const pincodeResult = document.getElementById('pincodeResult');
+      if (pincodeResult) {
+        pincodeResult.innerHTML = `
+          <div style="font-size: 13px; color: #4CAF50; margin-top: 6px;">
+            📍 ${area}, ${city}, ${stateVal}
+          </div>`;
+      }
     } else {
-      document.getElementById('pincodeResult').innerHTML = 
-        `<div style="font-size: 13px; color: #e74c3c; margin-top: 6px;">Invalid pincode</div>`;
+      const pincodeResult = document.getElementById('pincodeResult');
+      if (pincodeResult) {
+        pincodeResult.innerHTML = `
+          <div style="font-size: 13px; color: #e74c3c; margin-top: 6px;">Invalid pincode</div>`;
+      }
     }
   } catch (err) {
     console.error('Pincode lookup error:', err);
+  }
+}
+
+// ─── PINCODE LOOKUP FOR CLIENT FULL ADDRESS (in-person) ───
+async function lookupAddressPincode(value) {
+  if (value.length !== 6 || !/^\d+$/.test(value)) return;
+  
+  try {
+    const res = await fetch(`https://api.postalpincode.in/pincode/${value}`);
+    const data = await res.json();
+    
+    if (data[0].Status === 'Success') {
+      const post = data[0].PostOffice[0];
+      const area = post.Name;
+      const city = post.District;
+      const stateVal = post.State;
+      
+      if (!qState.answers.fullAddress) qState.answers.fullAddress = {};
+      
+      // Auto-fill city if empty
+      const cityInput = document.getElementById('q_fullAddress_city');
+      if (cityInput && !cityInput.value) {
+        cityInput.value = city;
+        qState.answers.fullAddress.city = city;
+      }
+      
+      // Auto-fill state if empty
+      const stateInput = document.getElementById('q_fullAddress_state');
+      if (stateInput && !stateInput.value) {
+        stateInput.value = stateVal;
+        qState.answers.fullAddress.state = stateVal;
+      }
+      
+      // Auto-fill area if empty
+      const areaInput = document.getElementById('q_fullAddress_area');
+      if (areaInput && !areaInput.value) {
+        areaInput.value = area;
+        qState.answers.fullAddress.area = area;
+      }
+      
+      const resultEl = document.getElementById('addressPincodeResult');
+      if (resultEl) {
+        resultEl.innerHTML = `
+          <div style="font-size: 13px; color: #4CAF50; margin-top: 6px;">
+            📍 ${area}, ${city}, ${stateVal}
+          </div>`;
+      }
+      
+      checkCanProceed();
+    } else {
+      const resultEl = document.getElementById('addressPincodeResult');
+      if (resultEl) {
+        resultEl.innerHTML = `
+          <div style="font-size: 13px; color: #e74c3c; margin-top: 6px;">Invalid pincode</div>`;
+      }
+    }
+  } catch (err) {
+    console.error('Address pincode lookup error:', err);
+  }
+}
+
+// ─── PINCODE LOOKUP FOR CLIENT ONLINE LOCATION ───
+async function lookupClientLocationPincode(value) {
+  if (value.length !== 6 || !/^\d+$/.test(value)) return;
+  
+  try {
+    const res = await fetch(`https://api.postalpincode.in/pincode/${value}`);
+    const data = await res.json();
+    
+    if (data[0].Status === 'Success') {
+      const post = data[0].PostOffice[0];
+      const area = post.Name;
+      const city = post.District;
+      const stateVal = post.State;
+      
+      if (!qState.answers.clientLocation) qState.answers.clientLocation = {};
+      
+      // Auto-fill city if empty
+      const cityInput = document.getElementById('q_clientLocation_city');
+      if (cityInput && !cityInput.value) {
+        cityInput.value = city;
+        qState.answers.clientLocation.city = city;
+      }
+      
+      // Auto-fill state if empty
+      const stateInput = document.getElementById('q_clientLocation_state');
+      if (stateInput && !stateInput.value) {
+        stateInput.value = stateVal;
+        qState.answers.clientLocation.state = stateVal;
+      }
+      
+      const resultEl = document.getElementById('clientLocationPincodeResult');
+      if (resultEl) {
+        resultEl.innerHTML = `
+          <div style="font-size: 13px; color: #4CAF50; margin-top: 6px;">
+            📍 ${area}, ${city}, ${stateVal}
+          </div>`;
+      }
+      
+      checkCanProceed();
+    } else {
+      const resultEl = document.getElementById('clientLocationPincodeResult');
+      if (resultEl) {
+        resultEl.innerHTML = `
+          <div style="font-size: 13px; color: #e74c3c; margin-top: 6px;">Invalid pincode</div>`;
+      }
+    }
+  } catch (err) {
+    console.error('Client location pincode lookup error:', err);
   }
 }
 // ─── EXPERT SEARCH AUTOCOMPLETE ───
