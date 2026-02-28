@@ -2945,5 +2945,161 @@ function landingSearch() {
 
   showPage('findProfessionals');
 }
+// ═══════════════════════════════════════════════════════════
+//  USER SUPPORT TICKET SYSTEM
+// ═══════════════════════════════════════════════════════════
+
+var _tkUserSelectedIssue = null;
+
+var USER_TICKET_CATEGORIES = {
+  expert: [
+    { group: '🔐 Account & Login Issues', items: ['Unable to login', 'Forgot password / OTP not received', 'Account locked / suspended', 'Change phone/email', 'Delete account request', 'Profile update issue'] },
+    { group: '💬 Expert Interaction Issues', items: ['Expert not responding', 'Received too many responses', 'Harassment / inappropriate behavior', 'Expert asking payment outside platform', 'Expert details incorrect', 'Fake expert suspected'] },
+    { group: '💰 Payment & Refund Issues', items: ['Payment failed but amount deducted', 'Refund not received', 'Wrong charge applied', 'Payment confirmation not received', 'Need invoice / receipt', 'Payment method issue'] },
+    { group: '⭐ Review & Rating Issues', items: ['Want to edit/remove review', 'Fake review posted about me', 'Rating incorrect'] },
+    { group: '⚙️ Technical Issues', items: ['App/website not working', 'Page loading error', 'Feature not functioning', 'Bug report', 'Mobile app issue'] },
+    { group: '❓ General Support', items: ['Need help using platform', 'Feature request', 'Feedback / suggestions', 'Other issue'] }
+  ],
+  client: [
+    { group: '🔐 Account & Login Issues', items: ['Unable to login', 'Forgot password / OTP not received', 'Account locked / suspended', 'Change phone/email', 'Delete account request', 'Profile update issue'] },
+    { group: '📋 Request / Job Issues', items: ['Unable to post request', 'Edit request issue', 'Request not visible to experts', 'Wrong category selected', 'Duplicate request created', 'Want to cancel request', 'Request marked completed incorrectly', 'Spam responses received'] },
+    { group: '💬 Expert Interaction Issues', items: ['Expert not responding', 'Received too many responses', 'Harassment / inappropriate behavior', 'Expert asking payment outside platform', 'Expert details incorrect', 'Fake expert suspected'] },
+    { group: '💰 Payment & Refund Issues', items: ['Payment failed but amount deducted', 'Refund not received', 'Wrong charge applied', 'Payment confirmation not received', 'Need invoice / receipt', 'Payment method issue'] },
+    { group: '⭐ Review & Rating Issues', items: ['Unable to submit review', 'Want to edit/remove review', 'Fake review posted about me', 'Rating incorrect'] },
+    { group: '🛡️ Safety & Abuse', items: ['Report fraud/scam', 'Threatening behavior', 'Privacy concern', 'Unauthorized use of my data'] },
+    { group: '⚙️ Technical Issues', items: ['App/website not working', 'Page loading error', 'Feature not functioning', 'Bug report', 'Mobile app issue'] },
+    { group: '❓ General Support', items: ['Need help using platform', 'Feature request', 'Feedback / suggestions', 'Other issue'] }
+  ]
+};
+
+function openTicketModal() {
+  _tkUserSelectedIssue = null;
+  var role = state.user && state.user.role === 'expert' ? 'expert' : 'client';
+  var cats = USER_TICKET_CATEGORIES[role] || USER_TICKET_CATEGORIES.client;
+
+  // Build category list
+  var html = '';
+  cats.forEach(function(cat) {
+    html += '<div style="font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.08em; padding:10px 4px 6px;">' + cat.group + '</div>';
+    cat.items.forEach(function(item) {
+      html += '<div class="tk-user-item" onclick="tkUserSelectIssue(this, \'' + item.replace(/'/g, "\\'") + '\')" style="padding:12px 14px; border:1.5px solid var(--border); border-radius:10px; cursor:pointer; font-size:14px; font-weight:500; color:var(--text); margin-bottom:6px; transition:all 0.2s;">' + item + '</div>';
+    });
+  });
+
+  document.getElementById('tkUserCatList').innerHTML = html;
+  document.getElementById('tkUserStep1').style.display = 'block';
+  document.getElementById('tkUserStep2').style.display = 'none';
+  document.getElementById('ticketModal').style.display = 'block';
+  document.body.style.overflow = 'hidden';
+}
+
+function tkUserSelectIssue(el, issue) {
+  _tkUserSelectedIssue = issue;
+  document.getElementById('tkUserSelectedCat').textContent = issue;
+  document.getElementById('tkUserDescription').value = '';
+  document.getElementById('tkUserDescription').placeholder = 'Describe your issue: "' + issue + '"...';
+  document.getElementById('tkUserStep1').style.display = 'none';
+  document.getElementById('tkUserStep2').style.display = 'block';
+}
+
+function tkUserGoBack() {
+  _tkUserSelectedIssue = null;
+  document.getElementById('tkUserStep1').style.display = 'block';
+  document.getElementById('tkUserStep2').style.display = 'none';
+}
+
+function closeTicketModal() {
+  document.getElementById('ticketModal').style.display = 'none';
+  document.body.style.overflow = '';
+  _tkUserSelectedIssue = null;
+}
+
+async function submitUserTicket() {
+  if (!_tkUserSelectedIssue) { showToast('Please select an issue category', 'error'); return; }
+
+  var description = document.getElementById('tkUserDescription').value.trim();
+  var priority = document.getElementById('tkUserPriority').value;
+
+  var btn = document.getElementById('tkUserSubmitBtn');
+  btn.disabled = true;
+  btn.textContent = 'Submitting...';
+
+  try {
+    var res = await fetch(API_URL + '/users/tickets', {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + state.token,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        subject: _tkUserSelectedIssue,
+        issueType: _tkUserSelectedIssue,
+        description: description || _tkUserSelectedIssue,
+        priority: priority
+      })
+    });
+
+    var data = await res.json();
+    btn.disabled = false;
+    btn.textContent = '🎫 Submit Ticket';
+
+    if (data.success) {
+      closeTicketModal();
+      showToast('Ticket raised successfully! We\'ll get back to you soon.', 'success');
+    } else {
+      showToast(data.message || 'Failed to raise ticket', 'error');
+    }
+  } catch (err) {
+    btn.disabled = false;
+    btn.textContent = '🎫 Submit Ticket';
+    showToast('Network error. Please try again.', 'error');
+  }
+}
+
+async function loadMyTickets() {
+  var container = document.getElementById('myTicketsList');
+  if (!container) return;
+
+  try {
+    var res = await fetch(API_URL + '/users/tickets', {
+      headers: { 'Authorization': 'Bearer ' + state.token }
+    });
+    var data = await res.json();
+
+    if (!data.success || !data.tickets || !data.tickets.length) {
+      container.innerHTML = '<div style="text-align:center; padding:40px;"><div style="font-size:48px; margin-bottom:16px;">🎫</div><h3 style="color:var(--text);">No tickets yet</h3><p style="color:var(--text-muted); margin-top:8px;">Raise a ticket if you need help</p><button class="btn-primary" style="margin-top:20px; padding:12px 24px;" onclick="openTicketModal()">+ Raise a Ticket</button></div>';
+      return;
+    }
+
+    var statusColor = { open: '#3b82f6', pending_review: '#f59e0b', resolved: '#22c55e', closed: '#6b7280' };
+    var statusLabel = { open: 'Open', pending_review: 'Under Review', resolved: 'Resolved', closed: 'Closed' };
+
+    container.innerHTML = data.tickets.map(function(t) {
+      var sc = statusColor[t.status] || '#6b7280';
+      var sl = statusLabel[t.status] || t.status;
+      var date = t.createdAt ? new Date(t.createdAt).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' }) : '-';
+      return '<div style="background:var(--bg); border:1.5px solid var(--border); border-radius:14px; padding:16px; margin-bottom:12px;">' +
+        '<div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">' +
+          '<div style="font-size:15px; font-weight:700; color:var(--text); flex:1; margin-right:12px;">' + (t.issueType || t.subject || 'Support Ticket') + '</div>' +
+          '<span style="padding:4px 10px; border-radius:20px; font-size:12px; font-weight:700; background:' + sc + '20; color:' + sc + ';">' + sl + '</span>' +
+        '</div>' +
+        (t.description && t.description !== t.subject ? '<p style="font-size:13px; color:var(--text-muted); margin-bottom:8px; line-height:1.5;">' + t.description.substring(0, 100) + (t.description.length > 100 ? '...' : '') + '</p>' : '') +
+        '<div style="display:flex; justify-content:space-between; align-items:center;">' +
+          '<span style="font-size:12px; color:var(--text-muted);">' + date + '</span>' +
+          (t.adminNote ? '<span style="font-size:12px; color:#22c55e;">💬 Admin replied</span>' : '') +
+        '</div>' +
+        (t.adminNote ? '<div style="margin-top:10px; padding:10px; background:var(--bg-gray); border-radius:8px; font-size:13px; color:var(--text);"><strong>Admin:</strong> ' + t.adminNote + '</div>' : '') +
+      '</div>';
+    }).join('');
+  } catch (err) {
+    container.innerHTML = '<div style="text-align:center; padding:40px; color:var(--text-muted);">Failed to load tickets</div>';
+  }
+}
+
+// Close modal when clicking backdrop
+document.addEventListener('click', function(e) {
+  var modal = document.getElementById('ticketModal');
+  if (modal && e.target === modal) closeTicketModal();
+});
 
 // ═══ END OF JAVASCRIPT ═══
