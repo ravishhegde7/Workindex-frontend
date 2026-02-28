@@ -50,6 +50,7 @@
     g('rvSrch').oninput = function() { deb('rv', loadReviews); };
     g('rvMin').onchange = loadReviews;
     g('rgSt').onchange = loadRegistrations;
+         if (g('kycSt')) g('kycSt').onchange = loadKycRequests;
     g('commTarget').onchange = function() {
       g('commCustomBox').style.display = this.value === 'custom' ? 'block' : 'none';
     };
