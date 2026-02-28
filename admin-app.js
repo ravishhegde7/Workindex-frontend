@@ -940,8 +940,14 @@
         var actions = '';
         if (!u.isApproved) actions += '<button class="btn bgrn" data-reg-action="' + u._id + '" data-action="approve" data-nm="' + esc(u.name) + '">Approve</button> ';
         if (!u.isBanned) actions += '<button class="btn brdn" data-reg-action="' + u._id + '" data-action="ban" data-nm="' + esc(u.name) + '">Reject</button>';
-        var kycCount = [u.aadharDoc, u.panDoc, u.certificateDoc, u.kycDocument, (u.profile&&u.profile.aadhar), (u.profile&&u.profile.pan), (u.profile&&u.profile.certificate)].filter(Boolean).length;
-        var kycBtn = kycCount > 0 ? '<button class="btn bpri" data-kyc-uid="' + u._id + '" data-kyc-name="' + esc(u.name) + '">' + kycCount + ' doc' + (kycCount>1?'s':'') + '</button>' : '<span style="font-size:11px;color:#606078">No docs</span>';
+        var kycCount = [u.aadharDoc, u.panDoc, u.certificateDoc, u.kycDocument,
+  (u.profile&&u.profile.aadhar), (u.profile&&u.profile.pan), (u.profile&&u.profile.certificate),
+  (u.kyc && u.kyc.status && u.kyc.status !== 'not_submitted' ? u.kyc.docType : null)
+].filter(Boolean).length;
+
+var kycBtn = kycCount > 0
+  ? '<button class="btn bpri" data-kyc-uid="' + u._id + '" data-kyc-name="' + esc(u.name) + '">' + (u.kyc && u.kyc.docType ? u.kyc.docType : kycCount + ' doc') + '</button>'
+  : '<span style="font-size:11px;color:#606078">No docs</span>';
         return '<tr><td>' + uLnk(u._id, u.name) + '</td><td style="font-size:12px;color:#a0a0b8">' + esc(u.email) + '</td><td style="font-size:12px">' + (u.phone||'-') + '</td><td style="font-size:12px">' + esc(pr.specialization||u.specialization||'-') + '</td><td>' + kycBtn + '</td><td>' + (u.isApproved ? '<span class="badge bgr">Approved</span>' : u.isBanned ? '<span class="badge brd">Rejected</span>' : '<span class="badge byw">Pending</span>') + '</td><td style="font-size:12px;color:#a0a0b8">' + fmt(u.createdAt) + '</td><td>' + actions + '</td></tr>';
       }).join(''));
     }).catch(function() { setT('rgTbl', ''); });
