@@ -1724,14 +1724,23 @@
     if (el) { el.style.display = el.style.display === 'none' ? 'block' : 'none'; }
   }
 
-  function processKyc(action) {
+    function processKyc(action) {
     if (!_kycUid) return;
-    var btnAct = action === 'approve' ? 'approve' : 'ban';
-    api('users/' + _kycUid + '/action', 'POST', { action: btnAct })
-      .then(function(d) {
-        if (d.success) { toast(d.message); closeModal('kycModal'); loadRegistrations(); }
-        else toast(d.message || 'Failed', 'e');
-      }).catch(function() { toast('Error', 'e'); });
+    if (action === 'reject') {
+      var reason = prompt('Rejection reason:') || 'Document unclear or invalid';
+      api('kyc/' + _kycUid + '/reject', 'POST', { reason: reason })
+        .then(function(d) {
+          if (d.success) { toast('KYC rejected'); closeModal('kycModal'); loadKycRequests(); loadRegistrations(); }
+          else toast(d.message || 'Failed', 'e');
+        }).catch(function() { toast('Error', 'e'); });
+    } else {
+      if (!confirm('Approve KYC?')) return;
+      api('kyc/' + _kycUid + '/approve', 'POST', {})
+        .then(function(d) {
+          if (d.success) { toast('KYC approved ✅'); closeModal('kycModal'); loadKycRequests(); loadRegistrations(); }
+          else toast(d.message || 'Failed', 'e');
+        }).catch(function() { toast('Error', 'e'); });
+    }
   }
   /* ═══ KYC REQUESTS TAB ══════════════════════════════════════════════════ */
   function loadKycRequests() {
