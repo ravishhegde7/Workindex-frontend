@@ -1736,10 +1736,16 @@ else html += '<a class="btn bgho" href="' + esc(doc.url) + '" target="_blank">Do
     }).catch(function() { g('kycModalBody').innerHTML = '<p style="color:#606078;padding:16px">Error loading</p>'; });
   }
 
-  function showKycPreview(url, label) {
-    var id = 'kp-' + label.replace(/\s/g,'');
-    var el = document.getElementById(id);
-    if (el) { el.style.display = el.style.display === 'none' ? 'block' : 'none'; }
+    function showKycPreview(url, label) {
+    var w = window.open('', '_blank');
+    if (!w) { alert('Allow popups to view documents'); return; }
+    w.document.write(
+      '<html><head><title>' + label + '</title>' +
+      '<style>body{margin:0;background:#000;display:flex;align-items:center;justify-content:center;min-height:100vh}' +
+      'img{max-width:100%;max-height:100vh;object-fit:contain}</style></head>' +
+      '<body><img src="' + url + '" onerror="document.body.innerHTML=\'<p style=color:red;padding:20px>Failed to load image</p>\'"></body></html>'
+    );
+    w.document.close();
   }
 
     function processKyc(action) {
