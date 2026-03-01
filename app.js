@@ -1938,31 +1938,110 @@ async function contactExpert(expertId, requestId, clientId) {
 // ─── LOAD EXPERT'S APPROACHES ───
 async function loadMyApproaches() {
   try {
+    // Load regular approaches
     const res = await fetch(`${API_URL}/approaches`, {
       method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${state.token}`
-      }
+      headers: { 'Authorization': `Bearer ${state.token}` }
     });
-    
     const data = await res.json();
-    
     if (data.success) {
       state.myApproaches = data.approaches || [];
-      renderMyApproaches();
     }
+
+    // Load customer interest notifications
+    const notifRes = await fetch(`${API_URL}/notifications`, {
+      headers: { 'Authorization': `Bearer ${state.token}` }
+    });
+    const notifData = await notifRes.json();
+    const interests = (notifData.notifications || []).filter(
+      n => n.type === 'customer_interest'
+    );
+
+    renderMyApproaches(interests);
   } catch (error) {
     console.error('Load my approaches error:', error);
   }
 }
-
 // ─── RENDER EXPERT'S APPROACHES ───
-function renderMyApproaches() {
+function renderMyApproaches(interests = []) {
   const container = document.getElementById('approachesList');
   if (!container) return;
-  
+
+  // ── Customer Interested Section ──
+  let interestHTML = '';
+  if (interests.length > 0) {
+    interestHTML = `
+      <div style="margin-bottom:20px;">
+        <h3 style="font-size:16px; font-weight:700; color:var(--text); margin-bottom:12px;">
+          🎯 Customer Interest (${interests.length})
+        </h3>
+        ${interests.map(n => {
+          const d = n.data || {};
+          const unlocked = d.unlocked;
+          return `
+            <div style="background:var(--bg); border:2px solid ${unlocked ? '#22c55e' : 'var(--primary)'}; border-radius:14px; padding:16px; margin-bottom:12px;">
+              <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
+                <span style="font-size:14px; font-weight:700; color:var(--text);">🎯 Client wants to hire you</span>
+                <span style="font-size:11px; padding:3px 8px; border-radius:20px; background:${unlocked ? 'rgba(34,197,94,0.1)' : 'rgba(252,128,25,0.1)'}; color:${unlocked ? '#22c55e' : 'var(--primary)'}; font-weight:700;">
+                  ${unlocked ? 'Unlocked' : '5 credits'}
+                </span>
+              </div>
+
+              <div style="padding:12px; background:var(--bg-gray); border-radius:10px; margin-bottom:12px;">
+                <div style="font-size:13px; color:var(--text-muted); margin-bottom:6px;">Client contact:</div>
+                ${unlocked ? `
+                  <div style="font-size:15px; font-weight:700; color:var(--text); margin-bottom:4px;">
+                    👤 ${d.clientName || 'Client'}
+                  </div>
+                  <div style="font-size:14px; color:#22c55e; margin-bottom:4px;">
+                    📞 ${d.fullPhone || d.maskedPhone}
+                  </div>
+                  <div style="font-size:14px; color:#22c55e;">
+                    ✉️ ${d.fullEmail || d.maskedEmail}
+                  </div>
+                ` : `
+                  <div style="font-size:15px; font-weight:600; color:var(--text); margin-bottom:4px; letter-spacing:1px;">
+                    📞 ${d.maskedPhone || '98XXXXXX21'}
+                  </div>
+                  <div style="font-size:15px; font-weight:600; color:var(--text); letter-spacing:1px;">
+                    ✉️ ${d.maskedEmail || 'r****@gmail.com'}
+                  </div>
+                  <div style="font-size:12px; color:var(--text-muted); margin-top:6px;">
+                    🔒 Spend 5 credits to see full details
+                  </div>
+                `}
+              </div>
+
+              <div style="font-size:12px; color:var(--text-muted); margin-bottom:10px;">
+                ${formatDate(n.createdAt)}
+              </div>
+
+              ${unlocked ? `
+                <div style="display:flex; gap:8px;">
+                  <a href="tel:${d.fullPhone}" style="flex:1; padding:10px; background:#22c55e; color:#fff; border:none; border-radius:10px; font-size:13px; font-weight:700; cursor:pointer; text-align:center; text-decoration:none;">
+                    📞 Call
+                  </a>
+                  <a href="mailto:${d.fullEmail}" style="flex:1; padding:10px; background:var(--primary); color:#fff; border:none; border-radius:10px; font-size:13px; font-weight:700; cursor:pointer; text-align:center; text-decoration:none;">
+                    ✉️ Email
+                  </a>
+                </div>
+              ` : `
+                <button onclick="unlockInterest('${n._id}')"
+                  style="width:100%; padding:12px; background:var(--primary); color:#fff; border:none; border-radius:10px; font-size:14px; font-weight:700; cursor:pointer;">
+                  🔓 Unlock for 5 Credits
+                </button>
+              `}
+            </div>
+          `;
+        }).join('')}
+      </div>
+      <hr style="border:none; border-top:1px solid var(--border); margin-bottom:20px;">
+    `;
+  }
+
+  // ── Regular Approaches Section ──
   if (!state.myApproaches || state.myApproaches.length === 0) {
-    container.innerHTML = `
+    container.innerHTML = interestHTML + `
       <div class="empty-state">
         <div class="empty-icon">💼</div>
         <h3 class="empty-title">No approaches yet</h3>
@@ -1971,29 +2050,31 @@ function renderMyApproaches() {
     `;
     return;
   }
-  
-  container.innerHTML = state.myApproaches.map(app => {
+
+  const statusColors = {
+    pending: 'badge-warning',
+    accepted: 'badge-success',
+    rejected: 'badge-danger'
+  };
+
+  container.innerHTML = interestHTML + `
+    <h3 style="font-size:16px; font-weight:700; color:var(--text); margin-bottom:12px;">
+      📨 My Approaches (${state.myApproaches.length})
+    </h3>
+  ` + state.myApproaches.map(app => {
     const req = app.request;
     if (!req) return '';
-    const statusColors = {
-      pending: 'badge-warning',
-      accepted: 'badge-success',
-      rejected: 'badge-danger'
-    };
-    
     return `
-      <div class="request-card" style="background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 16px; cursor: pointer;" onclick="showMyApproachDetail('${app._id}')">
-        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
-          <div style="flex: 1;">
-            <h3 style="font-size: 18px; font-weight: 700; color: var(--text); margin-bottom: 4px;">${req.title || 'Request'}</h3>
-            <p style="font-size: 14px; color: var(--text-muted);">${(req.service || '').toUpperCase()}</p>
+      <div class="request-card" style="background:var(--bg); border:1px solid var(--border); border-radius:12px; padding:20px; margin-bottom:16px; cursor:pointer;" onclick="showMyApproachDetail('${app._id}')">
+        <div style="display:flex; justify-content:space-between; align-items:start; margin-bottom:12px;">
+          <div style="flex:1;">
+            <h3 style="font-size:18px; font-weight:700; color:var(--text); margin-bottom:4px;">${req.title || 'Request'}</h3>
+            <p style="font-size:14px; color:var(--text-muted);">${(req.service || '').toUpperCase()}</p>
           </div>
           <span class="badge ${statusColors[app.status] || 'badge-warning'}">${(app.status || 'pending').toUpperCase()}</span>
         </div>
-        
-        <p style="font-size: 14px; color: var(--text-light); margin-bottom: 12px;">${req.description || ''}</p>
-        
-        <div style="display: flex; gap: 20px; font-size: 13px; color: var(--text-muted);">
+        <p style="font-size:14px; color:var(--text-light); margin-bottom:12px;">${req.description || ''}</p>
+        <div style="display:flex; gap:20px; font-size:13px; color:var(--text-muted);">
           <span>💰 ${app.creditsSpent || 0} credits spent</span>
           <span>📅 ${new Date(app.createdAt).toLocaleDateString()}</span>
         </div>
@@ -3827,5 +3908,47 @@ function maskEmail(email) {
   const parts = String(email).split('@');
   if (parts.length < 2) return '****@****.com';
   return parts[0][0] + '****@' + parts[1];
+}
+// ─── UNLOCK CUSTOMER INTEREST ───
+async function unlockInterest(notifId) {
+  const btn = event.target;
+  btn.disabled = true;
+  btn.textContent = '⏳ Unlocking...';
+
+  try {
+    const res = await fetch(`${API_URL}/users/unlock-interest/${notifId}`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${state.token}` }
+    });
+    const data = await res.json();
+
+    if (data.success) {
+      showToast(`Unlocked! ${data.creditsSpent} credits spent. ${data.newBalance} remaining.`, 'success');
+      // Update credits display
+      if (state.user) {
+        state.user.credits = data.newBalance;
+        localStorage.setItem('user', JSON.stringify(state.user));
+        document.querySelectorAll('.credit-display').forEach(el => {
+          el.textContent = data.newBalance;
+        });
+      }
+      // Reload to show full details
+      loadMyApproaches();
+    } else if (data.needCredits) {
+      showToast(data.message, 'error');
+      btn.disabled = false;
+      btn.textContent = '🔓 Unlock for 5 Credits';
+      // Open credit purchase modal
+      setTimeout(() => openCreditModal(), 500);
+    } else {
+      showToast(data.message || 'Failed to unlock', 'error');
+      btn.disabled = false;
+      btn.textContent = '🔓 Unlock for 5 Credits';
+    }
+  } catch (err) {
+    showToast('Network error', 'error');
+    btn.disabled = false;
+    btn.textContent = '🔓 Unlock for 5 Credits';
+  }
 }
 // ═══ END OF JAVASCRIPT ═══
