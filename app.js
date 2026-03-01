@@ -115,6 +115,7 @@ function switchTab(tabName) {
   if (content) {
     content.style.display = 'block';
     if (tabName === 'documents') loadDocuments();
+       else if (tabName === 'explore' && !isExpert) loadClientExplorePage();
     else if (tabName === 'access') loadAccessRequests();
     else if (tabName === 'ratings') loadMyRatings();
     else if (tabName === 'approaches' && isExpert) loadMyApproaches();
