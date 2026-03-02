@@ -115,7 +115,18 @@ function switchTab(tabName) {
   if (content) {
     content.style.display = 'block';
     if (tabName === 'documents') loadDocuments();
-           else if (tabName === 'explore' && !isExpert) loadClientExplorePage();
+        else if (tabName === 'explore' && !isExpert) {
+      loadClientExplorePage();
+      // Re-attach invite button listener after render
+      setTimeout(() => {
+        const invBtn = document.getElementById('exploreFilterInvites');
+        if (invBtn) invBtn.onclick = () => filterClientExplore('invites');
+        const allBtn = document.getElementById('exploreFilterAll');
+        if (allBtn) allBtn.onclick = () => filterClientExplore('all');
+        const slBtn = document.getElementById('exploreFilterShortlisted');
+        if (slBtn) slBtn.onclick = () => filterClientExplore('shortlisted');
+      }, 100);
+    }
     else if (tabName === 'invites' && !isExpert) loadClientInvites();
     else if (tabName === 'access') loadAccessRequests();
     else if (tabName === 'ratings') loadMyRatings();
