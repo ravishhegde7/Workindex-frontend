@@ -3598,13 +3598,12 @@ var _exploreFilter = 'all';
 
 // ─── CLIENT INVITES TAB ───
 async function loadClientInvites() {
-  const container = document.getElementById('clientInvitesTab');
+  const container = document.getElementById('clientInvitesList');
   if (!container) return;
 
   container.innerHTML = '<div style="text-align:center;padding:40px;"><div class="spinner"></div></div>';
 
   try {
-    // Fetch all notifications sent TO experts where this client triggered hire
     const res = await fetch(`${API_URL}/users/my-invites`, {
       headers: { 'Authorization': `Bearer ${state.token}` }
     });
@@ -3615,7 +3614,7 @@ async function loadClientInvites() {
         <div class="empty-state">
           <div class="empty-icon">📨</div>
           <h3 class="empty-title">No invites sent yet</h3>
-          <p class="empty-text">When you hire an expert from Explore, they'll appear here</p>
+          <p class="empty-text">Hire an expert from All Experts — they'll appear here with their response status</p>
         </div>`;
       return;
     }
@@ -3629,19 +3628,21 @@ async function loadClientInvites() {
 
       return `
         <div style="background:var(--bg); border:1.5px solid var(--border); border-radius:14px; padding:16px; margin-bottom:12px;">
-          <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px;">
+          <div style="display:flex; align-items:center; gap:12px; margin-bottom:10px;">
             <div style="width:48px; height:48px; border-radius:50%; background:var(--primary); color:#fff; font-size:18px; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0; overflow:hidden;">
               ${expert.profilePhoto ? `<img src="${expert.profilePhoto}" style="width:100%;height:100%;object-fit:cover;">` : (expert.name || 'E').charAt(0).toUpperCase()}
             </div>
             <div style="flex:1;">
               <div style="font-size:15px; font-weight:700; color:var(--text);">${expert.name || 'Expert'}</div>
-              <div style="font-size:12px; color:var(--text-muted);">${expert.specialization || expert.email || ''}</div>
+              <div style="font-size:12px; color:var(--text-muted);">${expert.specialization || ''}</div>
             </div>
             <span style="padding:4px 12px; border-radius:20px; font-size:12px; font-weight:700; background:${statusBg}; color:${statusColor};">${statusLabel}</span>
           </div>
           <div style="font-size:12px; color:var(--text-muted); padding-top:8px; border-top:1px solid var(--border);">
             📅 Sent ${formatDate(inv.createdAt)}
-            ${inv.unlocked ? `<span style="margin-left:12px; color:#22c55e;">Expert has viewed your contact</span>` : `<span style="margin-left:12px;">Waiting for expert to respond</span>`}
+            <span style="margin-left:12px; color:${statusColor};">
+              ${inv.unlocked ? 'Expert has viewed your contact details' : 'Waiting for expert to respond'}
+            </span>
           </div>
         </div>
       `;
@@ -3695,25 +3696,45 @@ async function loadClientExplorePage() {
 function filterClientExplore(filter) {
   _exploreFilter = filter;
   
-  // Update button styles
   const allBtn = document.getElementById('exploreFilterAll');
   const slBtn = document.getElementById('exploreFilterShortlisted');
-  if (allBtn) {
-    allBtn.style.background = filter === 'all' ? 'var(--primary)' : 'transparent';
-    allBtn.style.color = filter === 'all' ? '#fff' : 'var(--text)';
-    allBtn.style.borderColor = filter === 'all' ? 'var(--primary)' : 'var(--border)';
-  }
-  if (slBtn) {
-    slBtn.style.background = filter === 'shortlisted' ? 'var(--primary)' : 'transparent';
-    slBtn.style.color = filter === 'shortlisted' ? '#fff' : 'var(--text)';
-    slBtn.style.borderColor = filter === 'shortlisted' ? 'var(--primary)' : 'var(--border)';
-  }
-  
-  if (filter === 'shortlisted') {
-    const shortlisted = _clientExploreAll.filter(e => _clientShortlisted.includes(e._id));
-    renderClientExploreGrid(shortlisted);
+  const invBtn = document.getElementById('exploreFilterInvites');
+  const searchBar = document.getElementById('exploreSearchBar');
+  const grid = document.getElementById('clientExploreGrid');
+  const empty = document.getElementById('clientExploreEmpty');
+  const invPanel = document.getElementById('clientInvitesPanel');
+
+  // Update button styles
+  [
+    { btn: allBtn, active: filter === 'all' },
+    { btn: slBtn, active: filter === 'shortlisted' },
+    { btn: invBtn, active: filter === 'invites' }
+  ].forEach(({ btn, active }) => {
+    if (!btn) return;
+    btn.style.background = active ? 'var(--primary)' : 'transparent';
+    btn.style.color = active ? '#fff' : 'var(--text)';
+    btn.style.borderColor = active ? 'var(--primary)' : 'var(--border)';
+  });
+
+  if (filter === 'invites') {
+    // Show invites panel, hide grid
+    if (searchBar) searchBar.style.display = 'none';
+    if (grid) grid.style.display = 'none';
+    if (empty) empty.style.display = 'none';
+    if (invPanel) invPanel.style.display = 'block';
+    loadClientInvites();
   } else {
-    renderClientExploreGrid(_clientExploreAll);
+    // Show grid, hide invites
+    if (searchBar) searchBar.style.display = 'flex';
+    if (grid) grid.style.display = 'block';
+    if (invPanel) invPanel.style.display = 'none';
+
+    if (filter === 'shortlisted') {
+      const shortlisted = _clientExploreAll.filter(e => _clientShortlisted.includes(e._id));
+      renderClientExploreGrid(shortlisted);
+    } else {
+      renderClientExploreGrid(_clientExploreAll);
+    }
   }
 }
 
@@ -4040,23 +4061,9 @@ async function viewClientDocumentsFromInterest(clientId) {
 async function messageClientFromInterest(clientId) {
   if (!clientId || clientId === 'undefined') { showToast('Client info not available', 'error'); return; }
   try {
-    // Find any existing approach to get a requestId, or start a direct chat
-    const approachRes = await fetch(`${API_URL}/approaches`, {
-      headers: { 'Authorization': `Bearer ${state.token}` }
-    });
-    const approachData = await approachRes.json();
-    
-    // Try to find an approach where the client matches
-    let requestId = null;
-    if (approachData.success && approachData.approaches) {
-      const match = approachData.approaches.find(a => {
-        const reqClient = a.request?.client;
-        return reqClient && reqClient.toString() === clientId.toString();
-      });
-      if (match) requestId = match.request?._id || match.request;
-    }
-
-    const res = await fetch(`${API_URL}/chats/start`, {
+    showToast('Opening chat...', 'info');
+    // Use a direct chat endpoint that doesn't require a requestId
+    const res = await fetch(`${API_URL}/chats/direct`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${state.token}`,
@@ -4064,8 +4071,7 @@ async function messageClientFromInterest(clientId) {
       },
       body: JSON.stringify({
         expertId: state.user._id,
-        clientId: clientId,
-        requestId: requestId  // may be null — backend should handle
+        clientId: clientId
       })
     });
     const data = await res.json();
