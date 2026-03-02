@@ -604,9 +604,70 @@
   }
 
   /* ═══ APPROACHES ═════════════════════════════════════════════════════════ */
+    /* ═══ APPROACHES ═════════════════════════════════════════════════════════ */
   function loadApproaches() {
     setT('apTbl', spin());
-    api('approaches' + qs({ status: g('apSt').value })).then(function(d) {
+
+    // Fetch both regular approaches and expert invites in parallel
+    Promise.all([
+      api('approaches' + qs({ status: g('apSt').value })),
+      api('interests' + qs({})).catch(function() { return { success: false, interests: [] }; })
+    ]).then(function(results) {
+      var d = results[0];
+      var inviteData = results[1];
+      var invites = (inviteData && inviteData.interests) || [];
+
+      // ── Expert Invites Section (insert above main table if any exist) ──
+      var inviteSection = document.getElementById('apInviteSection');
+      if (!inviteSection) {
+        // Create the invite section container above the approaches table
+        var apSection = document.getElementById('apTbl');
+        if (apSection) {
+          var wrapper = apSection.closest('table') || apSection.parentNode;
+          var div = document.createElement('div');
+          div.id = 'apInviteSection';
+          div.style.cssText = 'margin-bottom:20px;';
+          wrapper.parentNode.insertBefore(div, wrapper);
+          inviteSection = div;
+        }
+      }
+
+      if (inviteSection) {
+        if (invites.length > 0) {
+          inviteSection.innerHTML =
+            '<div style="font-size:15px;font-weight:700;color:#f0f0f4;margin-bottom:10px;">🎯 Expert Invites (' + invites.length + ')</div>' +
+            '<div style="overflow-x:auto;">' +
+            '<table style="width:100%;border-collapse:collapse;font-size:13px;">' +
+            '<thead><tr style="background:#18181d;color:#606078;font-size:11px;text-transform:uppercase;">' +
+            '<th style="padding:10px 12px;text-align:left;">Expert</th>' +
+            '<th style="padding:10px 12px;text-align:left;">Client</th>' +
+            '<th style="padding:10px 12px;text-align:left;">Masked Contact</th>' +
+            '<th style="padding:10px 12px;text-align:left;">Status</th>' +
+            '<th style="padding:10px 12px;text-align:left;">Date</th>' +
+            '</tr></thead><tbody>' +
+            invites.map(function(inv) {
+              var unlocked = inv.unlocked;
+              var statusBadge = unlocked
+                ? '<span class="badge bgr">🔓 Unlocked</span>'
+                : '<span class="badge byw">🔒 Pending</span>';
+              return '<tr style="border-bottom:1px solid #1a1a24;">' +
+                '<td style="padding:10px 12px;color:#FC8019;font-weight:600;">' + esc(inv.expert ? inv.expert.name : '—') + '</td>' +
+                '<td style="padding:10px 12px;color:#a0a0b8;">' + esc(inv.clientName || '—') + '</td>' +
+                '<td style="padding:10px 12px;font-family:monospace;font-size:12px;color:#a0a0b8;">' +
+                  esc(inv.maskedPhone || '') + '<br>' + esc(inv.maskedEmail || '') +
+                '</td>' +
+                '<td style="padding:10px 12px;">' + statusBadge + '</td>' +
+                '<td style="padding:10px 12px;color:#606078;font-size:12px;">' + fmt(inv.createdAt) + '</td>' +
+                '</tr>';
+            }).join('') +
+            '</tbody></table></div>' +
+            '<hr style="border:none;border-top:1px solid #1a1a24;margin:16px 0;">';
+        } else {
+          inviteSection.innerHTML = '';
+        }
+      }
+
+      // ── Regular Approaches Table ──
       setT('apTbl', (d.approaches||[]).map(function(a) {
         var en = a.expert ? esc(a.expert.name||'-') : '-', eid = a.expert ? a.expert._id : '';
         var actions = '<div style="display:flex;gap:4px">';
@@ -615,15 +676,28 @@
           actions += '<button class="btn brdn" data-ap-id="' + a._id + '" data-ap-act="rejected">Reject</button>';
         }
         actions += '<button class="btn bgho" data-ap-del="' + a._id + '">Delete</button></div>';
-        return '<tr><td><span data-uid="' + eid + '" style="cursor:pointer;color:#FC8019;font-weight:600">' + en + '</span></td><td style="color:#a0a0b8">' + (a.client?esc(a.client.name):'-') + '</td><td style="font-size:12px">' + (a.request?esc(a.request.title):'-') + '</td><td style="color:#f59e0b">' + (a.creditsSpent||0) + '</td><td>' + bdg(a.status) + '</td><td style="font-size:12px;color:#a0a0b8">' + fmt(a.createdAt) + '</td><td>' + actions + '</td></tr>';
+        var statusBadge = a.status === 'completed'
+          ? '<span class="badge bgr">completed</span>'
+          : bdg(a.status);
+        return '<tr><td><span data-uid="' + eid + '" style="cursor:pointer;color:#FC8019;font-weight:600">' + en + '</span></td>' +
+          '<td style="color:#a0a0b8">' + (a.client?esc(a.client.name):'-') + '</td>' +
+          '<td style="font-size:12px">' + (a.request?esc(a.request.title):'-') + '</td>' +
+          '<td style="color:#f59e0b">' + (a.creditsSpent||0) + '</td>' +
+          '<td>' + statusBadge + '</td>' +
+          '<td style="font-size:12px;color:#a0a0b8">' + fmt(a.createdAt) + '</td>' +
+          '<td>' + actions + '</td></tr>';
       }).join(''));
+
       // Delegated events for approach actions
-      document.getElementById('apTbl').addEventListener('click', function(ev) {
-        var ab = ev.target.closest('[data-ap-act]');
-        var db = ev.target.closest('[data-ap-del]');
-        if (ab) { updateApproach(ab.dataset.apId, ab.dataset.apAct); }
-        if (db) { if(confirm('Delete this approach?')) deleteApproach(db.dataset.apDel); }
-      }, {once: true});
+      var apTblEl = document.getElementById('apTbl');
+      if (apTblEl) {
+        apTblEl.addEventListener('click', function(ev) {
+          var ab = ev.target.closest('[data-ap-act]');
+          var db = ev.target.closest('[data-ap-del]');
+          if (ab) { updateApproach(ab.dataset.apId, ab.dataset.apAct); }
+          if (db) { if(confirm('Delete this approach?')) deleteApproach(db.dataset.apDel); }
+        }, {once: true});
+      }
     }).catch(function() { setT('apTbl', ''); });
   }
 
