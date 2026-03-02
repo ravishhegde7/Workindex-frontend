@@ -4050,21 +4050,103 @@ async function unlockInterest(notifId) {
 }
 // ─── VIEW DOCS FROM INTEREST UNLOCK ───
 async function viewClientDocumentsFromInterest(clientId) {
-  if (!clientId) { showToast('Client info not available', 'error'); return; }
-  // We don't have a requestId here, so pass null — viewClientDocuments handles it
+  if (!clientId || clientId === 'undefined') { showToast('Client info not available', 'error'); return; }
+  
   try {
-    const res = await fetch(`${API_URL}/documents/client/${clientId}/request/none`, {
+    showToast('Loading documents...', 'info');
+    
+    const res = await fetch(`${API_URL}/documents/client/${clientId}/interest`, {
       headers: { 'Authorization': `Bearer ${state.token}` }
     });
     const data = await res.json();
+    
     if (!data.success) {
-      showToast('No documents found or access required', 'info');
+      showToast(data.message || 'Could not load documents', 'error');
       return;
     }
-    // Reuse existing viewClientDocuments modal logic
-    viewClientDocuments(clientId, null);
+    
+    const modal = document.createElement('div');
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:1001;padding:20px;';
+    modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
+    
+    const docsHTML = data.documents && data.documents.length > 0 ? data.documents.map(doc => {
+      const sizeKB = ((doc.fileSize || 0) / 1024).toFixed(1);
+      const icon = doc.fileType === 'pdf' ? '📄' : doc.fileType === 'word' ? '📝' : doc.fileType === 'excel' ? '📊' : doc.fileType === 'image' ? '🖼️' : '📎';
+      
+      if (doc.hasAccess) {
+        return `
+          <div style="padding:16px;background:var(--bg-gray);border-radius:12px;margin-bottom:12px;">
+            <div style="display:flex;align-items:center;gap:12px;">
+              <span style="font-size:32px;">${icon}</span>
+              <div style="flex:1;">
+                <div style="font-size:15px;font-weight:600;color:var(--text);margin-bottom:2px;">${doc.originalFileName}</div>
+                <div style="font-size:13px;color:var(--text-muted);">${sizeKB} KB • ${(doc.fileType||'').toUpperCase()}</div>
+                <div style="font-size:12px;color:#4CAF50;margin-top:2px;">✅ Access granted</div>
+              </div>
+              <button onclick="downloadDocument('${doc._id}')" style="padding:8px 16px;background:var(--primary);color:#fff;border-radius:8px;font-size:13px;font-weight:600;border:none;cursor:pointer;">Download</button>
+            </div>
+          </div>`;
+      } else {
+        return `
+          <div style="padding:16px;background:var(--bg-gray);border-radius:12px;margin-bottom:12px;">
+            <div style="display:flex;align-items:center;gap:12px;">
+              <span style="font-size:32px;filter:grayscale(1);opacity:0.5;">${icon}</span>
+              <div style="flex:1;">
+                <div style="font-size:15px;font-weight:600;color:var(--text);margin-bottom:2px;">${doc.originalFileName}</div>
+                <div style="font-size:13px;color:var(--text-muted);">${sizeKB} KB • ${(doc.fileType||'').toUpperCase()}</div>
+                <div style="font-size:12px;color:var(--text-muted);margin-top:2px;">🔒 Access required</div>
+              </div>
+              <button onclick="requestDocumentAccessFromInterest('${doc._id}', '${clientId}')" style="padding:8px 12px;background:var(--primary);color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;">Request</button>
+            </div>
+          </div>`;
+      }
+    }).join('') : `
+      <div style="text-align:center;padding:40px;">
+        <div style="font-size:48px;margin-bottom:16px;">📁</div>
+        <h3 style="font-size:18px;font-weight:600;color:var(--text);margin-bottom:8px;">No documents yet</h3>
+        <p style="font-size:14px;color:var(--text-muted);">Client hasn't uploaded any documents</p>
+      </div>`;
+    
+    modal.innerHTML = `
+      <div style="background:var(--bg);border-radius:16px;max-width:500px;width:100%;max-height:80vh;overflow-y:auto;padding:24px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+          <h2 style="font-size:20px;font-weight:700;color:var(--text);">Client Documents</h2>
+          <button onclick="this.closest('[style*=fixed]').remove()" style="border:none;background:none;font-size:24px;cursor:pointer;">×</button>
+        </div>
+        <div style="padding:12px;background:rgba(252,128,25,0.1);border-radius:8px;margin-bottom:20px;font-size:13px;color:var(--text-muted);">
+          🔒 Documents require client approval before you can download them
+        </div>
+        ${docsHTML}
+      </div>`;
+    
+    document.body.appendChild(modal);
   } catch (err) {
+    console.error('View docs from interest error:', err);
     showToast('Could not load documents', 'error');
+  }
+}
+async function requestDocumentAccessFromInterest(documentId, clientId) {
+  try {
+    const res = await fetch(`${API_URL}/documents/${documentId}/request-access`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${state.token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ message: 'I would like to access this document.' })
+    });
+    const data = await res.json();
+    if (data.success) {
+      showToast('Access request sent to client!', 'success');
+      document.querySelectorAll('[style*="position: fixed"]').forEach(m => {
+        if (m.style.zIndex === '1001') m.remove();
+      });
+      viewClientDocumentsFromInterest(clientId);
+    } else {
+      showToast(data.message || 'Already requested or failed', 'error');
+    }
+  } catch (err) {
+    showToast('Network error', 'error');
   }
 }
 
