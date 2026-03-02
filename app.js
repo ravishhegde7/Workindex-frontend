@@ -3595,6 +3595,60 @@ var _blockTargetId = null;
 var _blockTargetName = null;
 var _exploreFilter = 'all';
 
+// ─── CLIENT INVITES TAB ───
+async function loadClientInvites() {
+  const container = document.getElementById('clientInvitesTab');
+  if (!container) return;
+
+  container.innerHTML = '<div style="text-align:center;padding:40px;"><div class="spinner"></div></div>';
+
+  try {
+    // Fetch all notifications sent TO experts where this client triggered hire
+    const res = await fetch(`${API_URL}/users/my-invites`, {
+      headers: { 'Authorization': `Bearer ${state.token}` }
+    });
+    const data = await res.json();
+
+    if (!data.success || !data.invites || !data.invites.length) {
+      container.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-icon">📨</div>
+          <h3 class="empty-title">No invites sent yet</h3>
+          <p class="empty-text">When you hire an expert from Explore, they'll appear here</p>
+        </div>`;
+      return;
+    }
+
+    container.innerHTML = data.invites.map(inv => {
+      const status = inv.unlocked ? 'accepted' : 'pending';
+      const statusColor = inv.unlocked ? '#22c55e' : '#f59e0b';
+      const statusBg = inv.unlocked ? 'rgba(34,197,94,0.1)' : 'rgba(245,158,11,0.1)';
+      const statusLabel = inv.unlocked ? '✅ Accepted' : '⏳ Pending';
+      const expert = inv.expert || {};
+
+      return `
+        <div style="background:var(--bg); border:1.5px solid var(--border); border-radius:14px; padding:16px; margin-bottom:12px;">
+          <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px;">
+            <div style="width:48px; height:48px; border-radius:50%; background:var(--primary); color:#fff; font-size:18px; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0; overflow:hidden;">
+              ${expert.profilePhoto ? `<img src="${expert.profilePhoto}" style="width:100%;height:100%;object-fit:cover;">` : (expert.name || 'E').charAt(0).toUpperCase()}
+            </div>
+            <div style="flex:1;">
+              <div style="font-size:15px; font-weight:700; color:var(--text);">${expert.name || 'Expert'}</div>
+              <div style="font-size:12px; color:var(--text-muted);">${expert.specialization || expert.email || ''}</div>
+            </div>
+            <span style="padding:4px 12px; border-radius:20px; font-size:12px; font-weight:700; background:${statusBg}; color:${statusColor};">${statusLabel}</span>
+          </div>
+          <div style="font-size:12px; color:var(--text-muted); padding-top:8px; border-top:1px solid var(--border);">
+            📅 Sent ${formatDate(inv.createdAt)}
+            ${inv.unlocked ? `<span style="margin-left:12px; color:#22c55e;">Expert has viewed your contact</span>` : `<span style="margin-left:12px;">Waiting for expert to respond</span>`}
+          </div>
+        </div>
+      `;
+    }).join('');
+  } catch (err) {
+    container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-muted);">Failed to load invites</div>';
+  }
+}
 // ─── LOAD EXPLORE PAGE ───
 async function loadClientExplorePage() {
   const grid = document.getElementById('clientExploreGrid');
@@ -3983,9 +4037,24 @@ async function viewClientDocumentsFromInterest(clientId) {
 
 // ─── MESSAGE CLIENT FROM INTEREST UNLOCK ───
 async function messageClientFromInterest(clientId) {
-  if (!clientId) { showToast('Client info not available', 'error'); return; }
+  if (!clientId || clientId === 'undefined') { showToast('Client info not available', 'error'); return; }
   try {
-    // Start a direct chat without a specific request
+    // Find any existing approach to get a requestId, or start a direct chat
+    const approachRes = await fetch(`${API_URL}/approaches`, {
+      headers: { 'Authorization': `Bearer ${state.token}` }
+    });
+    const approachData = await approachRes.json();
+    
+    // Try to find an approach where the client matches
+    let requestId = null;
+    if (approachData.success && approachData.approaches) {
+      const match = approachData.approaches.find(a => {
+        const reqClient = a.request?.client;
+        return reqClient && reqClient.toString() === clientId.toString();
+      });
+      if (match) requestId = match.request?._id || match.request;
+    }
+
     const res = await fetch(`${API_URL}/chats/start`, {
       method: 'POST',
       headers: {
@@ -3995,11 +4064,12 @@ async function messageClientFromInterest(clientId) {
       body: JSON.stringify({
         expertId: state.user._id,
         clientId: clientId,
-        requestId: null
+        requestId: requestId  // may be null — backend should handle
       })
     });
     const data = await res.json();
     if (data.success) {
+      document.querySelectorAll('[style*="position: fixed"]').forEach(m => m.remove());
       switchTab('chat');
       openChat(data.chat._id);
     } else {
