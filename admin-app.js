@@ -1317,27 +1317,33 @@ var kycBtn = kycCount > 0
     state = (pr.fullAddress.state || '').trim() || null;
   }
 
-  // 2. profile.clientLocation (client — online service, new field)
+  // 2. profile.clientLocation (client — online service)
   if (!city && pr.clientLocation) {
     city  = (pr.clientLocation.city  || '').trim() || null;
     state = (pr.clientLocation.state || '').trim() || null;
   }
 
-  // 3. profile.city + profile.state (expert questionnaire)
-  if (!city && pr.city) {
-    city = pr.city.trim() || null;
-  }
-  if (!state && pr.state) {
-    state = pr.state.trim() || null;
+  // 3. profile.address (another client address variant)
+  if (!city && pr.address) {
+    city  = (pr.address.city  || '').trim() || null;
+    state = (pr.address.state || '').trim() || null;
   }
 
-    // 4. top-level user location field (fallback for BOTH roles)
-  if (u.location) {
-    if (!city)  city  = (u.location.city  || '').trim() || null;
-    if (!state) state = (u.location.state || '').trim() || null;
+  // 4. profile.city + profile.state (expert AND client)
+  if (!city) {
+    city = (pr.city || '').trim() || null;
+  }
+  if (!state) {
+    state = (pr.state || '').trim() || null;
   }
 
-  // 5. try to derive state from city for old client records
+  // 5. top-level user location field (fallback)
+  if (!city && u.location) {
+    city  = (u.location.city  || '').trim() || null;
+    state = (u.location.state || '').trim() || null;
+  }
+
+  // 6. try to derive state from city for old client records
   // that only have fullAddress without state filled
   if (city && !state) {
     var cityStateMap = {
