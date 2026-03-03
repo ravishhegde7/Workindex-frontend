@@ -395,7 +395,7 @@
         sc('Requests', st.totalRequests, '', 'posts'),
         sc('Reviews', st.totalReviews || 0, 'cy', 'reviews'),
         sc('Credits Purchased', cr.totalPurchased || 0, 'cg', 'credits-purchase'),
-        sc('Amount Paid (₹)', '₹' + (((cr.totalAmountPaid || cr.totalPurchased || 0) * 10)).toLocaleString('en-IN'), 'cg', 'credits'),
+        sc('Amount Paid (₹)', '₹' + (cr.totalAmountPaid || 0).toLocaleString('en-IN'), 'cg', 'credits'),
         sc('Credits Spent', cr.totalSpent || 0, 'co', 'credits-spent'),
         sc('Credits Refunded', cr.totalRefunded || 0, 'cpu', 'credits-refund'),
         sc('Pending Refunds', st.pendingRefunds || 0, 'cy', 'refunds'),
