@@ -1331,10 +1331,10 @@ var kycBtn = kycCount > 0
     state = pr.state.trim() || null;
   }
 
-  // 4. top-level user location field (fallback)
-  if (!city && u.location) {
-    city  = (u.location.city  || '').trim() || null;
-    state = (u.location.state || '').trim() || null;
+    // 4. top-level user location field (fallback for BOTH roles)
+  if (u.location) {
+    if (!city)  city  = (u.location.city  || '').trim() || null;
+    if (!state) state = (u.location.state || '').trim() || null;
   }
 
   // 5. try to derive state from city for old client records
