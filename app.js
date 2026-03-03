@@ -1296,7 +1296,8 @@ async function confirmPayment() {
             body: JSON.stringify({ 
         credits,
         amountPaid: parseInt(selected.dataset.price)  // ← add this
-      });
+      })
+            });
     
     const data = await res.json();
     
