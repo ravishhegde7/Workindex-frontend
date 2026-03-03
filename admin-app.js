@@ -1164,8 +1164,10 @@ var kycBtn = kycCount > 0
     var date = opt.dataset.date || '';
 
     // Convert credits to INR (adjust rate as needed — 1 credit = ₹10 by default)
-    var inrAmt = amt * 10;
-    g('invAmt').value = inrAmt > 0 ? inrAmt : '';
+    var txOpt = txSel.options[txSel.selectedIndex];
+var actualPaid = parseFloat(txOpt.dataset.amountPaid) || 0;
+var inrAmt = actualPaid > 0 ? actualPaid : amt * 10;
+g('invAmt').value = inrAmt > 0 ? inrAmt : '';
     if (desc) g('invDesc').value = desc;
     if (date) g('invDate').value = date;
 
