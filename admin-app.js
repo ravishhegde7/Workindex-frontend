@@ -1140,6 +1140,7 @@ var kycBtn = kycCount > 0
           opt.textContent = label;
           opt.dataset.amount = Math.abs(tx.amount) || 0;
           opt.dataset.desc = tx.description || tx.type || '';
+           opt.dataset.amountPaid = (tx.purchaseDetails && tx.purchaseDetails.amountPaid) || 0;
           opt.dataset.date = tx.createdAt ? tx.createdAt.split('T')[0] : '';
           opt.dataset.type = tx.type || '';
           txSel.appendChild(opt);
