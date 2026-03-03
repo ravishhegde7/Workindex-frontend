@@ -3655,6 +3655,12 @@ async function loadClientInvites() {
               ${inv.unlocked ? 'Expert has viewed your contact details' : 'Waiting for expert to respond'}
             </span>
           </div>
+          ${inv.unlocked ? `
+            <button onclick="confirmServiceReceived('', '${inv.expert?._id || ''}', '${(inv.expert?.name || 'Expert').replace(/'/g, '')}', '')"
+              style="width:100%; margin-top:10px; padding:10px; border:1.5px solid #4CAF50; border-radius:10px; background:transparent; color:#4CAF50; font-size:13px; font-weight:600; cursor:pointer;">
+              ✓ Service Received?
+            </button>
+          ` : ''}
         </div>
       `;
     }).join('');
