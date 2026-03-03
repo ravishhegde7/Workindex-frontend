@@ -3655,12 +3655,16 @@ async function loadClientInvites() {
               ${inv.unlocked ? 'Expert has viewed your contact details' : 'Waiting for expert to respond'}
             </span>
           </div>
-          ${inv.unlocked ? `
-            <button onclick="confirmServiceReceived('', '${inv.expert?._id || ''}', '${(inv.expert?.name || 'Expert').replace(/'/g, '')}', '')"
-              style="width:100%; margin-top:10px; padding:10px; border:1.5px solid #4CAF50; border-radius:10px; background:transparent; color:#4CAF50; font-size:13px; font-weight:600; cursor:pointer;">
-              ✓ Service Received?
-            </button>
-          ` : ''}
+          ${inv.unlocked && !inv.completed ? `
+  <button onclick="confirmInviteComplete('${inv._id}', '${inv.expert?._id || ''}', '${(inv.expert?.name || 'Expert').replace(/'/g, '')}')"
+    style="width:100%; margin-top:10px; padding:10px; border:1.5px solid #4CAF50; border-radius:10px; background:transparent; color:#4CAF50; font-size:13px; font-weight:600; cursor:pointer;">
+    ✓ Service Received?
+  </button>
+` : inv.completed ? `
+  <div style="width:100%; margin-top:10px; padding:10px; border-radius:10px; background:#f0fff4; color:#4CAF50; font-size:13px; font-weight:600; text-align:center;">
+    ✅ Service Completed
+  </div>
+` : ''}
         </div>
       `;
     }).join('');
@@ -4183,6 +4187,32 @@ async function messageClientFromInterest(clientId) {
     }
   } catch (err) {
     showToast('Network error', 'error');
+  }
+}
+async function confirmInviteComplete(notifId, expertId, expertName) {
+  const confirmed = await showConfirmModal(
+    `Did ${expertName} complete the service for you?`
+  );
+  if (!confirmed) return;
+
+  try {
+    const res = await fetch(`${API_URL}/users/invite-complete/${notifId}`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${state.token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    const data = await res.json();
+    if (!data.success) throw new Error(data.message);
+
+    // Show rating modal
+    showRatingModal(expertId, expertName, null, null);
+
+    // Refresh invites tab
+    loadClientInvites();
+  } catch (err) {
+    showToast('Error: ' + err.message, 'error');
   }
 }
 // ═══ END OF JAVASCRIPT ═══
