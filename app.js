@@ -4204,11 +4204,18 @@ async function confirmInviteComplete(notifId, expertId, expertName) {
     const data = await res.json();
     if (!data.success) throw new Error(data.message);
 
-    // Show rating modal
-    showRatingModal(expertId, expertName, null, null);
-
-    // Refresh invites tab
+    // Refresh invites first
     loadClientInvites();
+
+    // Open rating modal — set state vars then show modal
+    state.ratingExpertId = expertId;
+    state.ratingExpertName = expertName;
+    state.ratingRequestId = null;
+    state.ratingApproachId = null;
+
+    document.getElementById('ratingExpertName').textContent = expertName;
+    document.getElementById('ratingModal').style.display = 'flex';
+    
   } catch (err) {
     showToast('Error: ' + err.message, 'error');
   }
