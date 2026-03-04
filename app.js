@@ -156,12 +156,12 @@ function showHowItWorks(type) {
 }
 
 // ─── AUTHENTICATION ─── 
-async function login(email, password) {
+async function login(email, password, role) {  // ← accept role as parameter
   try {
     const res = await fetch(`${API_URL}/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password, role: selectedRole })
+      body: JSON.stringify({ email, password, role: role })  // ← use passed role
     });
     
     const data = await res.json();
