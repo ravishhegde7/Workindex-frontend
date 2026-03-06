@@ -1108,4 +1108,11 @@ body.dark-mode {
 .terms-list li strong {
   color: var(--text);
 }
+/* Pointer cursor on all clickable nav elements */
+.logo { cursor: pointer; }
+.nav-link { cursor: pointer; }
+.filter-chip { cursor: pointer; }
+.dash-tab { cursor: pointer; }
+.role-card { cursor: pointer; }
+.feature-card { cursor: pointer; }
 </style>
