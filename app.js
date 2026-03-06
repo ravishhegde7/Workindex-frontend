@@ -1702,9 +1702,31 @@ function formatKey(key) {
 }
 
 // ─── APPROACH CLIENT ───
-async function approachClient(requestId) {
-  if (!confirm('Spend credits to approach this client?')) return;
-  
+function approachClient(requestId) {
+  const modal = document.getElementById('approachModal');
+  modal.dataset.requestId = requestId;
+  document.getElementById('approachMessage').value = '';
+  document.getElementById('approachQuote').value = '';
+  modal.style.display = 'flex';
+}
+
+async function submitApproach() {
+  const modal    = document.getElementById('approachModal');
+  const requestId = modal.dataset.requestId;
+  const message  = document.getElementById('approachMessage').value.trim();
+  const quote    = document.getElementById('approachQuote').value;
+
+  if (!quote || isNaN(quote) || parseInt(quote) < 1) {
+    showToast('Please enter your quote amount', 'error'); return;
+  }
+  if (!message || message.length < 20) {
+    showToast('Please write at least 20 characters in your message', 'error'); return;
+  }
+
+  const btn = document.getElementById('approachSubmitBtn');
+  btn.disabled    = true;
+  btn.textContent = 'Sending...';
+
   try {
     const res = await fetch(`${API_URL}/approaches`, {
       method: 'POST',
@@ -1714,22 +1736,27 @@ async function approachClient(requestId) {
       },
       body: JSON.stringify({
         request: requestId,
-        message: 'I am interested in helping with your request.'
+        message,
+        quote: parseInt(quote)
       })
     });
-    
+
     const data = await res.json();
-    
+
     if (data.success) {
+      modal.style.display = 'none';
       showToast('Approach sent successfully!', 'success');
-      loadExpertData(); // Refresh available requests
-      loadExpertCredits(); // Update credits
+      loadExpertData();
+      loadExpertCredits();
     } else {
       showToast(data.message || 'Failed to send approach', 'error');
     }
   } catch (error) {
     console.error('Approach error:', error);
     showToast('Failed to send approach', 'error');
+  } finally {
+    btn.disabled    = false;
+    btn.textContent = '💎 Send Approach';
   }
 }
 
