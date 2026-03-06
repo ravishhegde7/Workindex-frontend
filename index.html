@@ -2976,6 +2976,61 @@ document.addEventListener('DOMContentLoaded', function() {
 
   </div>
 </div>
+     <!-- APPROACH MODAL -->
+<div id="approachModal"
+  style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55);
+         z-index:1010; align-items:flex-end; justify-content:center;">
+  <div style="background:var(--bg); width:100%; max-width:500px; border-radius:20px 20px 0 0;
+              padding:28px 24px 40px; max-height:90vh; overflow-y:auto;">
+
+    <div style="width:40px; height:4px; background:var(--border); border-radius:2px; margin:0 auto 20px;"></div>
+    <h3 style="font-size:19px; font-weight:800; color:var(--text); margin:0 0 6px;">Send Approach</h3>
+    <p style="font-size:13px; color:var(--text-muted); margin:0 0 24px;">
+      Credits will be spent once you submit. Make it count!
+    </p>
+
+    <!-- Quote -->
+    <div class="field" style="margin-bottom:16px;">
+      <label style="font-size:13px; font-weight:700; color:var(--text); display:block; margin-bottom:8px;">
+        Your Quote (₹) <span style="color:var(--red);">*</span>
+      </label>
+      <div style="position:relative;">
+        <span style="position:absolute; left:14px; top:50%; transform:translateY(-50%);
+                     font-size:16px; font-weight:700; color:var(--text-muted);">₹</span>
+        <input type="number" id="approachQuote" min="1" placeholder="e.g. 2500"
+          style="width:100%; padding:14px 14px 14px 32px; border:2px solid var(--border);
+                 border-radius:12px; font-size:18px; font-weight:700; box-sizing:border-box;
+                 color:var(--text); background:var(--bg);">
+      </div>
+      <p style="font-size:12px; color:var(--text-muted); margin:6px 0 0;">
+        Enter the total amount you'd charge for this service
+      </p>
+    </div>
+
+    <!-- Message -->
+    <div class="field" style="margin-bottom:24px;">
+      <label style="font-size:13px; font-weight:700; color:var(--text); display:block; margin-bottom:8px;">
+        Your Message <span style="color:var(--red);">*</span>
+      </label>
+      <textarea id="approachMessage" rows="5"
+        placeholder="Introduce yourself and justify your quote. e.g. I am a CA with 8 years of experience in ITR filing. I can complete this in 2 days and handle all communication with the tax department..."
+        style="width:100%; padding:14px; border:2px solid var(--border); border-radius:12px;
+               font-size:14px; font-family:inherit; resize:vertical; line-height:1.6;
+               box-sizing:border-box; background:var(--bg); color:var(--text);"></textarea>
+      <p style="font-size:12px; color:var(--text-muted); margin:6px 0 0;">Minimum 20 characters</p>
+    </div>
+
+    <button id="approachSubmitBtn" onclick="submitApproach()"
+      class="btn-primary" style="width:100%; padding:16px; font-size:16px; margin-bottom:12px;">
+      💎 Send Approach
+    </button>
+    <button onclick="document.getElementById('approachModal').style.display='none'"
+      style="width:100%; padding:12px; background:none; border:none;
+             color:var(--text-muted); font-size:14px; cursor:pointer;">
+      Cancel
+    </button>
+  </div>
+</div>
 </body>
 </html>
 
