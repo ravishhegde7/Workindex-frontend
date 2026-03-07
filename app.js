@@ -137,24 +137,14 @@ function switchTab(tabName) {
 }
 
 function showHowItWorks(type) {
-  // Toggle between client and expert steps
-  const clientSteps = document.getElementById('clientSteps');
-  const expertSteps = document.getElementById('expertSteps');
-  const buttons = document.querySelectorAll('.auth-toggle button');
-  
-  if (type === 'client') {
-    clientSteps.style.display = 'block';
-    expertSteps.style.display = 'none';
-    buttons[0].classList.add('active');
-    buttons[1].classList.remove('active');
-  } else {
-    clientSteps.style.display = 'none';
-    expertSteps.style.display = 'block';
-    buttons[0].classList.remove('active');
-    buttons[1].classList.add('active');
-  }
+  const isClient = type === 'client';
+  document.getElementById('clientSteps').style.display = isClient ? 'block' : 'none';
+  document.getElementById('expertSteps').style.display = isClient ? 'none' : 'block';
+  const tc = document.getElementById('hiwToggleClient');
+  const te = document.getElementById('hiwToggleExpert');
+  if (tc) tc.classList.toggle('active', isClient);
+  if (te) te.classList.toggle('active', !isClient);
 }
-
 // ─── AUTHENTICATION ─── 
 async function login(email, password, role) {  // ← accept role as parameter
   try {
