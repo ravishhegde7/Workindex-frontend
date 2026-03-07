@@ -2866,7 +2866,21 @@ async function handleVerifySignupOTP() {
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
       showToast('Account created!', 'success');
-      startQuestionnaire();
+      if (state.pendingServiceFlow && data.user.role === 'client') {
+        const svc = state.pendingServiceFlow;
+        state.pendingServiceFlow = null;
+        qState = {
+          step: 1,
+          sequence: [],
+          answers: { service: svc },
+          role: 'client'
+        };
+        qState.sequence = buildQuestionSequence();
+        showPage('questionnaire');
+        renderQuestion();
+      } else {
+        startQuestionnaire();
+      }
     } else {
       showToast(data.message || 'Invalid code', 'error');
     }
