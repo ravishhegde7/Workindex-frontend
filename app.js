@@ -862,12 +862,16 @@ async function loadNotifications() {
 }
 
 async function openNotifications() {
+  // Guard — prevent stacking
+  if (document.getElementById('notificationsModal')) return;
+
   const notifications = await loadNotifications();
   
   const modal = document.createElement('div');
+  modal.id = 'notificationsModal'; // ← add ID
   modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:flex-start;justify-content:flex-end;z-index:1001;padding:60px 16px 0;';
   modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
-
+   
   const typeIcons = {
     announcement: '📢',
     admin_dm: '💬',
