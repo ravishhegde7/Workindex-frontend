@@ -2299,6 +2299,7 @@ async function viewClientDocuments(clientId, requestId) {
     if (!data.success) { showToast(data.message || 'Failed to load documents', 'error'); return; }
     
     const modal = document.createElement('div');
+    modal.id = 'expertProfileModal'; // ← add ID so guard can detect it
     modal.style.cssText = 'position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1001; padding: 20px;';
     modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
     
