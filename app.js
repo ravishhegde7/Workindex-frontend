@@ -39,9 +39,6 @@ function toggleDarkMode() {
 
 // ─── NAVIGATION ─── 
 function showPage(pageId) {
-  // Guard — don't reload if already on this page
-  if (state.currentPage === pageId) return;
-
   // Hide all pages
   document.querySelectorAll('.page').forEach(page => {
     page.classList.remove('active');
@@ -93,8 +90,6 @@ function goBack() {
 }
 
 function switchTab(tabName) {
-  // Guard — don't reload same tab
-  if (state.currentTab === tabName) return;
   state.currentTab = tabName;
   
   document.querySelectorAll('.dash-tab').forEach(tab => tab.classList.remove('active'));
@@ -862,35 +857,14 @@ async function loadNotifications() {
     return [];
   }
 }
-// ─── MODAL GUARD UTILITY ───
-function isModalOpen(id) {
-  return !!document.getElementById(id);
-}
-function removeModal(id) {
-  document.getElementById(id)?.remove();
-}
-async function openNotifications() {
-  // Guard — prevent stacking including during async load
-  if (document.getElementById('notificationsModal')) return;
-  
-  // Insert placeholder immediately so guard catches rapid clicks
-  const placeholder = document.createElement('div');
-  placeholder.id = 'notificationsModal';
-  document.body.appendChild(placeholder);
 
+async function openNotifications() {
   const notifications = await loadNotifications();
   
-  // Remove placeholder, build real modal
-  placeholder.remove();
-  
-  // Re-check in case user navigated away during fetch
-  if (document.getElementById('notificationsModal')) return;
-  
   const modal = document.createElement('div');
-  modal.id = 'notificationsModal'; // ← add ID
   modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:flex-start;justify-content:flex-end;z-index:1001;padding:60px 16px 0;';
   modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
-   
+
   const typeIcons = {
     announcement: '📢',
     admin_dm: '💬',
@@ -927,10 +901,7 @@ async function openNotifications() {
     </div>
   `;
 
-  // Remove placeholder before appending real modal
-    document.getElementById('expertProfileModal')?.remove();
-    document.body.appendChild(modal);
-   
+  document.body.appendChild(modal);
   markAllRead(); // auto mark as read when opened
 }
 
@@ -981,7 +952,7 @@ function renderExperts() {
   const grid = document.getElementById('expertGrid');
   
   grid.innerHTML = state.experts.map(expert => `
-    <div class="expert-card">
+    <div class="expert-card" onclick="viewExpertProfile('${expert._id}')">
       <div class="expert-card-header">
         <div class="avatar avatar-lg">
           ${expert.profilePhoto ? 
@@ -1022,7 +993,7 @@ function renderExperts() {
             📍 ${expert.location.city || 'India'}
           </div>
         ` : ''}
-        <button class="btn-primary" style="padding: 8px 16px; font-size: 14px;" onclick="event.stopPropagation(); viewExpertProfile('${expert._id}')">
+        <button class="btn-primary" style="padding: 8px 16px; font-size: 14px;">
           View Profile
         </button>
       </div>
@@ -1048,14 +1019,6 @@ function sortExperts(sortBy) {
 
 // ─── VIEW EXPERT PROFILE ───
 async function viewExpertProfile(expertId, loggedIn = false) {
-  // Guard — prevent stacking including during async fetch
-  if (document.getElementById('expertProfileModal')) return;
-
-  // Insert placeholder immediately so rapid clicks are blocked
-  const placeholder = document.createElement('div');
-  placeholder.id = 'expertProfileModal';
-  document.body.appendChild(placeholder);
-
   try {
     const res = await fetch(`${API_URL}/users/expert/${expertId}`, {
       headers: { 'Authorization': `Bearer ${state.token}` }
@@ -1126,7 +1089,7 @@ async function viewExpertProfile(expertId, loggedIn = false) {
 
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
           <h2 style="font-size: 20px; font-weight: 700; color: var(--text);">Expert Profile</h2>
-          <button onclick="document.getElementById('expertProfileModal')?.remove()" style="border: none; background: none; font-size: 24px; cursor: pointer; color: var(--text-muted);">×</button>
+          <button onclick="this.closest('[style*=fixed]').remove()" style="border: none; background: none; font-size: 24px; cursor: pointer; color: var(--text-muted);">×</button>
         </div>
 
         <!-- Avatar + Name -->
@@ -1268,15 +1231,13 @@ async function viewExpertProfile(expertId, loggedIn = false) {
           </div>
         ` : ''}
 
-        <button onclick="document.getElementById('expertProfileModal')?.remove()" style="width: 100%; padding: 14px; border: 1.5px solid var(--border); border-radius: 10px; background: transparent; color: var(--text); font-size: 15px; font-weight: 600; cursor: pointer;">Close</button>
+        <button onclick="this.closest('[style*=fixed]').remove()" style="width: 100%; padding: 14px; border: 1.5px solid var(--border); border-radius: 10px; background: transparent; color: var(--text); font-size: 15px; font-weight: 600; cursor: pointer;">Close</button>
       </div>
     `;
 
     document.body.appendChild(modal);
 
   } catch (error) {
-    // Clean up placeholder on error so future clicks work
-    document.getElementById('expertProfileModal')?.remove();
     console.error('View profile error:', error);
     showToast('Failed to load profile', 'error');
   }
@@ -1343,8 +1304,6 @@ function updateProfilePhoto(photoUrl) {
 
 // ─── CREDIT PURCHASE ─── 
 function openCreditModal() {
-  // Guard — already open
-  if (document.getElementById('creditModal').classList.contains('open')) return;
   document.getElementById('creditModal').classList.add('open');
 }
 
@@ -2334,9 +2293,8 @@ async function viewClientDocuments(clientId, requestId) {
     if (!data.success) { showToast(data.message || 'Failed to load documents', 'error'); return; }
     
     const modal = document.createElement('div');
-    modal.id = 'expertProfileModal'; // ← add ID so guard can detect it
     modal.style.cssText = 'position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1001; padding: 20px;';
-    modal.onclick = (e) => { if (e.target === modal) document.getElementById('expertProfileModal')?.remove(); };
+    modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
     
     const docsHTML = data.documents && data.documents.length > 0 ? data.documents.map(doc => {
       const sizeKB = (doc.fileSize / 1024).toFixed(1);
@@ -2414,7 +2372,7 @@ async function viewClientDocuments(clientId, requestId) {
       <div style="background: var(--bg); border-radius: 16px; max-width: 500px; width: 100%; max-height: 80vh; overflow-y: auto; padding: 24px;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
           <h2 style="font-size: 20px; font-weight: 700; color: var(--text);">Client Documents</h2>
-          <button onclick="document.getElementById('expertProfileModal')?.remove()" style="border: none; background: none; font-size: 24px; cursor: pointer; color: var(--text-muted);">×</button>
+          <button onclick="this.closest('[style*=fixed]').remove()" style="border: none; background: none; font-size: 24px; cursor: pointer;">×</button>
         </div>
         <div style="padding: 12px; background: rgba(252,128,25,0.1); border-radius: 8px; margin-bottom: 20px; font-size: 13px; color: var(--text-muted);">
           🔒 Documents require client approval before you can download them
