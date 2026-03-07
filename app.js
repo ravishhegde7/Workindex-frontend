@@ -1033,16 +1033,31 @@ function sortExperts(sortBy) {
 
 // ─── VIEW EXPERT PROFILE ───
 async function viewExpertProfile(expertId, loggedIn = false) {
+  // Guard — prevent stacking
+  if (document.getElementById('expertProfileModal')) return;
+
+  // Insert placeholder immediately so rapid clicks are blocked
+  const placeholder = document.createElement('div');
+  placeholder.id = 'expertProfileModal';
+  document.body.appendChild(placeholder);
+
   try {
     const res = await fetch(`${API_URL}/users/expert/${expertId}`, {
       headers: { 'Authorization': `Bearer ${state.token}` }
     });
 
     const data = await res.json();
+
+    // Remove placeholder before building real modal
+    placeholder.remove();
+
+    // Re-check in case of rapid clicks during fetch
+    if (document.getElementById('expertProfileModal')) return;
+
     if (!data.success) { showToast('Could not load profile', 'error'); return; }
 
     const expert = data.expert || data.user;
-     console.log('Expert data:', JSON.stringify(expert));
+    console.log('Expert data:', JSON.stringify(expert));
     const profile = expert.profile || {};
 
     const specialization = profile.specialization || expert.specialization || 'Professional';
@@ -1057,7 +1072,6 @@ async function viewExpertProfile(expertId, loggedIn = false) {
     const certifications = profile.certifications || expert.certifications || [];
     const city           = profile.city || expert.location?.city || '';
 
-    // ── Extra fields (logged-in view only) ──
     const education      = profile.education || '';
     const portfolio      = profile.portfolio || '';
     const whyChooseMe    = expert.whyChooseMe || '';
@@ -1095,18 +1109,18 @@ async function viewExpertProfile(expertId, loggedIn = false) {
     };
 
     const modal = document.createElement('div');
+    modal.id = 'expertProfileModal';
     modal.style.cssText = 'position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1001; padding: 20px;';
-    modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
+    modal.onclick = (e) => { if (e.target === modal) document.getElementById('expertProfileModal')?.remove(); };
 
     modal.innerHTML = `
       <div style="background: var(--bg); border-radius: 16px; max-width: 480px; width: 100%; max-height: 85vh; overflow-y: auto; padding: 24px;">
 
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
           <h2 style="font-size: 20px; font-weight: 700; color: var(--text);">Expert Profile</h2>
-          <button onclick="this.closest('[style*=fixed]').remove()" style="border: none; background: none; font-size: 24px; cursor: pointer; color: var(--text-muted);">×</button>
+          <button onclick="document.getElementById('expertProfileModal')?.remove()" style="border: none; background: none; font-size: 24px; cursor: pointer; color: var(--text-muted);">×</button>
         </div>
 
-        <!-- Avatar + Name -->
         <div style="text-align: center; margin-bottom: 24px;">
           <div style="width: 80px; height: 80px; border-radius: 50%; background: var(--primary); color: #fff; font-size: 32px; font-weight: 700; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; overflow: hidden;">
             ${expert.profilePhoto ? `<img src="${expert.profilePhoto}" style="width:100%;height:100%;object-fit:cover;">` : expert.name.charAt(0).toUpperCase()}
@@ -1121,8 +1135,6 @@ async function viewExpertProfile(expertId, loggedIn = false) {
               <span style="font-size: 13px; color: var(--text-muted);">(${expert.reviewCount || 0} reviews)</span>
             </div>
           ` : ''}
-
-          <!-- Availability badge (logged-in only) -->
           ${loggedIn ? `
             <div style="display:inline-flex;align-items:center;gap:6px;margin-top:10px;padding:5px 14px;border-radius:20px;background:rgba(0,0,0,0.05);border:1.5px solid ${avail.color};font-size:13px;font-weight:700;color:${avail.color};">
               ${avail.icon} ${avail.label}
@@ -1130,7 +1142,6 @@ async function viewExpertProfile(expertId, loggedIn = false) {
           ` : ''}
         </div>
 
-        <!-- Stats Row -->
         <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px;">
           <div style="text-align: center; padding: 12px; background: var(--bg-gray); border-radius: 10px;">
             <div style="font-size: 20px; font-weight: 700; color: var(--primary);">${expert.reviewCount || 0}</div>
@@ -1146,14 +1157,12 @@ async function viewExpertProfile(expertId, loggedIn = false) {
           </div>
         </div>
 
-        <!-- Last Online (logged-in only) -->
         ${loggedIn ? `
           <div style="display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:20px;font-size:13px;color:var(--text-muted);">
             ${lastOnlineText}
           </div>
         ` : ''}
 
-        <!-- Why Choose Me (logged-in only) -->
         ${loggedIn && whyChooseMe ? `
           <div style="margin-bottom:20px;padding:14px 16px;background:rgba(252,128,25,0.06);border-left:3px solid var(--primary);border-radius:0 10px 10px 0;">
             <h4 style="font-size:13px;font-weight:700;color:var(--text-muted);margin-bottom:6px;">💡 WHY CHOOSE ME</h4>
@@ -1161,7 +1170,6 @@ async function viewExpertProfile(expertId, loggedIn = false) {
           </div>
         ` : ''}
 
-        <!-- Services -->
         ${services.length > 0 ? `
           <div style="margin-bottom: 20px;">
             <h4 style="font-size: 14px; font-weight: 700; color: var(--text-muted); margin-bottom: 10px;">SERVICES OFFERED</h4>
@@ -1171,7 +1179,6 @@ async function viewExpertProfile(expertId, loggedIn = false) {
           </div>
         ` : ''}
 
-        <!-- Bio -->
         ${bio ? `
           <div style="margin-bottom: 20px;">
             <h4 style="font-size: 14px; font-weight: 700; color: var(--text-muted); margin-bottom: 10px;">ABOUT</h4>
@@ -1179,7 +1186,6 @@ async function viewExpertProfile(expertId, loggedIn = false) {
           </div>
         ` : ''}
 
-        <!-- Education (logged-in only) -->
         ${loggedIn && education ? `
           <div style="margin-bottom: 20px;">
             <h4 style="font-size: 14px; font-weight: 700; color: var(--text-muted); margin-bottom: 10px;">🎓 EDUCATION</h4>
@@ -1187,7 +1193,6 @@ async function viewExpertProfile(expertId, loggedIn = false) {
           </div>
         ` : ''}
 
-        <!-- Portfolio (logged-in only) -->
         ${loggedIn && portfolio ? `
           <div style="margin-bottom: 20px;">
             <h4 style="font-size: 14px; font-weight: 700; color: var(--text-muted); margin-bottom: 10px;">🗂️ PORTFOLIO & PROOF OF WORK</h4>
@@ -1195,7 +1200,6 @@ async function viewExpertProfile(expertId, loggedIn = false) {
           </div>
         ` : ''}
 
-        <!-- Company -->
         ${companyName ? `
           <div style="margin-bottom: 20px;">
             <h4 style="font-size: 14px; font-weight: 700; color: var(--text-muted); margin-bottom: 10px;">COMPANY</h4>
@@ -1204,7 +1208,6 @@ async function viewExpertProfile(expertId, loggedIn = false) {
           </div>
         ` : ''}
 
-        <!-- Certifications -->
         ${certifications.length > 0 ? `
           <div style="margin-bottom: 20px;">
             <h4 style="font-size: 14px; font-weight: 700; color: var(--text-muted); margin-bottom: 10px;">CERTIFICATIONS</h4>
@@ -1214,7 +1217,6 @@ async function viewExpertProfile(expertId, loggedIn = false) {
           </div>
         ` : ''}
 
-        <!-- Service Location -->
         ${locationType ? `
           <div style="margin-bottom: 20px;">
             <h4 style="font-size: 14px; font-weight: 700; color: var(--text-muted); margin-bottom: 10px;">SERVICE LOCATION</h4>
@@ -1222,7 +1224,6 @@ async function viewExpertProfile(expertId, loggedIn = false) {
           </div>
         ` : ''}
 
-        <!-- Customer Reviews -->
         ${data.ratings && data.ratings.length > 0 ? `
           <div style="margin-bottom: 20px;">
             <h4 style="font-size: 14px; font-weight: 700; color: var(--text-muted); margin-bottom: 12px;">CUSTOMER REVIEWS</h4>
@@ -1245,13 +1246,15 @@ async function viewExpertProfile(expertId, loggedIn = false) {
           </div>
         ` : ''}
 
-        <button onclick="this.closest('[style*=fixed]').remove()" style="width: 100%; padding: 14px; border: 1.5px solid var(--border); border-radius: 10px; background: transparent; color: var(--text); font-size: 15px; font-weight: 600; cursor: pointer;">Close</button>
+        <button onclick="document.getElementById('expertProfileModal')?.remove()" style="width: 100%; padding: 14px; border: 1.5px solid var(--border); border-radius: 10px; background: transparent; color: var(--text); font-size: 15px; font-weight: 600; cursor: pointer;">Close</button>
       </div>
     `;
 
     document.body.appendChild(modal);
 
   } catch (error) {
+    // Clean up placeholder on error so future clicks work
+    document.getElementById('expertProfileModal')?.remove();
     console.error('View profile error:', error);
     showToast('Failed to load profile', 'error');
   }
