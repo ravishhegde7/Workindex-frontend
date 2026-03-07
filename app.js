@@ -2336,7 +2336,7 @@ async function viewClientDocuments(clientId, requestId) {
     const modal = document.createElement('div');
     modal.id = 'expertProfileModal'; // ← add ID so guard can detect it
     modal.style.cssText = 'position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1001; padding: 20px;';
-    modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
+    modal.onclick = (e) => { if (e.target === modal) document.getElementById('expertProfileModal')?.remove(); };
     
     const docsHTML = data.documents && data.documents.length > 0 ? data.documents.map(doc => {
       const sizeKB = (doc.fileSize / 1024).toFixed(1);
