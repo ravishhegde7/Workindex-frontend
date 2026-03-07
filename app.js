@@ -1275,6 +1275,8 @@ async function viewExpertProfile(expertId, loggedIn = false) {
     document.body.appendChild(modal);
 
   } catch (error) {
+    // Clean up placeholder on error so future clicks work
+    document.getElementById('expertProfileModal')?.remove();
     console.error('View profile error:', error);
     showToast('Failed to load profile', 'error');
   }
