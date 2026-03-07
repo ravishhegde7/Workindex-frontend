@@ -1045,8 +1045,13 @@ function sortExperts(sortBy) {
 
 // ─── VIEW EXPERT PROFILE ───
 async function viewExpertProfile(expertId, loggedIn = false) {
-  // Guard — prevent stacking multiple profile modals
+  // Guard — prevent stacking including during async fetch
   if (document.getElementById('expertProfileModal')) return;
+
+  // Insert placeholder immediately so rapid clicks are blocked
+  const placeholder = document.createElement('div');
+  placeholder.id = 'expertProfileModal';
+  document.body.appendChild(placeholder);
 
   try {
     const res = await fetch(`${API_URL}/users/expert/${expertId}`, {
