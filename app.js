@@ -978,7 +978,7 @@ function renderExperts() {
   const grid = document.getElementById('expertGrid');
   
   grid.innerHTML = state.experts.map(expert => `
-    <div class="expert-card" onclick="viewExpertProfile('${expert._id}')">
+    <div class="expert-card">
       <div class="expert-card-header">
         <div class="avatar avatar-lg">
           ${expert.profilePhoto ? 
