@@ -1022,6 +1022,9 @@ function sortExperts(sortBy) {
 
 // ─── VIEW EXPERT PROFILE ───
 async function viewExpertProfile(expertId, loggedIn = false) {
+  // Guard — prevent stacking multiple profile modals
+  if (document.getElementById('expertProfileModal')) return;
+
   try {
     const res = await fetch(`${API_URL}/users/expert/${expertId}`, {
       headers: { 'Authorization': `Bearer ${state.token}` }
