@@ -870,10 +870,21 @@ function removeModal(id) {
   document.getElementById(id)?.remove();
 }
 async function openNotifications() {
-  // Guard — prevent stacking
+  // Guard — prevent stacking including during async load
   if (document.getElementById('notificationsModal')) return;
+  
+  // Insert placeholder immediately so guard catches rapid clicks
+  const placeholder = document.createElement('div');
+  placeholder.id = 'notificationsModal';
+  document.body.appendChild(placeholder);
 
   const notifications = await loadNotifications();
+  
+  // Remove placeholder, build real modal
+  placeholder.remove();
+  
+  // Re-check in case user navigated away during fetch
+  if (document.getElementById('notificationsModal')) return;
   
   const modal = document.createElement('div');
   modal.id = 'notificationsModal'; // ← add ID
