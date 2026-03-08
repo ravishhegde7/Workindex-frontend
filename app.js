@@ -2146,11 +2146,14 @@ function renderMyApproaches(interests = []) {
     rejected: 'badge-danger'
   };
 
+  const allApproaches = state.myApproaches || [];
+  const pagedApproaches = paginate(allApproaches, 'expertApproaches');
+
   container.innerHTML = interestHTML + `
     <h3 style="font-size:16px; font-weight:700; color:var(--text); margin-bottom:12px;">
-      📨 My Approaches (${state.myApproaches.length})
+      📨 My Approaches (${allApproaches.length})
     </h3>
-  ` + state.myApproaches.map(app => {
+  ` + pagedApproaches.map(app => {
     const req = app.request;
     if (!req) return '';
     return `
