@@ -45,7 +45,10 @@ function toggleDarkMode() {
 
 // ─── NAVIGATION ─── 
 function showPage(pageId) {
-  // Hide all pages
+  if (!pageId) return;
+  // Guard — don't reload if already on this page
+  if (state.currentPage === pageId) return;
+   // Hide all pages
   document.querySelectorAll('.page').forEach(page => {
     page.classList.remove('active');
   });
