@@ -39,10 +39,7 @@ function toggleDarkMode() {
 
 // ─── NAVIGATION ─── 
 function showPage(pageId) {
-  if (!pageId) return;
-  // Guard — don't reload if already on this page
-  if (state.currentPage === pageId) return;
-   // Hide all pages
+  // Hide all pages
   document.querySelectorAll('.page').forEach(page => {
     page.classList.remove('active');
   });
@@ -301,45 +298,6 @@ async function loadDocuments() {
   } catch (error) {
     console.error('Load documents error:', error);
   }
-}
-// ─── PAGINATION UTILITY ───const PAGE_SIZE = window.innerWidth <= 768 ? 5 : 8;
-let clientRequestsPage = 1;
-let expertsPage = 1;
-let approachesPage = 1;
-
-function renderPagination(containerId, totalItems, currentPage, onPageChange) {
-  const totalPages = Math.ceil(totalItems / PAGE_SIZE);
-  if (totalPages <= 1) return '';
-
-  let buttons = '';
-  for (let i = 1; i <= totalPages; i++) {
-    const isActive = i === currentPage;
-    buttons += `
-      <button onclick="${onPageChange}(${i})"
-        style="width:36px;height:36px;border-radius:8px;border:1.5px solid ${isActive ? 'var(--primary)' : 'var(--border)'};
-        background:${isActive ? 'var(--primary)' : 'var(--bg)'};color:${isActive ? '#fff' : 'var(--text)'};
-        font-size:14px;font-weight:${isActive ? '700' : '400'};cursor:pointer;">
-        ${i}
-      </button>`;
-  }
-
-  return `
-    <div style="display:flex;align-items:center;justify-content:center;gap:8px;padding:20px 0;flex-wrap:wrap;">
-      <button onclick="${onPageChange}(${Math.max(1, currentPage - 1)})"
-        style="padding:8px 14px;border-radius:8px;border:1.5px solid var(--border);background:var(--bg);
-        color:var(--text);font-size:13px;font-weight:600;cursor:pointer;${currentPage === 1 ? 'opacity:0.4;pointer-events:none;' : ''}">
-        ← Prev
-      </button>
-      ${buttons}
-      <button onclick="${onPageChange}(${Math.min(totalPages, currentPage + 1)})"
-        style="padding:8px 14px;border-radius:8px;border:1.5px solid var(--border);background:var(--bg);
-        color:var(--text);font-size:13px;font-weight:600;cursor:pointer;${currentPage === totalPages ? 'opacity:0.4;pointer-events:none;' : ''}">
-        Next →
-      </button>
-    </div>
-    <div style="text-align:center;font-size:12px;color:var(--text-muted);margin-top:-12px;padding-bottom:8px;">
-      Showing ${Math.min((currentPage-1)*PAGE_SIZE+1, totalItems)}–${Math.min(currentPage*PAGE_SIZE, totalItems)} of ${totalItems}
-    </div>`;
 }
 
 function renderDocuments() {
@@ -976,7 +934,6 @@ async function markAllRead() {
 
 // ─── FIND PROFESSIONALS ─── 
 async function loadExperts(filters = {}) {
-     expertsPage = 1; // ← add this line
   const loading = document.getElementById('expertsLoading');
   const grid = document.getElementById('expertGrid');
   const empty = document.getElementById('expertsEmpty');
@@ -1005,48 +962,57 @@ async function loadExperts(filters = {}) {
   }
 }
 
-function renderExperts(page = expertsPage) {
-  expertsPage = page;
+function renderExperts() {
   const grid = document.getElementById('expertGrid');
-  if (!grid) return;
-
-  const total = state.experts.length;
-  const start = (page - 1) * PAGE_SIZE;
-  const pageItems = state.experts.slice(start, start + PAGE_SIZE);
-
-  grid.innerHTML = pageItems.map(expert => `
-    <div class="expert-card">
+  
+  grid.innerHTML = state.experts.map(expert => `
+    <div class="expert-card" onclick="viewExpertProfile('${expert._id}')">
       <div class="expert-card-header">
         <div class="avatar avatar-lg">
-          ${expert.profilePhoto ?
-            `<img src="${expert.profilePhoto}" alt="${expert.name}">` :
-            expert.name.substring(0, 2).toUpperCase()}
+          ${expert.profilePhoto ? 
+            `<img src="${expert.profilePhoto}" alt="${expert.name}">` : 
+            expert.name.substring(0, 2).toUpperCase()
+          }
         </div>
         <div class="expert-card-info">
           <div class="expert-card-name">${expert.name}</div>
           <div class="expert-card-specialty">${expert.specialization || 'Professional'}</div>
         </div>
       </div>
+      
       <div class="expert-card-rating">
-        <div class="rating-stars">${renderStars(Math.floor(expert.rating || 0))}</div>
-        <span style="font-size:14px;color:var(--text-muted);">${expert.rating || '0.0'} (${expert.reviewCount || 0} reviews)</span>
+        <div class="rating-stars">
+          ${renderStars(Math.floor(expert.rating || 0))}
+        </div>
+        <span style="font-size: 14px; color: var(--text-muted);">
+          ${expert.rating || '0.0'} (${expert.reviewCount || 0} reviews)
+        </span>
       </div>
-      ${expert.bio ? `<div class="expert-card-bio">${expert.bio}</div>` : ''}
+      
+      ${expert.bio ? `
+        <div class="expert-card-bio">${expert.bio}</div>
+      ` : ''}
+      
       ${expert.servicesOffered && expert.servicesOffered.length > 0 ? `
         <div class="expert-card-tags">
-          ${expert.servicesOffered.slice(0, 3).map(s => `<span class="badge badge-primary">${s}</span>`).join('')}
-        </div>` : ''}
+          ${expert.servicesOffered.slice(0, 3).map(service => 
+            `<span class="badge badge-primary">${service}</span>`
+          ).join('')}
+        </div>
+      ` : ''}
+      
       <div class="expert-card-footer">
-        ${expert.location ? `<div class="expert-location">📍 ${expert.location.city || 'India'}</div>` : ''}
-        <button class="btn-primary" style="padding:8px 16px;font-size:14px;"
-          onclick="event.stopPropagation(); viewExpertProfile('${expert._id}')">
+        ${expert.location ? `
+          <div class="expert-location">
+            📍 ${expert.location.city || 'India'}
+          </div>
+        ` : ''}
+        <button class="btn-primary" style="padding: 8px 16px; font-size: 14px;">
           View Profile
         </button>
       </div>
     </div>
   `).join('');
-
-  grid.innerHTML += renderPagination('expertGrid', total, page, 'renderExperts');
 }
 
 function filterExperts(service) {
@@ -1499,61 +1465,70 @@ async function loadClientData() {
 }
 
 // ─── RENDER CLIENT REQUESTS ───
-function renderClientRequests(page = clientRequestsPage) {
-  clientRequestsPage = page;
+function renderClientRequests() {
   const container = document.getElementById('requestsList');
   if (!container) return;
-
+  
   if (!state.requests || state.requests.length === 0) {
     container.innerHTML = `
       <div class="empty-state">
         <div class="empty-icon">📋</div>
         <h3 class="empty-title">No requests yet</h3>
         <p class="empty-text">Click "+ New Request" above to post your first request</p>
-      </div>`;
+      </div>
+    `;
     return;
   }
-
-  const total = state.requests.length;
-  const start = (page - 1) * PAGE_SIZE;
-  const pageItems = state.requests.slice(start, start + PAGE_SIZE);
-
-  let statusColors = {
-    pending: 'badge-warning', active: 'badge-primary',
-    completed: 'badge-success', cancelled: 'badge-danger'
-  };
-  const statusLabels = {
-    pending: 'Pending', active: 'Active',
-    completed: 'Completed', cancelled: 'Cancelled'
-  };
-
-  container.innerHTML = pageItems.map(req => {
+  
+  container.innerHTML = state.requests.map(req => {
+    const statusColors = {
+      pending: 'badge-warning',
+      active: 'badge-primary',
+      completed: 'badge-success',
+      cancelled: 'badge-danger'
+    };
+    
+    const statusLabels = {
+      pending: 'Pending',
+      active: 'Active',
+      completed: 'Completed',
+      cancelled: 'Cancelled'
+    };
+    
+    // ✅ NEW: Get client name
     const clientName = req.client?.name || state.user?.name || 'You';
+    
     return `
-      <div class="request-card" style="background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:16px;cursor:pointer;" onclick="showRequestDetail('${req._id}')">
-        <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:12px;">
-          <div style="flex:1;">
-            <h3 style="font-size:18px;font-weight:700;color:var(--text);margin-bottom:4px;">${req.title}</h3>
-            <p style="font-size:14px;color:var(--text-muted);">${req.service.toUpperCase()}</p>
-            <p style="font-size:13px;color:var(--text-muted);margin-top:4px;">Posted by: <strong>${clientName}</strong></p>
+      <div class="request-card" style="background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 16px; cursor: pointer;" onclick="showRequestDetail('${req._id}')">
+        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
+          <div style="flex: 1;">
+            <h3 style="font-size: 18px; font-weight: 700; color: var(--text); margin-bottom: 4px;">${req.title}</h3>
+            <p style="font-size: 14px; color: var(--text-muted);">${req.service.toUpperCase()}</p>
+            <p style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">
+              Posted by: <strong>${clientName}</strong>
+            </p>
           </div>
           <span class="badge ${statusColors[req.status] || 'badge-warning'}">${statusLabels[req.status] || 'Pending'}</span>
         </div>
-        <p style="font-size:14px;color:var(--text-light);margin-bottom:16px;line-height:1.5;">${req.description || 'No description'}</p>
-        <div style="display:flex;gap:20px;font-size:13px;color:var(--text-muted);">
+        
+        <p style="font-size: 14px; color: var(--text-light); margin-bottom: 16px; line-height: 1.5;">${req.description || 'No description'}</p>
+        
+        <div style="display: flex; gap: 20px; font-size: 13px; color: var(--text-muted);">
           <span>📍 ${req.location || 'Not specified'}</span>
           <span>💰 ₹${req.budget ? req.budget.toLocaleString('en-IN') : 'Not set'}</span>
           <span>👁️ ${req.viewCount || 0} views</span>
         </div>
+        
         ${(req.approachCount && req.approachCount > 0) ? `
-          <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);">
-            <span style="font-size:13px;font-weight:600;color:var(--primary);">${req.approachCount} professional${req.approachCount > 1 ? 's' : ''} approached</span>
-          </div>` : ''}
-      </div>`;
+          <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border);">
+            <span style="font-size: 13px; font-weight: 600; color: var(--primary);">${req.approachCount} professional${req.approachCount > 1 ? 's' : ''} approached</span>
+          </div>
+        ` : ''}
+      </div>
+    `;
   }).join('');
-
-  container.innerHTML += renderPagination('requestsList', total, page, 'renderClientRequests');
 }
+
 // ─── UPDATE CLIENT PROFILE ───
 function updateClientProfile() {
   const user = state.user;
@@ -2209,42 +2184,17 @@ function renderMyApproaches(interests = []) {
     return;
   }
 
-
-  const total = state.myApproaches.length;
-  const start = (approachesPage - 1) * PAGE_SIZE;
-  const pageItems = state.myApproaches.slice(start, start + PAGE_SIZE);
-
-  let statusColors = {
-    pending: 'badge-warning', accepted: 'badge-success', rejected: 'badge-danger'
+  const statusColors = {
+    pending: 'badge-warning',
+    accepted: 'badge-success',
+    rejected: 'badge-danger'
   };
 
   container.innerHTML = interestHTML + `
-    <h3 style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:12px;">
-      📨 My Approaches (${total})
+    <h3 style="font-size:16px; font-weight:700; color:var(--text); margin-bottom:12px;">
+      📨 My Approaches (${state.myApproaches.length})
     </h3>
-  ` + pageItems.map(app => {
-    const req = app.request;
-    if (!req) return '';
-    return `
-      <div class="request-card" style="background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:16px;cursor:pointer;" onclick="showMyApproachDetail('${app._id}')">
-        <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:12px;">
-          <div style="flex:1;">
-            <h3 style="font-size:18px;font-weight:700;color:var(--text);margin-bottom:4px;">${req.title || 'Request'}</h3>
-            <p style="font-size:14px;color:var(--text-muted);">${(req.service || '').toUpperCase()}</p>
-          </div>
-          <span class="badge ${statusColors[app.status] || 'badge-warning'}">${(app.status || 'pending').toUpperCase()}</span>
-        </div>
-        <p style="font-size:14px;color:var(--text-light);margin-bottom:12px;">${req.description || ''}</p>
-        <div style="display:flex;gap:20px;font-size:13px;color:var(--text-muted);">
-          <span>💰 ${app.creditsSpent || 0} credits spent</span>
-          <span>📅 ${new Date(app.createdAt).toLocaleDateString()}</span>
-        </div>
-      </div>`;
-  }).join('');
-
-  container.innerHTML += renderPagination('approachesList', total, approachesPage, 'changeApproachesPage');
-}
-
+  ` + state.myApproaches.map(app => {
     const req = app.request;
     if (!req) return '';
     return `
@@ -4602,12 +4552,4 @@ async function confirmInviteComplete(notifId, expertId, expertName) {
     showToast('Error: ' + err.message, 'error');
   }
 }
-function changeApproachesPage(page) {
-  approachesPage = page;
-  renderMyApproaches();
-}
-// ─── EXPOSE PAGINATION FUNCTIONS TO WINDOW ───
-window.renderClientRequests = renderClientRequests;
-window.renderExperts = renderExperts;
-window.changeApproachesPage = changeApproachesPage;
 // ═══ END OF JAVASCRIPT ═══
