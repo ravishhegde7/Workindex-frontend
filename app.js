@@ -2041,7 +2041,6 @@ async function loadMyApproaches() {
   }
 }
 // ─── RENDER EXPERT'S APPROACHES ───
-PAGINATION.expertApproaches.page = 1;
 function renderMyApproaches(interests = []) {
   const container = document.getElementById('approachesList');
   if (!container) return;
