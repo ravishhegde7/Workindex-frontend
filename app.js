@@ -4520,7 +4520,7 @@ async function confirmInviteComplete(notifId, expertId, expertName) {
 //  Style: Numbered pages only | 8 per page
 // ═══════════════════════════════════════════════════════════
 
-const PAGINATION = {
+var PAGINATION = {
   clientRequests:   { page: 1, perPage: 8 },
   expertBrowse:     { page: 1, perPage: 8 },
   expertApproaches: { page: 1, perPage: 8 },
