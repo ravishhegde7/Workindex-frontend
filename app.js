@@ -1577,6 +1577,7 @@ async function loadExpertData() {
 }
 
 // ─── RENDER AVAILABLE REQUESTS FOR EXPERTS ───
+PAGINATION.expertBrowse.page = 1;
 function renderAvailableRequests() {
   const container = document.getElementById('browseTab');
   if (!container) return;
