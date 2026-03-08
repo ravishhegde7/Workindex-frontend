@@ -1518,7 +1518,7 @@ function renderClientRequests(page = clientRequestsPage) {
   const start = (page - 1) * PAGE_SIZE;
   const pageItems = state.requests.slice(start, start + PAGE_SIZE);
 
-  const statusColors = {
+  let statusColors = {
     pending: 'badge-warning', active: 'badge-primary',
     completed: 'badge-success', cancelled: 'badge-danger'
   };
@@ -2209,7 +2209,7 @@ function renderMyApproaches(interests = []) {
     return;
   }
 
-  const statusColors = {
+  let statusColors = {
     pending: 'badge-warning',
     accepted: 'badge-success',
     rejected: 'badge-danger'
@@ -2219,7 +2219,7 @@ function renderMyApproaches(interests = []) {
   const start = (approachesPage - 1) * PAGE_SIZE;
   const pageItems = state.myApproaches.slice(start, start + PAGE_SIZE);
 
-  const statusColors = {
+  let statusColors = {
     pending: 'badge-warning', accepted: 'badge-success', rejected: 'badge-danger'
   };
 
