@@ -961,7 +961,7 @@ async function loadExperts(filters = {}) {
     empty.style.display = 'block';
   }
 }
-
+PAGINATION.findExperts.page = 1;
 function renderExperts() {
   const grid = document.getElementById('expertGrid');
   if (!grid) return;
