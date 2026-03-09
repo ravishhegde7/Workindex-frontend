@@ -3675,6 +3675,7 @@ async function loadMessages(chatId) {
 
 // ─── SEND MESSAGE ───
 async function sendMessage() {
+  if (isUserRestricted()) { showRestrictedToast(); return; }
   const inputEl = chatEl('chatInput', 'expertChatInput');
   const text = inputEl?.value.trim();
   if (!text || !currentChatId) return;
@@ -3697,6 +3698,7 @@ async function sendMessage() {
 
 // ─── START CHAT (from Contact button) ───
 async function startChat(requestId, expertId, clientId) {
+  if (isUserRestricted()) { showRestrictedToast(); return; }
   try {
     const res = await fetch(`${API_URL}/chats/start`, {
       method: 'POST',
@@ -3721,6 +3723,7 @@ async function startChat(requestId, expertId, clientId) {
 }
 // ─── EXPERT STARTS CHAT FROM APPROACH DETAIL ───
 async function expertStartChat(requestId, expertId, clientId) {
+  if (isUserRestricted()) { showRestrictedToast(); return; }
   try {
     const res = await fetch(`${API_URL}/chats/start`, {
       method: 'POST',
