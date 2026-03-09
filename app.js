@@ -278,6 +278,9 @@ function enterDashboard() {
   startInactivityWatcher();
    
   // Show service filter modal for new experts
+  setTimeout(() => showWarningPopupIfNeeded(), 600);
+
+  // Show service filter modal for new experts
   if (state.user.role === 'expert') {
     const hasFilter = state.user?.profile?.browseServiceFilter?.length > 0;
     const isNewUser = !localStorage.getItem('hasSeenServiceFilter_' + state.user._id);
@@ -289,6 +292,51 @@ function enterDashboard() {
       state.browseServiceFilter = state.user.profile.browseServiceFilter;
     }
   }
+}
+
+// ─── WARNING / RESTRICTION HELPERS ───
+function isUserRestricted() {
+  return !!(state.user && state.user.isRestricted);
+}
+
+function showRestrictedToast() {
+  showToast('Your account has restrictions. Please raise a ticket or contact admin to remove them.', 'error');
+}
+
+function showWarningPopupIfNeeded() {
+  const u = state.user;
+  if (!u) return;
+  if (!u.warnings && !u.isRestricted) return;
+  const seenKey = 'warnSeen_' + u._id + '_' + (u.warnings || 0) + '_' + (u.isRestricted ? 'r' : '');
+  if (localStorage.getItem(seenKey)) return;
+  localStorage.setItem(seenKey, '1');
+
+  const isRestricted = u.isRestricted;
+  const warnCount = u.warnings || 0;
+  const reason = (u.lastWarning && u.lastWarning.reason) ? u.lastWarning.reason : 'Violation of platform guidelines';
+  const color = isRestricted ? '#ef4444' : '#f59e0b';
+  const icon  = isRestricted ? '🚫' : '⚠️';
+  const title = isRestricted ? 'Account Restricted' : `Warning ${warnCount} of 3`;
+  const body  = isRestricted
+    ? `Your account has been <strong>restricted</strong> due to repeated violations.<br><br>You can still log in and view content, but you cannot approach clients, start chats, or send messages until this restriction is lifted.<br><br><strong>Reason:</strong> ${reason}`
+    : `You have received <strong>Warning ${warnCount}/3</strong> on your account.<br><br><strong>Reason:</strong> ${reason}<br><br>${warnCount >= 2 ? '<span style="color:#ef4444;font-weight:600;">⚠️ One more violation will restrict your account.</span>' : 'Please review the platform guidelines to avoid further action.'}`;
+
+  const overlay = document.createElement('div');
+  overlay.id = 'warnPopupOverlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;';
+  overlay.innerHTML = `
+    <div style="background:#1a1a24;border:2px solid ${color};border-radius:16px;max-width:440px;width:100%;padding:28px;">
+      <div style="text-align:center;margin-bottom:20px;">
+        <div style="font-size:40px;margin-bottom:10px;">${icon}</div>
+        <div style="font-size:18px;font-weight:800;color:${color};">${title}</div>
+      </div>
+      <div style="font-size:14px;color:#a0a0b8;line-height:1.7;margin-bottom:20px;">${body}</div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <button onclick="document.getElementById('warnPopupOverlay').remove(); switchTab('tickets');" style="padding:12px;background:${color};border:none;border-radius:10px;color:#fff;font-size:14px;font-weight:700;cursor:pointer;">🎫 Raise a Support Ticket</button>
+        <button onclick="document.getElementById('warnPopupOverlay').remove();" style="padding:12px;background:transparent;border:1px solid #2a2a38;border-radius:10px;color:#a0a0b8;font-size:14px;cursor:pointer;">Dismiss</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
 }
 
 function logout() {
