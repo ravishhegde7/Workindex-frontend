@@ -717,8 +717,8 @@
   }
 
   /* ═══ APPROACHES ═════════════════════════════════════════════════════════ */
-    /* ═══ APPROACHES ═════════════════════════════════════════════════════════ */
-  function loadApproaches() {
+    function loadApproaches() {
+    _pages['approaches'] = 1;
     setT('apTbl', spin());
 
     // Fetch both regular approaches and expert invites in parallel
@@ -852,7 +852,25 @@
       else toast(d.message||'Failed', 'e');
     }).catch(function() { toast('Error', 'e'); });
   }
-
+function renderApproachesPage(arr) {
+    if (arr) pagSlice('approaches', arr);
+    var page = pagSlice('approaches', _pageData['approaches'] || []);
+    var existing = document.getElementById('pag-approaches');
+    if (existing) existing.remove();
+    setT('apTbl', page.map(function(a) {
+      var en = a.expert ? esc(a.expert.name||'-') : '-', eid = a.expert ? a.expert._id : '';
+      var uid = 'ap_' + a._id;
+      var quote = a.quote ? '₹' + Number(a.quote).toLocaleString('en-IN') : '—';
+      var fullMsg = esc(a.message || '');
+      var shortMsg = a.message ? (a.message.length > 60 ? esc(a.message.substring(0, 60)) + '… <span data-full-msg="' + fullMsg + '" style="color:#FC8019;cursor:pointer;font-size:12px;white-space:nowrap;">read more</span>' : fullMsg) : '—';
+      var message = '<div style="max-width:200px;">' + shortMsg + '</div>';
+      var actions = '<div style="position:relative;display:inline-block;"><button class="btn bgho" onclick="document.getElementById(\'' + uid + '\').style.display = document.getElementById(\'' + uid + '\').style.display===\'block\'?\'none\':\'block\'; event.stopPropagation();">Actions ▾</button><div id="' + uid + '" style="display:none;position:absolute;right:0;top:32px;background:#1a1a24;border:1px solid #2a2a38;border-radius:8px;z-index:100;min-width:120px;box-shadow:0 4px 16px rgba(0,0,0,0.4);">' + (a.status === 'pending' ? '<div data-ap-id="' + a._id + '" data-ap-act="accepted" style="padding:10px 14px;cursor:pointer;color:#22c55e;font-size:13px;font-weight:600;" onmouseover="this.style.background=\'#2a2a38\'" onmouseout="this.style.background=\'transparent\'">✓ Accept</div><div data-ap-id="' + a._id + '" data-ap-act="rejected" style="padding:10px 14px;cursor:pointer;color:#ef4444;font-size:13px;font-weight:600;" onmouseover="this.style.background=\'#2a2a38\'" onmouseout="this.style.background=\'transparent\'">✕ Reject</div>' : '') + '<div data-ap-del="' + a._id + '" style="padding:10px 14px;cursor:pointer;color:#a0a0b8;font-size:13px;border-top:1px solid #2a2a38;" onmouseover="this.style.background=\'#2a2a38\'" onmouseout="this.style.background=\'transparent\'">🗑 Delete</div></div></div>';
+      var statusBadge = a.status === 'completed' ? '<span class="badge bgr">completed</span>' : bdg(a.status);
+      return '<tr><td><span data-uid="' + eid + '" style="cursor:pointer;color:#FC8019;font-weight:600">' + en + '</span></td><td style="color:#a0a0b8">' + (a.client?esc(a.client.name):'-') + '</td><td style="font-size:12px">' + (a.request?esc(a.request.title):'-') + '</td><td style="color:#f59e0b;font-weight:700;">' + quote + '</td><td style="font-size:12px;color:#a0a0b8;max-width:180px;">' + message + '</td><td style="color:#f59e0b">' + (a.creditsSpent||0) + '</td><td>' + statusBadge + '</td><td style="font-size:12px;color:#a0a0b8">' + fmt(a.createdAt) + '</td><td>' + actions + '</td></tr>';
+    }).join(''));
+    pagHTML('approaches', 'apTbl');
+  }
+   
 function showMsgModal(msg) {
     var existing = document.getElementById('msgReadModal');
     if (existing) existing.remove();
