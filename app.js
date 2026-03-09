@@ -75,6 +75,11 @@ function initDarkMode() {
 function toggleDarkMode() {
   const isDark = document.body.classList.toggle('dark-mode');
   localStorage.setItem('darkMode', isDark);
+  // Sync both toggles
+  const t1 = document.getElementById('darkModeToggle');
+  const t2 = document.getElementById('darkModeToggle2');
+  if (t1) t1.checked = isDark;
+  if (t2) t2.checked = isDark;
   showToast(isDark ? 'Dark mode enabled' : 'Light mode enabled', 'success');
 }
 
@@ -1514,6 +1519,45 @@ function formatFileSize(bytes) {
   const sizes = ['Bytes', 'KB', 'MB', 'GB'];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
   return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+}
+// ─── PROFILE DROPDOWN ───
+function toggleProfileDropdown(dropdownId) {
+  const dropdown = document.getElementById(dropdownId);
+  if (!dropdown) return;
+
+  const isOpen = dropdown.style.display === 'block';
+
+  // Close all dropdowns first
+  document.querySelectorAll('#clientProfileDropdown, #expertProfileDropdown').forEach(d => {
+    d.style.display = 'none';
+  });
+
+  if (!isOpen) {
+    // Populate name/email before showing
+    if (state.user) {
+      const nameEl  = document.getElementById(dropdownId === 'clientProfileDropdown' ? 'clientDropdownName' : 'expertDropdownName');
+      const emailEl = document.getElementById(dropdownId === 'clientProfileDropdown' ? 'clientDropdownEmail' : 'expertDropdownEmail');
+      if (nameEl)  nameEl.textContent  = state.user.name  || 'My Account';
+      if (emailEl) emailEl.textContent = state.user.email || '';
+    }
+
+    // Sync dark mode toggle state
+    const isDark = localStorage.getItem('darkMode') === 'true';
+    const toggle = document.getElementById(dropdownId === 'clientProfileDropdown' ? 'darkModeToggle' : 'darkModeToggle2');
+    if (toggle) toggle.checked = isDark;
+
+    dropdown.style.display = 'block';
+
+    // Close when clicking outside
+    setTimeout(() => {
+      document.addEventListener('click', function closeDropdown(e) {
+        if (!dropdown.contains(e.target)) {
+          dropdown.style.display = 'none';
+          document.removeEventListener('click', closeDropdown);
+        }
+      });
+    }, 10);
+  }
 }
 
 // ─── LOAD CLIENT DATA ─── 
