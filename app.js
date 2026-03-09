@@ -47,6 +47,11 @@ function stopInactivityWatcher() {
 
 function handleSessionExpired() {
   stopInactivityWatcher();
+  if (notificationInterval) clearInterval(notificationInterval);
+  if (chatPollingInterval) clearInterval(chatPollingInterval);
+  notificationInterval = null;
+  chatPollingInterval = null;
+  currentChatId = null;
   localStorage.removeItem('token');
   localStorage.removeItem('user');
   state.token = null;
