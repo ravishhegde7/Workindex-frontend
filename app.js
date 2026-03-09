@@ -3253,9 +3253,31 @@ async function saveProfileEdits() {
     if (el) updatedProfile[key] = el.value.trim();
   });
 
+  // ─── BIO MODERATION ───
+  const bioText = updatedProfile.bio || '';
+  const phonePattern = /(\+?\d[\s\-.]?){9,13}\d/;
+  const contactPatterns = [
+    /\b\d{10}\b/,
+    /\+91[\s\-]?\d{10}/,
+    /\b[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}\b/,
+    /wa\.me\//i,
+    /whatsapp/i,
+    /telegram/i,
+    /instagram\.com/i,
+    /t\.me\//i,
+    /call me/i,
+    /contact me at/i,
+    /reach me/i,
+    /dm me/i
+  ];
+  const hasContact = phonePattern.test(bioText) || contactPatterns.some(p => p.test(bioText));
+  if (hasContact) {
+    showToast('Bio cannot contain phone numbers, emails, or external contact info. Please remove them and try again.', 'error');
+    return;
+  }
+
   const btn = document.querySelector('#editSaveRow button');
   if (btn) { btn.disabled = true; btn.textContent = 'Saving...'; }
-
   try {
     const res = await fetch(`${API_URL}/users/profile`, {
       method: 'PUT',
