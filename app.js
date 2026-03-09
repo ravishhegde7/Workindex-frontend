@@ -293,12 +293,13 @@ function logout() {
   notificationInterval = null;
   chatPollingInterval = null;
   currentChatId = null;
-   if (browseAbortController) browseAbortController.abort();
+  if (browseAbortController) browseAbortController.abort();
   if (expertsAbortController) expertsAbortController.abort();
   localStorage.removeItem('token');
   localStorage.removeItem('user');
   state.token = null;
   state.user = null;
+  clearAuthForms();
   showPage('landing');
   showToast('Logged out successfully', 'success');
 }
@@ -4984,5 +4985,27 @@ function setBrowseFilter(service) {
   const filterBar = document.getElementById('browseFilterBar');
   if (filterBar) filterBar.innerHTML = renderBrowseFilterChips();
   renderAvailableRequests();
+}
+function clearAuthForms() {
+  // All auth field IDs
+  ['loginEmail', 'loginPassword',
+   'signupName', 'signupEmail', 'signupPhone', 'signupPassword', 'signupOTP',
+   'fpEmail', 'fpOTP', 'fpNewPassword', 'fpConfirmPassword'
+  ].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+
+  // Reset signup to step 1
+  const step1 = document.getElementById('signupStep1');
+  const step2 = document.getElementById('signupStep2');
+  if (step1) step1.style.display = 'block';
+  if (step2) step2.style.display = 'none';
+
+  // Reset terms checkbox and send OTP button
+  const terms = document.getElementById('termsCheckbox');
+  const signupBtn = document.getElementById('signupSubmitBtn');
+  if (terms) terms.checked = false;
+  if (signupBtn) { signupBtn.disabled = true; signupBtn.style.opacity = '0.5'; }
 }
 // ═══ END OF JAVASCRIPT ═══
