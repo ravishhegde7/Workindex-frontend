@@ -2299,7 +2299,61 @@ else html += '<a class="btn bgho" href="' + esc(doc.url) + '" target="_blank">Do
       toast('Connection error — ticket not created', 'e');
     });
   }
+/* ═══ SUSPENDED REQUESTS ════════════════════════════════════════════════ */
+  function loadSuspendedRequests() {
+    _pages['suspReq'] = 1;
+    setT('suspReqTbl', spin());
+    api('suspended-requests').then(function(d) {
+      var reqs = d.requests || [];
+      if (!reqs.length) {
+        setT('suspReqTbl', '<tr><td colspan="6" style="text-align:center;padding:30px;color:#606078">No suspended requests</td></tr>');
+        return;
+      }
+      pagSlice('suspReq', reqs);
+      renderSuspendedPage(reqs);
+    }).catch(function() { setT('suspReqTbl', ''); });
+  }
 
+  function renderSuspendedPage(arr) {
+    if (arr) pagSlice('suspReq', arr);
+    var page = pagSlice('suspReq', _pageData['suspReq'] || []);
+    var existing = document.getElementById('pag-suspReq');
+    if (existing) existing.remove();
+    setT('suspReqTbl', page.map(function(r) {
+      var reportList = (r.reports || []).map(function(rp) {
+        return '<div style="font-size:11px;color:#a0a0b8;margin-bottom:2px">• ' + esc(rp.reason||'') + (rp.note ? ' — ' + esc(rp.note) : '') + '</div>';
+      }).join('');
+      var cname = r.client ? esc(r.client.name||'-') : '-';
+      var cid = r.client ? r.client._id : '';
+      return '<tr>' +
+        '<td style="font-weight:600">' + esc((r.title||'-').substring(0,40)) + '</td>' +
+        '<td>' + uLnk(cid, cname, '#3b82f6') + '</td>' +
+        '<td style="font-size:12px">' + esc(r.service||'-') + '</td>' +
+        '<td style="font-size:12px">' + (r.reports||[]).length + ' reports<br>' + reportList + '</td>' +
+        '<td style="font-size:12px;color:#a0a0b8">' + fmt(r.suspendedAt) + '</td>' +
+        '<td><div style="display:flex;gap:6px;">' +
+          '<button class="btn bgrn" data-sr-id="' + r._id + '" data-sr-act="restore">✓ Restore</button>' +
+          '<button class="btn brdn" data-sr-id="' + r._id + '" data-sr-act="delete">🗑 Delete</button>' +
+        '</div></td>' +
+      '</tr>';
+    }).join(''));
+    pagHTML('suspReq', 'suspReqTbl');
+    var tbl = document.getElementById('suspReqTbl');
+    if (tbl) {
+      tbl.onclick = function(ev) {
+        var btn = ev.target.closest('[data-sr-act]');
+        if (!btn) return;
+        var act = btn.dataset.srAct, id = btn.dataset.srId;
+        var label = act === 'restore' ? 'Restore this request and unrestrict the client?' : 'Permanently delete this request?';
+        if (!confirm(label)) return;
+        api('suspended-requests/' + id + '/action', 'POST', { action: act }).then(function(d) {
+          if (d.success) { toast(d.message); loadSuspendedRequests(); }
+          else toast(d.message || 'Failed', 'e');
+        }).catch(function() { toast('Error', 'e'); });
+      };
+    }
+  }
+   
   /* ═══════════════════════════════════════════════════════════
      SETTINGS TAB
   ═══════════════════════════════════════════════════════════ */
