@@ -1004,19 +1004,28 @@ function showMsgModal(msg) {
   /* ═══ CREDITS ════════════════════════════════════════════════════════════ */
   function loadCredits() {
     var type = g('crType').value, srch = g('crSrch').value.toLowerCase();
+    _pages['credits'] = 1;
     setT('crTbl', spin());
     api('credits' + qs({ type: type })).then(function(d) {
       var txs = d.transactions || [];
       if (srch) { txs = txs.filter(function(t) { return t.user && ((t.user.name||'').toLowerCase().indexOf(srch) >= 0 || (t.user.email||'').toLowerCase().indexOf(srch) >= 0); }); }
-      var tc = { purchase:'bgr', spent:'bo', refund:'bpu', bonus:'btl' };
-      setT('crTbl', txs.map(function(tx) {
-        var uid = tx.user ? tx.user._id : '', un = tx.user ? esc(tx.user.name||'-') : '-', ue = tx.user ? esc(tx.user.email||'') : '';
-        var displayAmt = (tx.type === 'purchase' && tx.purchaseDetails && tx.purchaseDetails.amountPaid)
-          ? '₹' + tx.purchaseDetails.amountPaid.toLocaleString('en-IN')
-          : (tx.amount > 0 ? '+' : '') + tx.amount + ' cr';
-        return '<tr><td><span data-uid="' + uid + '" style="cursor:pointer;color:#FC8019;font-weight:600">' + un + '</span><br><small style="color:#606078">' + ue + '</small></td><td><span class="badge ' + (tc[tx.type]||'bgy') + '">' + (tx.type||'') + '</span></td><td style="color:' + (tx.amount>0?'#22c55e':'#ef4444') + '">' + displayAmt + '</td><td style="color:#f59e0b">' + (tx.balanceAfter||0) + '</td><td style="font-size:12px;color:#a0a0b8">' + esc((tx.description||'-').substring(0, 40)) + '</td><td style="font-size:12px;color:#a0a0b8">' + fmtT(tx.createdAt) + '</td></tr>';
-      }).join(''));
+      pagSlice('credits', txs);
+      renderCreditsPage(txs);
     }).catch(function() { setT('crTbl', ''); });
+  }
+
+  function renderCreditsPage(arr) {
+    if (arr) pagSlice('credits', arr);
+    var page = pagSlice('credits', _pageData['credits'] || []);
+    var existing = document.getElementById('pag-credits');
+    if (existing) existing.remove();
+    var tc = { purchase:'bgr', spent:'bo', refund:'bpu', bonus:'btl' };
+    setT('crTbl', page.map(function(tx) {
+      var uid = tx.user ? tx.user._id : '', un = tx.user ? esc(tx.user.name||'-') : '-', ue = tx.user ? esc(tx.user.email||'') : '';
+      var displayAmt = (tx.type === 'purchase' && tx.purchaseDetails && tx.purchaseDetails.amountPaid) ? '₹' + tx.purchaseDetails.amountPaid.toLocaleString('en-IN') : (tx.amount > 0 ? '+' : '') + tx.amount + ' cr';
+      return '<tr><td><span data-uid="' + uid + '" style="cursor:pointer;color:#FC8019;font-weight:600">' + un + '</span><br><small style="color:#606078">' + ue + '</small></td><td><span class="badge ' + (tc[tx.type]||'bgy') + '">' + (tx.type||'') + '</span></td><td style="color:' + (tx.amount>0?'#22c55e':'#ef4444') + '">' + displayAmt + '</td><td style="color:#f59e0b">' + (tx.balanceAfter||0) + '</td><td style="font-size:12px;color:#a0a0b8">' + esc((tx.description||'-').substring(0, 40)) + '</td><td style="font-size:12px;color:#a0a0b8">' + fmtT(tx.createdAt) + '</td></tr>';
+    }).join(''));
+    pagHTML('credits', 'crTbl');
   }
 
   /* ═══ REFUNDS ════════════════════════════════════════════════════════════ */
@@ -1056,16 +1065,27 @@ function showMsgModal(msg) {
 
   /* ═══ TICKETS ════════════════════════════════════════════════════════════ */
   function loadTickets() {
+    _pages['tickets'] = 1;
     setT('tkTbl', spin());
     var st = g('tkSt').value, srch = g('tkSrch').value;
     api('tickets' + qs({ status: st })).then(function(d) {
       var ts = d.tickets || [];
       if (srch) { srch = srch.toLowerCase(); ts = ts.filter(function(t) { return t.user && ((t.user.name||'').toLowerCase().indexOf(srch)>=0||(t.user.email||'').toLowerCase().indexOf(srch)>=0); }); }
-      setT('tkTbl', ts.map(function(t) {
-        var u = t.user || {};
-        return '<tr><td>' + uLnk(u._id||'', u.name||'-') + '<br><small style="color:#606078">' + esc(u.email||'') + '</small></td><td style="font-size:12px">' + esc(t.issueType||'-') + '</td><td style="font-size:12px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc((t.subject||t.description||'-').substring(0,60)) + '</td><td>' + bdg(t.status) + '</td><td style="color:#f59e0b">' + (t.eligibleCredits||0) + '</td><td style="font-size:12px;color:#a0a0b8">' + fmt(t.createdAt) + '</td><td><button class="btn bgho" data-tk-id="' + t._id + '">View</button></td></tr>';
-      }).join(''));
+      pagSlice('tickets', ts);
+      renderTicketsPage(ts);
     }).catch(function() { setT('tkTbl', ''); });
+  }
+
+  function renderTicketsPage(arr) {
+    if (arr) pagSlice('tickets', arr);
+    var page = pagSlice('tickets', _pageData['tickets'] || []);
+    var existing = document.getElementById('pag-tickets');
+    if (existing) existing.remove();
+    setT('tkTbl', page.map(function(t) {
+      var u = t.user || {};
+      return '<tr><td>' + uLnk(u._id||'', u.name||'-') + '<br><small style="color:#606078">' + esc(u.email||'') + '</small></td><td style="font-size:12px">' + esc(t.issueType||'-') + '</td><td style="font-size:12px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc((t.subject||t.description||'-').substring(0,60)) + '</td><td>' + bdg(t.status) + '</td><td style="color:#f59e0b">' + (t.eligibleCredits||0) + '</td><td style="font-size:12px;color:#a0a0b8">' + fmt(t.createdAt) + '</td><td><button class="btn bgho" data-tk-id="' + t._id + '">View</button></td></tr>';
+    }).join(''));
+    pagHTML('tickets', 'tkTbl');
   }
 
   function openTicketModal(tid) {
@@ -1107,21 +1127,30 @@ function showMsgModal(msg) {
 
   /* ═══ POSTS ══════════════════════════════════════════════════════════════ */
   function loadPosts() {
+    _pages['posts'] = 1;
     setT('poTbl', spin());
     var srch = g('poSrch').value, st = g('poSt').value;
     api('requests' + qs({ search: srch, status: st })).then(function(d) {
       var posts = d.requests || [];
-      // Enrich with approach credits if available
-      setT('poTbl', posts.map(function(p) {
-        var cname = p.client ? esc(p.client.name||'-') : '-';
-        // creditsRequired: set by admin edit, or from approach creditsSpent, or budget-derived
-        var cr = p.creditsRequired || p.creditsSpent || p.credits || 0;
-        return '<tr><td style="font-size:13px;font-weight:600">' + esc((p.title||'-').substring(0,40)) + '</td><td>' + uLnk(p.client?p.client._id:'', cname, '#3b82f6') + '</td><td style="font-size:12px">' + esc(p.service||p.category||'-') + '</td><td style="color:#f59e0b">' + (p.budget||'-') + '</td><td>' + bdg(p.status||'open') + '</td><td style="color:#FC8019;font-weight:600">' + cr + '</td><td style="font-size:12px;color:#a0a0b8">' + fmt(p.createdAt) + '</td><td><button class="btn bgho" data-edit-post="' + p._id + '">Edit</button></td></tr>';
-      }).join(''));
+      pagSlice('posts', posts);
+      renderPostsPage(posts);
     }).catch(function() { setT('poTbl', ''); });
   }
 
-    function openPostModal(pid) {
+  function renderPostsPage(arr) {
+    if (arr) pagSlice('posts', arr);
+    var page = pagSlice('posts', _pageData['posts'] || []);
+    var existing = document.getElementById('pag-posts');
+    if (existing) existing.remove();
+    setT('poTbl', page.map(function(p) {
+      var cname = p.client ? esc(p.client.name||'-') : '-';
+      var cr = p.creditsRequired || p.creditsSpent || p.credits || 0;
+      return '<tr><td style="font-size:13px;font-weight:600">' + esc((p.title||'-').substring(0,40)) + '</td><td>' + uLnk(p.client?p.client._id:'', cname, '#3b82f6') + '</td><td style="font-size:12px">' + esc(p.service||p.category||'-') + '</td><td style="color:#f59e0b">' + (p.budget||'-') + '</td><td>' + bdg(p.status||'open') + '</td><td style="color:#FC8019;font-weight:600">' + cr + '</td><td style="font-size:12px;color:#a0a0b8">' + fmt(p.createdAt) + '</td><td><button class="btn bgho" data-edit-post="' + p._id + '">Edit</button></td></tr>';
+    }).join(''));
+    pagHTML('posts', 'poTbl');
+  }
+   
+function openPostModal(pid) {
     _editPostId = pid;
     api('requests/' + pid).then(function(d) {
       var p = d.request || {};
@@ -1172,24 +1201,37 @@ function showMsgModal(msg) {
 
   /* ═══ REVIEWS ════════════════════════════════════════════════════════════ */
   function loadReviews() {
+    _pages['reviews'] = 1;
     setT('rvTbl', spin());
     var srch = g('rvSrch').value;
     api('ratings' + qs({ search: srch })).then(function(d) {
       var reviews = d.ratings || [];
-      setT('rvTbl', reviews.map(function(r) {
-        var en = r.expert ? esc(r.expert.name||'-') : '-', eid = r.expert ? r.expert._id : '';
-        var cl = r.client ? esc(r.client.name||'-') : '-';
-        return '<tr><td><span data-uid="' + eid + '" style="cursor:pointer;color:#FC8019;font-weight:600">' + en + '</span></td><td style="color:#a0a0b8">' + cl + '</td><td>' + stars(r.rating||0) + ' <span style="font-size:11px;color:#f59e0b">' + (r.rating||0) + '</span></td><td style="font-size:12px;max-width:200px;overflow:hidden;text-overflow:ellipsis">' + esc((r.review||r.comment||'-').substring(0,80)) + '</td><td style="font-size:12px;color:#a0a0b8">' + fmt(r.createdAt) + '</td><td><button class="btn brdn" data-del-review="' + r._id + '">Delete</button></td></tr>';
-      }).join(''));
+      pagSlice('reviews', reviews);
+      renderReviewsPage(reviews);
     }).catch(function() { setT('rvTbl', ''); });
+  }
+
+  function renderReviewsPage(arr) {
+    if (arr) pagSlice('reviews', arr);
+    var page = pagSlice('reviews', _pageData['reviews'] || []);
+    var existing = document.getElementById('pag-reviews');
+    if (existing) existing.remove();
+    setT('rvTbl', page.map(function(r) {
+      var en = r.expert ? esc(r.expert.name||'-') : '-', eid = r.expert ? r.expert._id : '';
+      var cl = r.client ? esc(r.client.name||'-') : '-';
+      return '<tr><td><span data-uid="' + eid + '" style="cursor:pointer;color:#FC8019;font-weight:600">' + en + '</span></td><td style="color:#a0a0b8">' + cl + '</td><td>' + stars(r.rating||0) + ' <span style="font-size:11px;color:#f59e0b">' + (r.rating||0) + '</span></td><td style="font-size:12px;max-width:200px;overflow:hidden;text-overflow:ellipsis">' + esc((r.review||r.comment||'-').substring(0,80)) + '</td><td style="font-size:12px;color:#a0a0b8">' + fmt(r.createdAt) + '</td><td><button class="btn brdn" data-del-review="' + r._id + '">Delete</button></td></tr>';
+    }).join(''));
+    pagHTML('reviews', 'rvTbl');
   }
 
   /* ═══ REGISTRATIONS ══════════════════════════════════════════════════════ */
   function loadRegistrations() {
+    _pages['registrations'] = 1;
     setT('rgTbl', spin());
     var st = g('rgSt').value;
     api('users' + qs({ role: 'expert', registrationStatus: st })).then(function(d) {
       var users = d.users || [];
+       
       /* filter by approval status if field exists */
       if (st !== 'all') {
         users = users.filter(function(u) {
@@ -1199,7 +1241,17 @@ function showMsgModal(msg) {
           return true;
         });
       }
-      setT('rgTbl', users.map(function(u) {
+      pagSlice('registrations', users);
+      renderRegistrationsPage(users);
+    }).catch(function() { setT('rgTbl', ''); });
+  }
+
+  function renderRegistrationsPage(arr) {
+    if (arr) pagSlice('registrations', arr);
+    var page = pagSlice('registrations', _pageData['registrations'] || []);
+    var existing = document.getElementById('pag-registrations');
+    if (existing) existing.remove();
+    setT('rgTbl', page.map(function(u) {
         var pr = u.profile || {};
         var actions = '';
         if (!u.isApproved) actions += '<button class="btn bgrn" data-reg-action="' + u._id + '" data-action="approve" data-nm="' + esc(u.name) + '">Approve</button> ';
@@ -1221,7 +1273,7 @@ var kycBtn = kycCount > 0
         var kycStatusBadge = kycStatusMap[(u.kyc && u.kyc.status) || 'not_submitted'];
         return '<tr><td>' + uLnk(u._id, u.name) + '</td><td style="font-size:12px;color:#a0a0b8">' + esc(u.email) + '</td><td style="font-size:12px">' + (u.phone||'-') + '</td><td style="font-size:12px">' + esc(pr.specialization||u.specialization||'-') + '</td><td>' + kycBtn + '</td><td>' + kycStatusBadge + '</td><td>' + (u.isApproved ? '<span class="badge bgr">Approved</span>' : u.isBanned ? '<span class="badge brd">Rejected</span>' : '<span class="badge byw">Pending</span>') + '</td><td style="font-size:12px;color:#a0a0b8">' + fmt(u.createdAt) + '</td><td>' + actions + '</td></tr>';
       }).join(''));
-    }).catch(function() { setT('rgTbl', ''); });
+    pagHTML('registrations', 'rgTbl');
   }
 
   /* ═══ PAYMENTS ═══════════════════════════════════════════════════════════ */
@@ -2080,7 +2132,17 @@ else html += '<a class="btn bgho" href="' + esc(doc.url) + '" target="_blank">Do
         return;
       }
 
-      setT('kycTbl', filtered.map(function(u) {
+      pagSlice('kyc', filtered);
+      renderKycPage(filtered);
+    }).catch(function() { setT('kycTbl', ''); });
+  }
+
+  function renderKycPage(arr) {
+    if (arr) pagSlice('kyc', arr);
+    var page = pagSlice('kyc', _pageData['kyc'] || []);
+    var existing = document.getElementById('pag-kyc');
+    if (existing) existing.remove();
+    setT('kycTbl', page.map(function(u) {
         var kyc = u.kyc || {};
         var regStatus = u.isApproved
           ? '<span class="badge bgr">Approved</span>'
@@ -2114,7 +2176,7 @@ else html += '<a class="btn bgho" href="' + esc(doc.url) + '" target="_blank">Do
           '<td><div style="display:flex;gap:4px;flex-wrap:wrap">' + actions + '</div></td>' +
           '</tr>';
       }).join(''));
-    }).catch(function() { setT('kycTbl', ''); });
+    pagHTML('kyc', 'kycTbl');
   }
 
   function processKycDirect(uid, action) {
