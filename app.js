@@ -742,11 +742,7 @@ async function submitRating() {
     }
   } catch (error) {
     console.error('Submit rating error:', error);
-    if (error.message === 'Failed to fetch') {
-      showToast('No internet connection. Please check your network and try again.', 'error');
-    } else {
-      showToast('Failed to submit review', 'error');
-    }
+    showToast('Failed to submit review', 'error');
   }
 }
 
