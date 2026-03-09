@@ -255,9 +255,11 @@ function enterDashboard() {
   const dashPage = state.user.role === 'client' ? 'clientDash' : 'expertDash';
   showPage(dashPage);
   loadNotifications();
-  setInterval(loadNotifications, 30000);
+  // Clear any existing interval before creating a new one
+  if (notificationInterval) clearInterval(notificationInterval);
+  notificationInterval = setInterval(loadNotifications, 30000);
   startInactivityWatcher();
-
+   
   // Show service filter modal for new experts
   if (state.user.role === 'expert') {
     const hasFilter = state.user?.profile?.browseServiceFilter?.length > 0;
