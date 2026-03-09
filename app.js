@@ -4261,9 +4261,13 @@ function renderClientExploreGrid(experts) {
     return;
   }
   if (empty) empty.style.display = 'none';
-  
-  grid.innerHTML = experts.map(expert => {
-    const profile = expert.profile || {};
+
+  // Store full list for pagination
+  renderClientExploreGrid._currentList = experts;
+  const items = paginate(experts, 'clientExplore');
+
+  grid.innerHTML = items.map(expert => {
+     const profile = expert.profile || {};
     const name = expert.name || 'Expert';
     const spec = profile.specialization || expert.specialization || 'Professional';
     const city = profile.city || expert.location?.city || '';
@@ -4708,6 +4712,7 @@ var PAGINATION = {
   expertBrowse:     { page: 1, perPage: 8 },
   expertApproaches: { page: 1, perPage: 8 },
   findExperts:      { page: 1, perPage: 8 },
+  clientExplore:    { page: 1, perPage: 8 },
 };
 
 function paginate(items, section) {
