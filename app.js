@@ -1595,21 +1595,31 @@ function renderAvailableRequests() {
   const container = document.getElementById('browseTab');
   if (!container) return;
 
-  const allRequests = state.availableRequests || [];
-
+  const filter = state.browseServiceFilter || [];
+  const allRequests = (state.availableRequests || []).filter(req =>
+    !filter.length || filter.includes(req.service)
+  );
   if (!allRequests.length) {
+    const isFiltered = (state.browseServiceFilter || []).length > 0;
     container.innerHTML = `
+      <div id="browseFilterBar" style="display:flex;gap:8px;flex-wrap:wrap;padding:0 0 16px 0;">
+        ${renderBrowseFilterChips()}
+      </div>
       <div class="empty-state">
         <div class="empty-icon">🔍</div>
-        <h3 class="empty-title">No requests available</h3>
-        <p class="empty-text">New requests will appear here</p>
+        <h3 class="empty-title">${isFiltered ? 'No requests for selected category' : 'No requests available'}</h3>
+        <p class="empty-text">${isFiltered ? 'Try selecting a different category above' : 'New requests will appear here'}</p>
       </div>`;
     return;
   }
 
   const items = paginate(allRequests, 'expertBrowse');
 
-  container.innerHTML = '<h2 style="margin-bottom:20px;">Available Requests</h2>' +
+  container.innerHTML = 
+    `<div id="browseFilterBar" style="display:flex;gap:8px;flex-wrap:wrap;padding:0 0 16px 0;overflow-x:auto;">
+      ${renderBrowseFilterChips()}
+    </div>
+    <h2 style="margin-bottom:20px;">Available Requests</h2>` +
     items.map(req => {
       const cur  = req.currentApproaches || 0;
       const max  = req.maxApproaches || 5;
@@ -4684,5 +4694,139 @@ function getItemsForSection(section) {
     findExperts:      () => state.experts || [],
   };
   return (map[section] || (() => []))();
+}
+// ─── EXPERT SERVICE FILTER MODAL ───
+function showServiceFilterModal(onComplete) {
+  const services = [
+    { value: 'itr',         label: 'ITR Filing',    icon: '📄' },
+    { value: 'gst',         label: 'GST Services',  icon: '🧾' },
+    { value: 'accounting',  label: 'Accounting',    icon: '📊' },
+    { value: 'audit',       label: 'Audit',         icon: '🔍' },
+    { value: 'photography', label: 'Photography',   icon: '📷' },
+    { value: 'development', label: 'Development',   icon: '💻' },
+  ];
+
+  // Pre-select from profile if available
+  const saved = state.user?.profile?.servicesOffered || [];
+
+  const modal = document.createElement('div');
+  modal.id = 'serviceFilterModal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;z-index:1010;padding:20px;';
+
+  modal.innerHTML = `
+    <div style="background:var(--bg);border-radius:20px;max-width:420px;width:100%;padding:28px;">
+      <div style="text-align:center;margin-bottom:24px;">
+        <div style="font-size:44px;margin-bottom:12px;">🎯</div>
+        <h2 style="font-size:20px;font-weight:800;color:var(--text);margin-bottom:8px;">What services do you offer?</h2>
+        <p style="font-size:14px;color:var(--text-muted);line-height:1.5;">Select your categories — you'll only see matching client requests in your Browse tab.</p>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:24px;" id="serviceFilterGrid">
+        ${services.map(s => {
+          const isSelected = saved.includes(s.value);
+          return `
+            <div onclick="toggleServiceFilter(this, '${s.value}')"
+              data-service="${s.value}"
+              style="padding:14px 12px;border:2px solid ${isSelected ? 'var(--primary)' : 'var(--border)'};
+                     border-radius:12px;cursor:pointer;text-align:center;
+                     background:${isSelected ? 'rgba(252,128,25,0.08)' : 'var(--bg)'};
+                     transition:all 0.2s;"
+              data-selected="${isSelected}">
+              <div style="font-size:28px;margin-bottom:6px;">${s.icon}</div>
+              <div style="font-size:13px;font-weight:700;color:${isSelected ? 'var(--primary)' : 'var(--text)'};">${s.label}</div>
+            </div>`;
+        }).join('')}
+      </div>
+
+      <div id="serviceFilterError" style="display:none;color:#e74c3c;font-size:13px;text-align:center;margin-bottom:12px;">
+        Please select at least one service
+      </div>
+
+      <button onclick="confirmServiceFilter()" 
+        style="width:100%;padding:15px;background:var(--primary);color:#fff;border:none;border-radius:12px;font-size:16px;font-weight:700;cursor:pointer;margin-bottom:10px;">
+        Show Matching Requests →
+      </button>
+
+      <button onclick="skipServiceFilter()"
+        style="width:100%;padding:12px;background:transparent;border:none;color:var(--text-muted);font-size:13px;cursor:pointer;">
+        Skip — show all requests
+      </button>
+    </div>
+  `;
+
+  // Store callback
+  modal._onComplete = onComplete;
+  document.body.appendChild(modal);
+}
+
+function toggleServiceFilter(el, service) {
+  const isSelected = el.dataset.selected === 'true';
+  el.dataset.selected = !isSelected;
+  el.style.borderColor = !isSelected ? 'var(--primary)' : 'var(--border)';
+  el.style.background = !isSelected ? 'rgba(252,128,25,0.08)' : 'var(--bg)';
+  el.querySelector('div:last-child').style.color = !isSelected ? 'var(--primary)' : 'var(--text)';
+  document.getElementById('serviceFilterError').style.display = 'none';
+}
+
+function getSelectedServices() {
+  return Array.from(document.querySelectorAll('#serviceFilterGrid [data-selected="true"]'))
+    .map(el => el.dataset.service);
+}
+
+async function confirmServiceFilter() {
+  const selected = getSelectedServices();
+  if (!selected.length) {
+    document.getElementById('serviceFilterError').style.display = 'block';
+    return;
+  }
+
+  // Save preference to profile
+  try {
+    const updatedProfile = { ...(state.user.profile || {}), browseServiceFilter: selected };
+    await fetch(`${API_URL}/users/profile`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${state.token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ profile: updatedProfile })
+    });
+    state.user.profile = updatedProfile;
+    localStorage.setItem('user', JSON.stringify(state.user));
+  } catch (err) {
+    console.error('Save filter error:', err);
+  }
+
+  document.getElementById('serviceFilterModal')?.remove();
+  
+  // Apply filter to browse
+  applyBrowseServiceFilter(selected);
+}
+
+function skipServiceFilter() {
+  document.getElementById('serviceFilterModal')?.remove();
+  // Show all — no filter
+  applyBrowseServiceFilter([]);
+}
+
+function applyBrowseServiceFilter(services) {
+  state.browseServiceFilter = services;
+  renderAvailableRequests();
+  // Update the filter chips UI in browse tab
+  updateBrowseFilterChips(services);
+}
+
+function updateBrowseFilterChips(selected) {
+  document.querySelectorAll('.browse-filter-chip').forEach(chip => {
+    const val = chip.dataset.service;
+    const isActive = !selected.length || selected.includes(val) || val === 'all';
+    chip.classList.toggle('active', isActive);
+    chip.style.background = (val === 'all' ? !selected.length : selected.includes(val))
+      ? 'var(--primary)' : 'transparent';
+    chip.style.color = (val === 'all' ? !selected.length : selected.includes(val))
+      ? '#fff' : 'var(--text)';
+    chip.style.borderColor = (val === 'all' ? !selected.length : selected.includes(val))
+      ? 'var(--primary)' : 'var(--border)';
+  });
 }
 // ═══ END OF JAVASCRIPT ═══
