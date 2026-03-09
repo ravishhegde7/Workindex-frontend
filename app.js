@@ -3392,6 +3392,7 @@ async function submitKycDocument() {
 // ─── CHAT STATE ───
 let currentChatId = null;
 let chatPollingInterval = null;
+let notificationInterval = null;
 
 // ─── HELPER: get correct element ID based on role ───
 function chatEl(clientId, expertId) {
