@@ -11,6 +11,31 @@
   var dF = '', dT = '', T = {};
   var _editPostId = null, _creditUid = null, _pwUid = null, _tkId = null;
 
+  // ─── ADMIN INACTIVITY LOGOUT (30 minutes) ───
+  var _adminInactivityTimer = null;
+  var ADMIN_INACTIVITY_TIMEOUT = 30 * 60 * 1000;
+
+  function resetAdminTimer() {
+    if (!tok) return;
+    clearTimeout(_adminInactivityTimer);
+    _adminInactivityTimer = setTimeout(function() {
+      doLogout();
+      alert('Session expired due to inactivity. Please log in again.');
+    }, ADMIN_INACTIVITY_TIMEOUT);
+  }
+
+  function startAdminInactivity() {
+    ['mousemove','mousedown','keydown','touchstart','scroll','click'].forEach(function(ev) {
+      window.addEventListener(ev, resetAdminTimer, { passive: true });
+    });
+    resetAdminTimer();
+  }
+
+  function stopAdminInactivity() {
+    clearTimeout(_adminInactivityTimer);
+    _adminInactivityTimer = null;
+  }
+
   function g(id) { return document.getElementById(id); }
   function qa(s) { return Array.from(document.querySelectorAll(s)); }
   function deb(k, fn) { clearTimeout(T[k]); T[k] = setTimeout(fn, 300); }
@@ -259,6 +284,7 @@
   function showApp() {
     g('loginWrap').style.display = 'none';
     g('appWrap').style.display = 'block';
+    startAdminInactivity();
     // Dashboard stat card clicks
     document.addEventListener('click', function(ev) {
       var sc = ev.target.closest('[data-goto]');
@@ -273,6 +299,7 @@
   }
 
   function doLogout() {
+    stopAdminInactivity();
     localStorage.removeItem('admTok'); localStorage.removeItem('admData');
     tok = ''; adm = null;
     g('appWrap').style.display = 'none';
