@@ -1850,9 +1850,9 @@ function renderAvailableRequests() {
             <span class="badge badge-primary">${req.credits || 20} credits</span>
           </div>
           <p style="font-size:14px;color:var(--text-light);margin-bottom:16px;line-height:1.5;">${req.description}</p>
-          <div style="display:flex;gap:20px;font-size:13px;color:var(--text-muted);margin-bottom:12px;">
+          <div style="display:flex;gap:20px;font-size:13px;color:var(--text-muted);margin-bottom:12px;align-items:center;flex-wrap:wrap;">
             <span>📍 ${req.location || 'Online'}</span>
-            <span>💰 ₹${req.budget ? req.budget.toLocaleString('en-IN') : 'Budget negotiable'}</span>
+            <span style="background:rgba(252,128,25,0.12);border:1px solid var(--primary);border-radius:8px;padding:4px 10px;color:var(--primary);font-weight:700;font-size:14px;">💰 ₹${req.budget ? req.budget.toLocaleString('en-IN') : 'Negotiable'}</span>
             <span>⏱️ ${req.timeline || 'Flexible'}</span>
           </div>
           <div style="margin-bottom:16px;">
@@ -1866,14 +1866,18 @@ function renderAvailableRequests() {
             ${cur >= 4 ? `<div style="font-size:12px;color:#e74c3c;font-weight:600;">⚠️ Only ${left} spot${left === 1 ? '' : 's'} left!</div>`
                        : cur >= 3 ? `<div style="font-size:12px;color:#f39c12;">${left} spots remaining</div>` : ''}
           </div>
-          <div style="display:flex;gap:12px;">
+          <div style="display:flex;gap:12px;flex-wrap:wrap;">
             <button onclick="showExpertRequestDetail('${req._id}')"
-              style="flex:1;padding:12px;border:1.5px solid var(--primary);border-radius:10px;background:transparent;color:var(--primary);font-size:14px;font-weight:600;cursor:pointer;">
+              style="flex:1;min-width:120px;padding:12px;border:1.5px solid var(--primary);border-radius:10px;background:transparent;color:var(--primary);font-size:14px;font-weight:600;cursor:pointer;">
               View Details
             </button>
             <button onclick="approachClient('${req._id}')"
-              style="flex:1;padding:12px;border:none;border-radius:10px;background:var(--primary);color:#fff;font-size:14px;font-weight:700;cursor:pointer;">
+              style="flex:2;min-width:140px;padding:12px;border:none;border-radius:10px;background:var(--primary);color:#fff;font-size:14px;font-weight:700;cursor:pointer;">
               Approach Client
+            </button>
+            <button onclick="reportRequest('${req._id}', '${(req.title||'').replace(/'/g,'\\'')}')"
+              style="padding:10px 14px;border:1px solid #ef444466;border-radius:10px;background:transparent;color:#ef4444;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;">
+              🚩 Report
             </button>
           </div>
         </div>`;
