@@ -3408,6 +3408,10 @@ async function submitKycDocument() {
     if (btn) { btn.disabled = false; btn.textContent = '🛡️ Submit for Verification'; }
   }
 }
+// ─── ABORT CONTROLLERS ───
+let browseAbortController = null;
+let expertsAbortController = null;
+
 // ─── CHAT STATE ───
 let currentChatId = null;
 let chatPollingInterval = null;
