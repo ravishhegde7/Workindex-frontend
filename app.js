@@ -1601,7 +1601,34 @@ async function loadExpertData() {
   
   switchTab('browse');
 }
+// ─── BROWSE FILTER CHIPS RENDERER ───
+function renderBrowseFilterChips() {
+  const services = [
+    { value: 'all',         label: 'All' },
+    { value: 'itr',         label: '📄 ITR Filing' },
+    { value: 'gst',         label: '🧾 GST' },
+    { value: 'accounting',  label: '📊 Accounting' },
+    { value: 'audit',       label: '🔍 Audit' },
+    { value: 'photography', label: '📷 Photography' },
+    { value: 'development', label: '💻 Development' },
+  ];
 
+  const activeFilter = state.browseServiceFilter || [];
+
+  return services.map(s => {
+    const isActive = s.value === 'all' ? !activeFilter.length : activeFilter.includes(s.value);
+    return `<button
+      class="browse-filter-chip"
+      data-service="${s.value}"
+      onclick="setBrowseFilter('${s.value}')"
+      style="padding:7px 16px;border:1.5px solid ${isActive ? 'var(--primary)' : 'var(--border)'};
+             border-radius:20px;background:${isActive ? 'var(--primary)' : 'transparent'};
+             color:${isActive ? '#fff' : 'var(--text)'};font-size:13px;font-weight:600;
+             cursor:pointer;white-space:nowrap;transition:all 0.2s;">
+      ${s.label}
+    </button>`;
+  }).join('');
+}
 // ─── RENDER AVAILABLE REQUESTS FOR EXPERTS ───
 function renderAvailableRequests() {
   // Update filter chips
