@@ -2446,14 +2446,54 @@ function loadSettings() {
 // ─── INIT ON PAGE LOAD ─── 
 document.addEventListener('DOMContentLoaded', () => {
   initDarkMode();
-  
-  // Check if user is logged in
+
+  // ── Handle back/forward browser buttons ──
+  window.addEventListener('popstate', (e) => {
+    if (e.state?.pageId) {
+      showPage(e.state.pageId, false);
+    } else {
+      navigateToPath(window.location.pathname, false);
+    }
+  });
+
+  // ── Route on initial load ──
+  const initialPath = window.location.pathname;
+
   if (state.token && state.user) {
-    enterDashboard();
+    const authedRoutes = ['/settings', '/my-tickets', '/dashboard'];
+    if (authedRoutes.includes(initialPath)) {
+      navigateToPath(initialPath, false);
+    } else {
+      enterDashboard();
+    }
   } else {
-    showPage('landing');
+    navigateToPath(initialPath, false);
   }
 });
+
+// ── Path → pageId mapper ──
+function navigateToPath(path, pushState = true) {
+  const pathToPage = {
+    '/':                   'landing',
+    '/find-professionals': 'findProfessionals',
+    '/how-it-works':       'howItWorks',
+    '/pricing':            'pricing',
+    '/dashboard':          state.user?.role === 'client' ? 'clientDash' : 'expertDash',
+    '/settings':           'settings',
+    '/my-tickets':         'myTickets',
+  };
+
+  const pageId = pathToPage[path] || 'landing';
+
+  // Guard protected routes
+  const protectedPages = ['clientDash', 'expertDash', 'settings', 'myTickets'];
+  if (protectedPages.includes(pageId) && !state.token) {
+    showPage('landing', pushState);
+    return;
+  }
+
+  showPage(pageId, pushState);
+}
 // ─── SERVICE RECEIVED CONFIRMATION ───
 function confirmServiceReceived(requestId, expertId, expertName, approachId) {
   // Close current modal first
