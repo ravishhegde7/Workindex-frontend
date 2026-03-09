@@ -4,7 +4,7 @@
    ═══════════════════════════════════════════════════════════ */
 
 // ─── CONFIGURATION ─── 
-const API_URL = 'https://web-production-c80b.up.railway.app/api';
+const API_URL = 'https://workindex-production.up.railway.app/api';
 
 // ─── STATE MANAGEMENT ─── 
 const state = {
