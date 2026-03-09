@@ -57,7 +57,7 @@
     c.parentNode.insertBefore(div, c.nextSibling);
   }
 
-  function goPage(key, p) {
+  window.goPage = function goPage(key, p) {
     var arr = _pageData[key] || [];
     var pages = Math.ceil(arr.length / PER_PAGE);
     if (p < 1 || p > pages) return;
