@@ -184,7 +184,14 @@ function switchTab(tabName) {
     else if (tabName === 'ratings') loadMyRatings();
     else if (tabName === 'approaches' && isExpert) loadMyApproaches();
     else if (tabName === 'profile' && isExpert) renderExpertProfile();
-    else if (tabName === 'chat') showChatList();  // ✅ works for both roles
+    else if (tabName === 'chat') showChatList();
+    
+  // If switching AWAY from chat, clear the poll
+  if (tabName !== 'chat' && chatPollingInterval) {
+    clearInterval(chatPollingInterval);
+    chatPollingInterval = null;
+    currentChatId = null;
+  }
   }
 }
 
