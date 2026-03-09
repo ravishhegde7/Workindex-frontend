@@ -273,6 +273,7 @@ function enterDashboard() {
 }
 
 function logout() {
+  stopInactivityWatcher();
   localStorage.removeItem('token');
   localStorage.removeItem('user');
   state.token = null;
