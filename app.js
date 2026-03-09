@@ -1962,6 +1962,74 @@ async function showExpertRequestDetail(requestId) {
   
   document.body.appendChild(modal);
 }
+// ─── REPORT A REQUEST ───
+function reportRequest(requestId, requestTitle) {
+  const existing = document.getElementById('reportRequestModal');
+  if (existing) existing.remove();
+
+  const overlay = document.createElement('div');
+  overlay.id = 'reportRequestModal';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;';
+  overlay.onclick = e => { if (e.target === overlay) overlay.remove(); };
+
+  overlay.innerHTML = `
+    <div style="background:var(--bg);border:1.5px solid #ef4444;border-radius:16px;max-width:420px;width:100%;padding:24px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+        <span style="font-size:16px;font-weight:800;color:#ef4444;">🚩 Report Request</span>
+        <span onclick="document.getElementById('reportRequestModal').remove()" style="cursor:pointer;font-size:22px;color:var(--text-muted);">×</span>
+      </div>
+      <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px;line-height:1.6;">
+        Reporting: <strong style="color:var(--text);">${requestTitle}</strong><br><br>
+        If this request appears fake, suspicious or violates platform guidelines, let us know. If 3 or more experts report the same request, the client account will be automatically restricted pending admin review.
+      </p>
+      <div style="margin-bottom:16px;">
+        <label style="font-size:13px;font-weight:600;color:var(--text-muted);display:block;margin-bottom:8px;">Reason</label>
+        <select id="reportRequestReason" style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:10px;background:var(--bg);color:var(--text);font-size:14px;">
+          <option value="fake_request">Fake or test request</option>
+          <option value="suspicious_details">Suspicious details / no intent to hire</option>
+          <option value="already_contacted">Client already contacted me off-platform</option>
+          <option value="spam">Spam or duplicate post</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+      <div style="margin-bottom:20px;">
+        <label style="font-size:13px;font-weight:600;color:var(--text-muted);display:block;margin-bottom:8px;">Additional details <span style="font-weight:400;">(optional)</span></label>
+        <textarea id="reportRequestNote" rows="3" placeholder="Describe what seems suspicious..." style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:10px;background:var(--bg);color:var(--text);font-size:14px;resize:none;box-sizing:border-box;"></textarea>
+      </div>
+      <div style="display:flex;gap:10px;">
+        <button onclick="document.getElementById('reportRequestModal').remove()" style="flex:1;padding:12px;border:1px solid var(--border);border-radius:10px;background:transparent;color:var(--text-muted);font-size:14px;cursor:pointer;">Cancel</button>
+        <button onclick="submitRequestReport('${requestId}')" style="flex:2;padding:12px;border:none;border-radius:10px;background:#ef4444;color:#fff;font-size:14px;font-weight:700;cursor:pointer;">Submit Report</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+}
+
+async function submitRequestReport(requestId) {
+  const reason = document.getElementById('reportRequestReason')?.value;
+  const note   = document.getElementById('reportRequestNote')?.value.trim();
+  if (!reason) return;
+
+  const btn = document.querySelector('#reportRequestModal button:last-child');
+  if (btn) { btn.disabled = true; btn.textContent = 'Submitting...'; }
+
+  try {
+    const res = await fetch(`${API_URL}/requests/${requestId}/report`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${state.token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ reason, note })
+    });
+    const data = await res.json();
+    document.getElementById('reportRequestModal')?.remove();
+    if (data.success) {
+      showToast(data.message || 'Report submitted. Thank you.', 'success');
+    } else {
+      showToast(data.message || 'Failed to submit report', 'error');
+    }
+  } catch {
+    showToast('Network error. Please try again.', 'error');
+    if (btn) { btn.disabled = false; btn.textContent = 'Submit Report'; }
+  }
+}
 
 // ─── FORMAT KEY FOR DISPLAY ───
 function formatKey(key) {
