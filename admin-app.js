@@ -428,9 +428,8 @@
     };
   }
 
-  var PT = { dashboard:'Dashboard', heatmap:'Geographic Heatmap', experts:'Experts', clients:'Clients', approaches:'Approaches', chats:'Chats', credits:'Credits', refunds:'Refunds', actions:'Actions', tickets:'Tickets', posts:'Posts', reviews:'Reviews', registrations:'Registrations',kyc:'KYC Review', payments:'Payments', communication:'Communication', invoices:'Invoices', settings:'Settings' };
-  var PS = { dashboard:'Platform overview', heatmap:'Expert & client locations across India', experts:'All registered experts', clients:'All registered clients', approaches:'Expert approach activity', chats:'All conversations', credits:'Credit ledger', refunds:'Pending refund requests', actions:'Ban, warn and flag users', tickets:'All support tickets', posts:'User posted requests', reviews:'Ratings & reviews', registrations:'Expert approval queue',kyc:'Identity verification queue', payments:'Failed payment tracking', communication:'Bulk email & notifications', invoices:'Generate invoices', settings:'Admin configuration & platform management' };
-
+  var PT = { dashboard:'Dashboard', heatmap:'Geographic Heatmap', experts:'Experts', clients:'Clients', approaches:'Approaches', chats:'Chats', credits:'Credits', refunds:'Refunds', actions:'Actions', tickets:'Tickets', posts:'Posts', reviews:'Reviews', registrations:'Registrations',kyc:'KYC Review', payments:'Payments', communication:'Communication', invoices:'Invoices', settings:'Settings', suspReq:'Suspended Requests' };
+  var PS = { dashboard:'Platform overview', heatmap:'Expert & client locations across India', experts:'All registered experts', clients:'All registered clients', approaches:'Expert approach activity', chats:'All conversations', credits:'Credit ledger', refunds:'Pending refund requests', actions:'Ban, warn and flag users', tickets:'All support tickets', posts:'User posted requests', reviews:'Ratings & reviews', registrations:'Expert approval queue',kyc:'Identity verification queue', payments:'Failed payment tracking', communication:'Bulk email & notifications', invoices:'Generate invoices', settings:'Admin configuration & platform management', suspReq:'Posts flagged by 3+ experts pending admin review' };
   function goTo(s) {
     qa('.sec').forEach(function(e) { e.classList.remove('on'); });
     qa('.ni').forEach(function(e) { e.classList.remove('on'); });
