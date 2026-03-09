@@ -772,6 +772,26 @@
     }).catch(function() { toast('Error', 'e'); });
   }
 
+function showMsgModal(msg) {
+    var existing = document.getElementById('msgReadModal');
+    if (existing) existing.remove();
+    var overlay = document.createElement('div');
+    overlay.id = 'msgReadModal';
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;z-index:9999;padding:20px;';
+    overlay.innerHTML =
+      '<div style="background:#1a1a24;border:1px solid #2a2a38;border-radius:12px;max-width:480px;width:100%;padding:24px;">' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">' +
+          '<span style="font-size:15px;font-weight:700;color:#f0f0f4;">Expert Message</span>' +
+          '<span onclick="document.getElementById(\'msgReadModal\').remove()" style="cursor:pointer;color:#606078;font-size:20px;line-height:1;">×</span>' +
+        '</div>' +
+        '<p style="font-size:14px;color:#a0a0b8;line-height:1.7;white-space:pre-wrap;">' + msg + '</p>' +
+      '</div>';
+    overlay.addEventListener('click', function(e) {
+      if (e.target === overlay) overlay.remove();
+    });
+    document.body.appendChild(overlay);
+  }
+   
   /* ═══ CHATS ══════════════════════════════════════════════════════════════ */
   function loadChats() {
     setT('chTbl', spin());
