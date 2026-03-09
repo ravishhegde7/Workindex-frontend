@@ -1604,9 +1604,13 @@ async function loadExpertData() {
 
 // ─── RENDER AVAILABLE REQUESTS FOR EXPERTS ───
 function renderAvailableRequests() {
-  const container = document.getElementById('browseTab');
-  if (!container) return;
+  // Update filter chips
+  const filterBar = document.getElementById('browseFilterBar');
+  if (filterBar) filterBar.innerHTML = renderBrowseFilterChips();
 
+  const container = document.getElementById('browseRequestsContainer');
+  if (!container) return;
+   
   const filter = state.browseServiceFilter || [];
   const allRequests = (state.availableRequests || []).filter(req =>
     !filter.length || filter.includes(req.service)
@@ -1614,9 +1618,6 @@ function renderAvailableRequests() {
   if (!allRequests.length) {
     const isFiltered = (state.browseServiceFilter || []).length > 0;
     container.innerHTML = `
-      <div id="browseFilterBar" style="display:flex;gap:8px;flex-wrap:wrap;padding:0 0 16px 0;">
-        ${renderBrowseFilterChips()}
-      </div>
       <div class="empty-state">
         <div class="empty-icon">🔍</div>
         <h3 class="empty-title">${isFiltered ? 'No requests for selected category' : 'No requests available'}</h3>
