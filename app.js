@@ -1628,11 +1628,7 @@ function renderAvailableRequests() {
 
   const items = paginate(allRequests, 'expertBrowse');
 
-  container.innerHTML = 
-    `<div id="browseFilterBar" style="display:flex;gap:8px;flex-wrap:wrap;padding:0 0 16px 0;overflow-x:auto;">
-      ${renderBrowseFilterChips()}
-    </div>
-    <h2 style="margin-bottom:20px;">Available Requests</h2>` +
+  container.innerHTML = '<h2 style="margin-bottom:20px;">Available Requests</h2>' +
     items.map(req => {
       const cur  = req.currentApproaches || 0;
       const max  = req.maxApproaches || 5;
