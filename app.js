@@ -1616,19 +1616,26 @@ function renderBrowseFilterChips() {
   const activeFilter = state.browseServiceFilter || [];
 
   return services.map(s => {
-    const isActive = s.value === 'all' ? !activeFilter.length : activeFilter.includes(s.value);
+    const isActive = s.value === 'all'
+      ? activeFilter.length === 0
+      : activeFilter.includes(s.value);
+
     return `<button
       class="browse-filter-chip"
       data-service="${s.value}"
       onclick="setBrowseFilter('${s.value}')"
-      style="padding:7px 16px;border:1.5px solid ${isActive ? 'var(--primary)' : 'var(--border)'};
-             border-radius:20px;background:${isActive ? 'var(--primary)' : 'transparent'};
-             color:${isActive ? '#fff' : 'var(--text)'};font-size:13px;font-weight:600;
+      style="padding:7px 16px;
+             border:1.5px solid ${isActive ? 'var(--primary)' : 'var(--border)'};
+             border-radius:20px;
+             background:${isActive ? 'var(--primary)' : 'transparent'};
+             color:${isActive ? '#fff' : 'var(--text)'};
+             font-size:13px;font-weight:600;
              cursor:pointer;white-space:nowrap;transition:all 0.2s;">
       ${s.label}
     </button>`;
   }).join('');
 }
+
 // ─── RENDER AVAILABLE REQUESTS FOR EXPERTS ───
 function renderAvailableRequests() {
   // Update filter chips
@@ -4867,17 +4874,27 @@ function updateBrowseFilterChips(selected) {
 }
 // ─── BROWSE TAB SERVICE FILTER ───
 function setBrowseFilter(service) {
-  // Update chip styles
-  document.querySelectorAll('.browse-filter-chip').forEach(chip => {
-    const isActive = chip.dataset.service === service;
-    chip.style.background = isActive ? 'var(--primary)' : 'transparent';
-    chip.style.color = isActive ? '#fff' : 'var(--text)';
-    chip.style.borderColor = isActive ? 'var(--primary)' : 'var(--border)';
-  });
+  let activeFilter = state.browseServiceFilter || [];
 
-  // Set filter — 'all' means no filter
-  state.browseServiceFilter = service === 'all' ? [] : [service];
+  if (service === 'all') {
+    // Clear all filters — show everything
+    activeFilter = [];
+  } else {
+    if (activeFilter.includes(service)) {
+      // Deselect it
+      activeFilter = activeFilter.filter(s => s !== service);
+    } else {
+      // Add it
+      activeFilter = [...activeFilter, service];
+    }
+  }
+
+  state.browseServiceFilter = activeFilter;
   PAGINATION.expertBrowse.page = 1;
+
+  // Re-render chips and requests
+  const filterBar = document.getElementById('browseFilterBar');
+  if (filterBar) filterBar.innerHTML = renderBrowseFilterChips();
   renderAvailableRequests();
 }
 // ═══ END OF JAVASCRIPT ═══
