@@ -15,7 +15,7 @@
   var _pages = {
     experts: 1, clients: 1, approaches: 1, chats: 1,
     credits: 1, tickets: 1, posts: 1, reviews: 1,
-    registrations: 1, kyc: 1
+    registrations: 1, kyc: 1, suspReq: 1
   };
   var _pageData = {};
   var PER_PAGE = 10;
