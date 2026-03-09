@@ -220,8 +220,20 @@ function enterDashboard() {
   showPage(dashPage);
   loadNotifications();
   setInterval(loadNotifications, 30000);
-}
 
+  // Show service filter modal for new experts
+  if (state.user.role === 'expert') {
+    const hasFilter = state.user?.profile?.browseServiceFilter?.length > 0;
+    const isNewUser = !localStorage.getItem('hasSeenServiceFilter_' + state.user._id);
+    if (isNewUser || !hasFilter) {
+      localStorage.setItem('hasSeenServiceFilter_' + state.user._id, 'true');
+      setTimeout(() => showServiceFilterModal(), 800);
+    } else {
+      // Returning expert — restore their saved filter silently
+      state.browseServiceFilter = state.user.profile.browseServiceFilter;
+    }
+  }
+}
 function logout() {
   localStorage.removeItem('token');
   localStorage.removeItem('user');
