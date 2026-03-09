@@ -11,6 +11,75 @@
   var dF = '', dT = '', T = {};
   var _editPostId = null, _creditUid = null, _pwUid = null, _tkId = null;
 
+  // ─── ADMIN PAGINATION ───
+  var _pages = {
+    experts: 1, clients: 1, approaches: 1, chats: 1,
+    credits: 1, tickets: 1, posts: 1, reviews: 1,
+    registrations: 1, kyc: 1
+  };
+  var _pageData = {};
+  var PER_PAGE = 10;
+
+  function pagSlice(key, arr) {
+    _pageData[key] = arr;
+    var p = _pages[key] || 1;
+    var total = arr.length;
+    var pages = Math.ceil(total / PER_PAGE);
+    if (p > pages && pages > 0) { p = pages; _pages[key] = p; }
+    return arr.slice((p - 1) * PER_PAGE, p * PER_PAGE);
+  }
+
+  function pagHTML(key, containerId) {
+    var arr = _pageData[key] || [];
+    var total = arr.length;
+    var pages = Math.ceil(total / PER_PAGE);
+    var p = _pages[key] || 1;
+    if (pages <= 1) return;
+    var c = document.getElementById(containerId);
+    if (!c) return;
+    var existing = document.getElementById('pag-' + key);
+    if (existing) existing.remove();
+    var div = document.createElement('div');
+    div.id = 'pag-' + key;
+    div.style.cssText = 'display:flex;align-items:center;gap:6px;padding:14px 0;justify-content:center;flex-wrap:wrap;';
+    var btns = '';
+    btns += '<button onclick="goPage(\'' + key + '\',' + (p-1) + ')" ' + (p<=1?'disabled':'') + ' style="padding:6px 12px;background:#1a1a24;border:1px solid #2a2a38;color:#a0a0b8;border-radius:6px;cursor:pointer;font-size:13px;">&laquo;</button>';
+    var start = Math.max(1, p-2), end = Math.min(pages, p+2);
+    if (start > 1) btns += '<button onclick="goPage(\'' + key + '\',1)" style="padding:6px 10px;background:#1a1a24;border:1px solid #2a2a38;color:#a0a0b8;border-radius:6px;cursor:pointer;font-size:13px;">1</button>' + (start>2?'<span style="color:#606078;padding:0 4px">…</span>':'');
+    for (var i = start; i <= end; i++) {
+      var active = i === p;
+      btns += '<button onclick="goPage(\'' + key + '\',' + i + ')" style="padding:6px 10px;background:' + (active?'#FC8019':'#1a1a24') + ';border:1px solid ' + (active?'#FC8019':'#2a2a38') + ';color:' + (active?'#fff':'#a0a0b8') + ';border-radius:6px;cursor:pointer;font-size:13px;font-weight:' + (active?'700':'400') + ';">' + i + '</button>';
+    }
+    if (end < pages) btns += (end<pages-1?'<span style="color:#606078;padding:0 4px">…</span>':'') + '<button onclick="goPage(\'' + key + '\',' + pages + ')" style="padding:6px 10px;background:#1a1a24;border:1px solid #2a2a38;color:#a0a0b8;border-radius:6px;cursor:pointer;font-size:13px;">' + pages + '</button>';
+    btns += '<button onclick="goPage(\'' + key + '\',' + (p+1) + ')" ' + (p>=pages?'disabled':'') + ' style="padding:6px 12px;background:#1a1a24;border:1px solid #2a2a38;color:#a0a0b8;border-radius:6px;cursor:pointer;font-size:13px;">&raquo;</button>';
+    btns += '<span style="font-size:12px;color:#606078;margin-left:8px">' + total + ' total</span>';
+    div.innerHTML = btns;
+    c.parentNode.insertBefore(div, c.nextSibling);
+  }
+
+  function goPage(key, p) {
+    var arr = _pageData[key] || [];
+    var pages = Math.ceil(arr.length / PER_PAGE);
+    if (p < 1 || p > pages) return;
+    _pages[key] = p;
+    var reloaders = {
+      experts: function() { renderUsersPage('expert'); },
+      clients: function() { renderUsersPage('client'); },
+      approaches: function() { renderApproachesPage(); },
+      chats: function() { renderChatsPage(); },
+      credits: function() { renderCreditsPage(); },
+      tickets: function() { renderTicketsPage(); },
+      posts: function() { renderPostsPage(); },
+      reviews: function() { renderReviewsPage(); },
+      registrations: function() { renderRegistrationsPage(); },
+      kyc: function() { renderKycPage(); }
+    };
+    if (reloaders[key]) reloaders[key]();
+    // Scroll to top of table
+    var tbl = document.getElementById(key === 'experts' ? 'eTbl' : key === 'clients' ? 'cTbl' : key === 'approaches' ? 'apTbl' : key === 'chats' ? 'chTbl' : key === 'credits' ? 'crTbl' : key === 'tickets' ? 'tkTbl' : key === 'posts' ? 'poTbl' : key === 'reviews' ? 'rvTbl' : key === 'registrations' ? 'rgTbl' : 'kycTbl');
+    if (tbl) tbl.closest('table') && tbl.closest('table').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
   // ─── ADMIN INACTIVITY LOGOUT (30 minutes) ───
   var _adminInactivityTimer = null;
   var ADMIN_INACTIVITY_TIMEOUT = 30 * 60 * 1000;
