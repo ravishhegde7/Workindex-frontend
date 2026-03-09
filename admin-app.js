@@ -100,6 +100,11 @@
     if (g('invCustomTax')) g('invCustomTax').oninput = previewInvoice;
     loadInvExperts();
 
+     // Close approach action dropdowns when clicking outside
+    document.addEventListener('click', function() {
+      document.querySelectorAll('[id^="ap_"]').forEach(function(d) { d.style.display = 'none'; });
+    });
+     
     /* modal close buttons */
     document.addEventListener('click', function(ev) {
       var cl = ev.target.closest('[data-close]');
