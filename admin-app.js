@@ -429,9 +429,8 @@
     };
   }
 
-  var PT = { dashboard:'Dashboard', heatmap:'Geographic Heatmap', experts:'Experts', clients:'Clients', approaches:'Approaches', chats:'Chats', credits:'Credits', refunds:'Refunds', actions:'Actions', tickets:'Tickets', posts:'Posts', reviews:'Reviews', registrations:'Registrations',kyc:'KYC Review', payments:'Payments', communication:'Communication', invoices:'Invoices', settings:'Settings', suspReq:'Suspended Requests' };
-  var PS = { dashboard:'Platform overview', heatmap:'Expert & client locations across India', experts:'All registered experts', clients:'All registered clients', approaches:'Expert approach activity', chats:'All conversations', credits:'Credit ledger', refunds:'Pending refund requests', actions:'Ban, warn and flag users', tickets:'All support tickets', posts:'User posted requests', reviews:'Ratings & reviews', registrations:'Expert approval queue',kyc:'Identity verification queue', payments:'Failed payment tracking', communication:'Bulk email & notifications', invoices:'Generate invoices', settings:'Admin configuration & platform management', suspReq:'Posts flagged by 3+ experts pending admin review' };
-  function goTo(s) {
+  var PT = { dashboard:'Dashboard', heatmap:'Geographic Heatmap', experts:'Experts', clients:'Clients', approaches:'Approaches', chats:'Chats', credits:'Credits', refunds:'Refunds', actions:'Actions', tickets:'Tickets', posts:'Posts', reviews:'Reviews', registrations:'Registrations', kyc:'KYC Review', payments:'Payments', communication:'Communication', invoices:'Invoices', settings:'Settings', suspReq:'Suspended Requests', reports:'Reports' };
+  var PS = { dashboard:'Platform overview', heatmap:'Expert & client locations across India', experts:'All registered experts', clients:'All registered clients', approaches:'Expert approach activity', chats:'All conversations', credits:'Credit ledger', refunds:'Pending refund requests', actions:'Ban, warn and flag users', tickets:'All support tickets', posts:'User posted requests', reviews:'Ratings & reviews', registrations:'Expert approval queue', kyc:'Identity verification queue', payments:'Failed payment tracking', communication:'Bulk email & notifications', invoices:'Generate invoices', settings:'Admin configuration & platform management', suspReq:'Posts flagged by 3+ experts pending admin review', reports:'All user reports and admin actions' };  function goTo(s) {
     qa('.sec').forEach(function(e) { e.classList.remove('on'); });
     qa('.ni').forEach(function(e) { e.classList.remove('on'); });
     qa('.mni').forEach(function(e) { e.classList.remove('on'); });
@@ -2300,6 +2299,77 @@ else html += '<a class="btn bgho" href="' + esc(doc.url) + '" target="_blank">Do
       toast('Connection error — ticket not created', 'e');
     });
   }
+/* ═══ REPORTS ════════════════════════════════════════════════════════════ */
+  function loadReports() {
+    _pages['reports'] = 1;
+    setT('reportsTbl', spin());
+    api('reports').then(function(d) {
+      var reports = d.reports || [];
+      if (!reports.length) {
+        setT('reportsTbl', '<tr><td colspan="8" style="text-align:center;padding:30px;color:#606078">No reports yet</td></tr>');
+        return;
+      }
+      renderReportsPage(reports);
+    }).catch(function() { setT('reportsTbl', ''); });
+  }
+
+  function renderReportsPage(arr) {
+    if (arr) pagSlice('reports', arr);
+    var page = pagSlice('reports', _pageData['reports'] || []);
+    var existing = document.getElementById('pag-reports');
+    if (existing) existing.remove();
+    setT('reportsTbl', page.map(function(r) {
+      var reporterRole = r.reporterRole || 'expert';
+      var roleBadge = reporterRole === 'expert'
+        ? '<span class="badge bo">Expert</span>'
+        : '<span class="badge bbl">Client</span>';
+      var targetStatus = r.targetIsRestricted
+        ? '<span class="badge brd">Restricted</span>'
+        : r.targetIsBanned
+        ? '<span class="badge brd">Banned</span>'
+        : '<span class="badge bgr">Active</span>';
+      var actions = '';
+      if (!r.targetIsRestricted && !r.targetIsBanned) {
+        actions += '<button class="btn brdn" style="font-size:11px;padding:5px 8px" data-act="restrict" data-uid="' + esc(r.reportedUserId) + '" data-nm="' + esc(r.reportedUserName) + '">Restrict</button> ';
+      } else if (r.targetIsRestricted) {
+        actions += '<button class="btn bgrn" style="font-size:11px;padding:5px 8px" data-act="unrestrict" data-uid="' + esc(r.reportedUserId) + '" data-nm="' + esc(r.reportedUserName) + '">Unrestrict</button> ';
+      }
+      if (!r.targetIsBanned) {
+        actions += '<button class="btn brdn" style="font-size:11px;padding:5px 8px;background:rgba(239,68,68,.15)" data-act="ban" data-uid="' + esc(r.reportedUserId) + '" data-nm="' + esc(r.reportedUserName) + '">Ban</button>';
+      }
+      return '<tr>' +
+        '<td>' + roleBadge + '<br><span style="font-size:12px;color:#f0f0f4;font-weight:600">' + esc(r.reporterName || '-') + '</span><br><small style="color:#606078">' + esc(r.reporterEmail || '') + '</small></td>' +
+        '<td>' + uLnk(r.reportedUserId || '', r.reportedUserName || '-', '#3b82f6') + '<br><small style="color:#606078">' + esc(r.reportedUserEmail || '') + '</small></td>' +
+        '<td>' + targetStatus + '</td>' +
+        '<td style="font-size:12px;max-width:140px"><strong>' + esc(r.category || r.reason || '-') + '</strong></td>' +
+        '<td style="font-size:12px;color:#a0a0b8;max-width:160px;overflow:hidden;text-overflow:ellipsis">' + esc((r.message || r.note || '-').substring(0, 80)) + '</td>' +
+        '<td style="font-size:12px;color:#a0a0b8">' + fmtT(r.createdAt) + '</td>' +
+        '<td style="font-size:12px">' + (r.requestTitle ? '<span style="color:#f59e0b">' + esc(r.requestTitle.substring(0, 30)) + '</span>' : '-') + '</td>' +
+        '<td><div style="display:flex;gap:4px;flex-wrap:wrap">' + actions + '</div></td>' +
+        '</tr>';
+    }).join(''));
+    pagHTML('reports', 'reportsTbl');
+    var tbl = document.getElementById('reportsTbl');
+    if (tbl) {
+      tbl.onclick = function(ev) {
+        var btn = ev.target.closest('[data-act]');
+        if (!btn) return;
+        ev.preventDefault(); ev.stopPropagation();
+        var act = btn.dataset.act, uid = btn.dataset.uid, nm = btn.dataset.nm;
+        if (act === 'restrict') {
+          if (!confirm('Restrict ' + nm + '?')) return;
+          doAct(uid, 'warn', 'Reported by multiple users');
+        } else if (act === 'unrestrict') {
+          if (!confirm('Unrestrict ' + nm + '?')) return;
+          doAct(uid, 'unrestrict', '');
+        } else if (act === 'ban') {
+          if (!confirm('Ban ' + nm + '?')) return;
+          doAct(uid, 'ban', '');
+        }
+      };
+    }
+  }
+   
 /* ═══ SUSPENDED REQUESTS ════════════════════════════════════════════════ */
   function loadSuspendedRequests() {
     _pages['suspReq'] = 1;
