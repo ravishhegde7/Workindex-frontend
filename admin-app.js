@@ -15,7 +15,7 @@
   var _pages = {
     experts: 1, clients: 1, approaches: 1, chats: 1,
     credits: 1, tickets: 1, posts: 1, reviews: 1,
-    registrations: 1, kyc: 1, suspReq: 1
+    registrations: 1, kyc: 1, suspReq: 1, reports: 1
   };
   var _pageData = {};
   var PER_PAGE = 10;
@@ -424,7 +424,8 @@
       communication: function() { loadCommHistory(); },
       invoices: function() { loadInvExperts(); },
       settings: function() { loadSettingsTab(); },
-       suspReq: loadSuspendedRequests
+       suspReq: loadSuspendedRequests,
+       reports: loadReports
     };
   }
 
