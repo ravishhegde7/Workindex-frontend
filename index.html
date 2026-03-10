@@ -2401,12 +2401,13 @@ if (answers.serviceLocationType === 'my-location' || answers.serviceLocationType
 function startQuestionnaire() {
   qState = {
     step: 0,
-    sequence: ['service'], // Start with service
+    sequence: ['service'],
     answers: {},
     role: state.user?.role || selectedRole
   };
   showPage('questionnaire');
-  renderQuestion();
+  // Wait for page to be visible before rendering
+  setTimeout(() => renderQuestion(), 50);
 }
 
 // ─── RENDER CURRENT QUESTION ───
@@ -2423,13 +2424,21 @@ function renderQuestion() {
   const nextBtn = document.getElementById('qNextBtn');
   const backBtn = document.getElementById('qBackBtn');
   
+  if (!content) {
+    console.error('Questionnaire DOM not ready — retrying...');
+    setTimeout(() => renderQuestion(), 100);
+    return;
+  }
+  
   // Update progress
   const progress = ((qState.step + 1) / qState.sequence.length) * 100;
-  document.getElementById('qProgressFill').style.width = progress + '%';
-  document.getElementById('qStepText').textContent = `Step ${qState.step + 1} of ${qState.sequence.length}`;
-  
+  const progressFill = document.getElementById('qProgressFill');
+  const stepText = document.getElementById('qStepText');
+  if (progressFill) progressFill.style.width = progress + '%';
+  if (stepText) stepText.textContent = `Step ${qState.step + 1} of ${qState.sequence.length}`;
+
   // Show/hide back button
-  backBtn.style.display = qState.step > 0 ? 'block' : 'none';
+  if (backBtn) backBtn.style.display = qState.step > 0 ? 'block' : 'none';
   
   // Render question based on type
   let html = `
