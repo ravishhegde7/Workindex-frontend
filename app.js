@@ -281,7 +281,8 @@ function enterDashboard() {
   fetch(`${API_URL}/auth/me`, {
     headers: { 'Authorization': `Bearer ${state.token}` }
   }).then(r => r.json()).then(data => {
-    console.log('[/me response]', data);
+    console.log('[/me raw response]', JSON.stringify(data));         // ← NEW
+    console.log('[/me isRestricted from server]', data?.user?.isRestricted); // ← NEW
     if (data.success && data.user) {
       state.user = { ...state.user, ...data.user };
       localStorage.setItem('user', JSON.stringify(state.user));
