@@ -281,14 +281,16 @@ function enterDashboard() {
   fetch(`${API_URL}/auth/me`, {
     headers: { 'Authorization': `Bearer ${state.token}` }
   }).then(r => r.json()).then(data => {
+    console.log('[/me response]', data);
     if (data.success && data.user) {
       state.user = { ...state.user, ...data.user };
       localStorage.setItem('user', JSON.stringify(state.user));
+      console.log('[state.user after merge]', state.user.isRestricted, state.user.warnings);
     }
-  }).catch(() => {}).finally(() => {
+  }).catch(err => console.error('[/me failed]', err)).finally(() => {
     setTimeout(() => showWarningPopupIfNeeded(), 600);
   });
-
+   
   // Show service filter modal for new experts
   if (state.user.role === 'expert') {
     const hasFilter = state.user?.profile?.browseServiceFilter?.length > 0;
