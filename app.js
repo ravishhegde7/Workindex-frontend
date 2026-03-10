@@ -2256,9 +2256,10 @@ function showRequestApproaches(req, approaches) {
   modal.style.cssText = 'position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 20px;';
   modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
   
+  const isCompleted = req.status === 'completed';
+
   const approachesHTML = approaches.length > 0 ? approaches.map(app => {
     const expert = app.expert;
-     console.log('Approach data:', JSON.stringify(app));
     return `
       <div style="padding: 16px; background: var(--bg-gray); border-radius: 12px; margin-bottom: 12px;">
         <div style="display: flex; gap: 12px; align-items: center; margin-bottom: 12px;">
@@ -2279,21 +2280,41 @@ function showRequestApproaches(req, approaches) {
             </div>
           ` : ''}
         </div>
-        ${app.quote ? `
-  <div style="display:inline-flex; align-items:center; gap:6px; background:rgba(252,128,25,0.1);
-              border-radius:20px; padding:6px 14px; margin-bottom:10px;">
-    <span style="font-size:20px; font-weight:800; color:var(--primary);">₹${app.quote.toLocaleString('en-IN')}</span>
-    <span style="font-size:12px; color:var(--text-muted); font-weight:600;">quoted</span>
-  </div>
-` : ''}
-<p style="font-size: 14px; color: var(--text-light); margin-bottom: 12px; line-height:1.6;">${app.message}</p>
-        <div style="display: flex; gap: 8px;">
-          <button onclick="viewExpertProfile('${expert._id}', true)" style="flex: 1; padding: 10px; border: 1.5px solid var(--primary); border-radius: 8px; background: transparent; color: var(--primary); font-size: 13px; font-weight: 600; cursor: pointer;">View Profile</button>
-          <button onclick="contactExpert('${expert._id}', '${req._id}', '${state.user._id}')" 
-          style="flex: 1; padding: 10px; border: none; border-radius: 8px; background: var(--primary); color: #fff; font-size: 13px; font-weight: 700; cursor: pointer;">Contact</button>
-          <button onclick="confirmServiceReceived('${req._id}', '${expert._id}', '${expert.name}', '${app._id}')" style="width: 100%; padding: 10px; border: 1.5px solid #4CAF50; border-radius: 8px; background: transparent; color: #4CAF50; font-size: 13px; font-weight: 600; cursor: pointer; margin-top: 4px;">✓ Service Received?</button>
 
+        ${app.quote ? `
+          <div style="display:inline-flex; align-items:center; gap:6px; background:rgba(252,128,25,0.1);
+                      border-radius:20px; padding:6px 14px; margin-bottom:10px;">
+            <span style="font-size:20px; font-weight:800; color:var(--primary);">₹${app.quote.toLocaleString('en-IN')}</span>
+            <span style="font-size:12px; color:var(--text-muted); font-weight:600;">quoted</span>
+          </div>
+        ` : ''}
+
+        <p style="font-size: 14px; color: var(--text-light); margin-bottom: 12px; line-height:1.6;">${app.message}</p>
+
+        <div style="display: flex; gap: 8px;">
+          <button onclick="viewExpertProfile('${expert._id}', true)" 
+            style="flex: 1; padding: 10px; border: 1.5px solid var(--primary); border-radius: 8px; background: transparent; color: var(--primary); font-size: 13px; font-weight: 600; cursor: pointer;">
+            View Profile
+          </button>
+
+          ${!isCompleted ? `
+            <button onclick="contactExpert('${expert._id}', '${req._id}', '${state.user._id}')" 
+              style="flex: 1; padding: 10px; border: none; border-radius: 8px; background: var(--primary); color: #fff; font-size: 13px; font-weight: 700; cursor: pointer;">
+              Contact
+            </button>
+          ` : ''}
         </div>
+
+        ${isCompleted ? `
+          <div style="width:100%; margin-top:10px; padding:10px; border-radius:8px; background:#f0fff4; color:#4CAF50; font-size:13px; font-weight:600; text-align:center;">
+            ✅ Service Completed
+          </div>
+        ` : `
+          <button onclick="confirmServiceReceived('${req._id}', '${expert._id}', '${expert.name}', '${app._id}')" 
+            style="width: 100%; padding: 10px; border: 1.5px solid #4CAF50; border-radius: 8px; background: transparent; color: #4CAF50; font-size: 13px; font-weight: 600; cursor: pointer; margin-top: 10px;">
+            ✓ Service Received?
+          </button>
+        `}
       </div>
     `;
   }).join('') : `
@@ -2329,7 +2350,6 @@ function showRequestApproaches(req, approaches) {
   
   document.body.appendChild(modal);
 }
-
 // ─── VIEW EXPERT PROFILE ───
 
 // ─── CONTACT EXPERT ───
