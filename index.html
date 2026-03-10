@@ -2677,7 +2677,38 @@ function updateTextInput(key, value) {
   qState.answers[key] = value;
   checkCanProceed();
 }
+function updateTextInput(key, value) {
+  qState.answers[key] = value;
+  checkCanProceed();
+}
 
+function sanitizeAndUpdateTextInput(key, textarea) {
+  const raw = textarea.value;
+  const warning = document.getElementById('qTextareaWarning');
+
+  const phonePattern = /(\+?[\d][\d\s\-().]{7,}[\d])/g;
+  const socialPattern = /@[a-zA-Z0-9._]{2,}|(?:wa\.me|whatsapp|instagram|insta|facebook|fb\.com|twitter|linkedin|telegram|t\.me|snapchat|youtube|tiktok)[\s:/.]*/gi;
+
+  const hasPhone = phonePattern.test(raw);
+  phonePattern.lastIndex = 0;
+  const hasSocial = socialPattern.test(raw);
+  socialPattern.lastIndex = 0;
+
+  if (warning) warning.style.display = (hasPhone || hasSocial) ? 'block' : 'none';
+
+  let cleaned = raw
+    .replace(phonePattern, '***')
+    .replace(socialPattern, '***');
+
+  if (cleaned !== raw) {
+    const pos = textarea.selectionStart;
+    textarea.value = cleaned;
+    textarea.setSelectionRange(pos, pos);
+  }
+
+  updateTextInput(key, cleaned);
+}
+  
 function updateSliderValue(key, value, format) {
   qState.answers[key] = parseInt(value);
   document.getElementById('sliderValue').textContent = format.replace('{value}', parseInt(value).toLocaleString('en-IN'));
