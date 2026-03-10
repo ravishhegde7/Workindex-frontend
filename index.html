@@ -2411,6 +2411,7 @@ function startQuestionnaire() {
 }
 
 // ─── RENDER CURRENT QUESTION ───
+// ─── RENDER CURRENT QUESTION ───
 function renderQuestion() {
   const stepKey = qState.sequence[qState.step];
   const question = BARK_Q_FORMS[stepKey];
@@ -2448,57 +2449,60 @@ function renderQuestion() {
     </div>
   `;
   
-if (question.type === 'single') {
-  html += '<div style="display: flex; flex-direction: column; gap: 12px;">';
-  question.options.forEach(opt => {
-    const isSelected = qState.answers[question.key] === opt.value;
-    const questionKey = question.key;
-    const optValue = opt.value;
-    
-    html += `
-      <div data-question-key="${questionKey}" data-option-value="${optValue}" class="questionnaire-option" style="padding: 18px 20px; border: 2px solid ${isSelected ? 'var(--primary)' : 'var(--border)'}; border-radius: 12px; cursor: pointer; background: ${isSelected ? 'rgba(252, 128, 25, 0.05)' : 'var(--bg)'}; transition: all 0.2s; box-shadow: ${isSelected ? '0 4px 12px rgba(252, 128, 25, 0.15)' : 'none'};">
-        <div style="display: flex; align-items: center; gap: 14px;">
-          ${opt.icon ? `<span style="font-size: 28px;">${opt.icon}</span>` : ''}
-          <div style="flex: 1;">
-            <div style="font-size: 16px; font-weight: 600; color: var(--text); margin-bottom: 2px;">${opt.label}</div>
-            ${opt.desc ? `<div style="font-size: 14px; color: var(--text-muted);">${opt.desc}</div>` : ''}
-          </div>
-          <div style="width: 22px; height: 22px; border: 2px solid ${isSelected ? 'var(--primary)' : 'var(--border)'}; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-            ${isSelected ? '<div style="width: 12px; height: 12px; background: var(--primary); border-radius: 50%;"></div>' : ''}
+  if (question.type === 'single') {
+    html += '<div style="display: flex; flex-direction: column; gap: 12px;">';
+    question.options.forEach(opt => {
+      const isSelected = qState.answers[question.key] === opt.value;
+      const questionKey = question.key;
+      const optValue = opt.value;
+      
+      html += `
+        <div data-question-key="${questionKey}" data-option-value="${optValue}" class="questionnaire-option" style="padding: 18px 20px; border: 2px solid ${isSelected ? 'var(--primary)' : 'var(--border)'}; border-radius: 12px; cursor: pointer; background: ${isSelected ? 'rgba(252, 128, 25, 0.05)' : 'var(--bg)'}; transition: all 0.2s; box-shadow: ${isSelected ? '0 4px 12px rgba(252, 128, 25, 0.15)' : 'none'};">
+          <div style="display: flex; align-items: center; gap: 14px;">
+            ${opt.icon ? `<span style="font-size: 28px;">${opt.icon}</span>` : ''}
+            <div style="flex: 1;">
+              <div style="font-size: 16px; font-weight: 600; color: var(--text); margin-bottom: 2px;">${opt.label}</div>
+              ${opt.desc ? `<div style="font-size: 14px; color: var(--text-muted);">${opt.desc}</div>` : ''}
+            </div>
+            <div style="width: 22px; height: 22px; border: 2px solid ${isSelected ? 'var(--primary)' : 'var(--border)'}; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+              ${isSelected ? '<div style="width: 12px; height: 12px; background: var(--primary); border-radius: 50%;"></div>' : ''}
+            </div>
           </div>
         </div>
-      </div>
-    `;
-  });
-  html += '</div>';
-}
+      `;
+    });
+    html += '</div>';
+  }
   else if (question.type === 'multi') {
-  html += '<div style="display: flex; flex-direction: column; gap: 12px;">';
-  question.options.forEach(opt => {
-    const isSelected = (qState.answers[question.key] || []).includes(opt.value);
-    const questionKey = question.key;
-    const optValue = opt.value;
-    
-    html += `
-      <div data-question-key="${questionKey}" data-option-value="${optValue}" class="questionnaire-multi-option" style="padding: 18px 20px; border: 2px solid ${isSelected ? 'var(--primary)' : 'var(--border)'}; border-radius: 12px; cursor: pointer; background: ${isSelected ? 'rgba(252, 128, 25, 0.05)' : 'var(--bg)'}; transition: all 0.2s;">
-        <div style="display: flex; align-items: center; gap: 14px;">
-          <div style="width: 22px; height: 22px; border: 2px solid ${isSelected ? 'var(--primary)' : 'var(--border)'}; border-radius: 4px; display: flex; align-items: center; justify-content: center; background: ${isSelected ? 'var(--primary)' : 'transparent'}; flex-shrink: 0;">
-            ${isSelected ? '<span style="color: #fff; font-size: 16px; font-weight: 700;">✓</span>' : ''}
+    html += '<div style="display: flex; flex-direction: column; gap: 12px;">';
+    question.options.forEach(opt => {
+      const isSelected = (qState.answers[question.key] || []).includes(opt.value);
+      const questionKey = question.key;
+      const optValue = opt.value;
+      
+      html += `
+        <div data-question-key="${questionKey}" data-option-value="${optValue}" class="questionnaire-multi-option" style="padding: 18px 20px; border: 2px solid ${isSelected ? 'var(--primary)' : 'var(--border)'}; border-radius: 12px; cursor: pointer; background: ${isSelected ? 'rgba(252, 128, 25, 0.05)' : 'var(--bg)'}; transition: all 0.2s;">
+          <div style="display: flex; align-items: center; gap: 14px;">
+            <div style="width: 22px; height: 22px; border: 2px solid ${isSelected ? 'var(--primary)' : 'var(--border)'}; border-radius: 4px; display: flex; align-items: center; justify-content: center; background: ${isSelected ? 'var(--primary)' : 'transparent'}; flex-shrink: 0;">
+              ${isSelected ? '<span style="color: #fff; font-size: 16px; font-weight: 700;">✓</span>' : ''}
+            </div>
+            <div style="font-size: 16px; font-weight: 600; color: var(--text);">${opt.label}</div>
           </div>
-          <div style="font-size: 16px; font-weight: 600; color: var(--text);">${opt.label}</div>
         </div>
-      </div>
-    `;
-  });
-  html += '</div>';
-}
+      `;
+    });
+    html += '</div>';
+  }
   else if (question.type === 'textarea') {
     const value = qState.answers[question.key] || '';
     const charCount = value.length;
-    const minLength = question.minLength || 0;
+    const isProtectedField = question.key === 'description' || question.key === 'bio'; // ← ADDED
     html += `
       <div style="position: relative;">
-        <textarea id="qTextarea" rows="8" placeholder="${question.placeholder}" style="width: 100%; padding: 16px; border: 2px solid var(--border); border-radius: 12px; font-size: 15px; font-family: inherit; resize: vertical; line-height: 1.6;" oninput="updateTextInput('${question.key}', this.value)">${value}</textarea>
+        <textarea id="qTextarea" rows="8" placeholder="${question.placeholder}" style="width: 100%; padding: 16px; border: 2px solid var(--border); border-radius: 12px; font-size: 15px; font-family: inherit; resize: vertical; line-height: 1.6;" oninput="${isProtectedField ? `sanitizeAndUpdateTextInput('${question.key}', this)` : `updateTextInput('${question.key}', this.value)`}">${value}</textarea>
+        <div id="qTextareaWarning" style="display:none; margin-top:6px; padding:8px 12px; background:#fff3cd; border:1px solid #ffc107; border-radius:8px; font-size:12px; color:#856404;">
+          ⚠️ Phone numbers and social media handles are not allowed in descriptions
+        </div>
         <div style="margin-top: 8px; display: flex; justify-content: space-between; font-size: 13px; color: var(--text-muted);">
           <span>${question.validation || ''}</span>
           <span>${charCount} / ${question.maxLength || 1000} characters</span>
