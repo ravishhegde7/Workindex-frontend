@@ -318,10 +318,14 @@ function showWarningPopupIfNeeded() {
   const u = state.user;
   if (!u) return;
   if (!u.warnings && !u.isRestricted) return;
-  const seenKey = 'warnSeen_' + u._id + '_' + (u.warnings || 0) + '_' + (u.isRestricted ? 'r' : '');
-  if (localStorage.getItem(seenKey)) return;
-  localStorage.setItem(seenKey, '1');
-
+  // For restricted users — show every login until admin clears
+  if (u.isRestricted) {
+    // Always show restriction popup, no "seen" suppression
+  } else {
+    const seenKey = 'warnSeen_' + u._id + '_' + (u.warnings || 0);
+    if (localStorage.getItem(seenKey)) return;
+    localStorage.setItem(seenKey, '1');
+  }
   const isRestricted = u.isRestricted;
   const warnCount = u.warnings || 0;
   const reason = (u.lastWarning && u.lastWarning.reason) ? u.lastWarning.reason : 'Violation of platform guidelines';
