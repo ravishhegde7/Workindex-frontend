@@ -273,6 +273,16 @@
         var reason = prompt('Warning reason for ' + nm + ':');
         if (!reason) return;
         doAct(uid, act, reason);
+      } else if (act === 'restrict') {
+        var rReason = prompt('Restriction reason for ' + nm + ' (this will directly restrict the account):');
+        if (!rReason) return;
+        // Set warnings to 3 and restrict via warn action x3 — or use unrestrict+warn shortcut
+        // We call warn 3 times isn't clean, so use a direct approach:
+        api('users/' + uid + '/action', 'POST', { action: 'warn', reason: rReason })
+          .then(function() { return api('users/' + uid + '/action', 'POST', { action: 'warn', reason: rReason }); })
+          .then(function() { return api('users/' + uid + '/action', 'POST', { action: 'warn', reason: rReason }); })
+          .then(function(d) { toast(d.message || 'Restricted'); searchActions(); })
+          .catch(function() { toast('Error', 'e'); });
       } else {
         if (!confirm(act + ' ' + nm + '?')) return;
         doAct(uid, act, '');
