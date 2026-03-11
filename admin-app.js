@@ -2654,4 +2654,226 @@ else html += '<a class="btn bgho" href="' + esc(doc.url) + '" target="_blank">Do
     renderHmBars({}, cities);
   }
 
+   
 })();
+// ═══════════════════════════════════════════════════════════
+// ADD TO: admin-app.js
+// 1. Add 'emailNotifications' to sectionLoaders()
+// 2. Add to PT and PS objects
+// 3. Add the full loadEmailNotifications function below
+// ═══════════════════════════════════════════════════════════
+
+// ── STEP 1: In sectionLoaders(), add this line inside the return { ... } object:
+      emailNotifications: loadEmailNotifications,
+
+// ── STEP 2: In PT object, add:
+//   emailNotifications: 'Email Notifications'
+// In PS object, add:
+//   emailNotifications: 'Email logs and notification settings'
+
+// ── STEP 3: Add this entire function block ──
+
+/* ═══ EMAIL NOTIFICATIONS TAB ════════════════════════════ */
+var _emailSettings = {};
+
+function loadEmailNotifications() {
+  var sec = g('sec-emailNotifications');
+  if (!sec) return;
+
+  // Load settings + logs in parallel
+  Promise.all([
+    api('email-settings'),
+    api('email-logs?limit=100')
+  ]).then(function(results) {
+    var settingsData = results[0];
+    var logsData     = results[1];
+
+    _emailSettings = (settingsData.success && settingsData.settings) ? settingsData.settings : {};
+    var logs = (logsData.success && logsData.logs) ? logsData.logs : [];
+    var total = logsData.total || logs.length;
+
+    sec.innerHTML = buildEmailNotificationsUI(_emailSettings, logs, total);
+
+    // Wire toggle changes
+    sec.querySelectorAll('.email-toggle').forEach(function(toggle) {
+      toggle.addEventListener('change', function() {
+        var key = this.dataset.key;
+        var val = this.checked;
+        _emailSettings[key] = val;
+        api('email-settings', 'PUT', { [key]: val }).then(function(d) {
+          if (d.success) {
+            toast((val ? '✅ Enabled: ' : '🔕 Disabled: ') + key.replace(/_/g, ' '));
+          } else {
+            toast('Failed to save setting', 'e');
+          }
+        });
+      });
+    });
+
+    // Wire filter changes
+    var catFilter  = g('emailLogCat');
+    var statFilter = g('emailLogStat');
+    if (catFilter)  catFilter.onchange  = function() { reloadEmailLogs(); };
+    if (statFilter) statFilter.onchange = function() { reloadEmailLogs(); };
+
+    // Wire test digest button
+    var testBtn = g('testDigestBtn');
+    if (testBtn) {
+      testBtn.onclick = function() {
+        testBtn.textContent = 'Sending...';
+        testBtn.disabled = true;
+        api('email-test-digest', 'POST', {}).then(function(d) {
+          testBtn.textContent = '📋 Test Daily Digest';
+          testBtn.disabled = false;
+          toast(d.message || 'Done', d.success ? 's' : 'e');
+        });
+      };
+    }
+  }).catch(function() {
+    var sec = g('sec-emailNotifications');
+    if (sec) sec.innerHTML = '<div class="empty"><h3>Failed to load email settings</h3></div>';
+  });
+}
+
+function reloadEmailLogs() {
+  var cat  = g('emailLogCat')  ? g('emailLogCat').value  : 'all';
+  var stat = g('emailLogStat') ? g('emailLogStat').value : 'all';
+  var qs   = 'email-logs?limit=100' + (cat !== 'all' ? '&category=' + cat : '') + (stat !== 'all' ? '&status=' + stat : '');
+  g('emailLogsTbody').innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px"><div class="spin"></div></td></tr>';
+  api(qs).then(function(d) {
+    renderEmailLogsTable(d.logs || [], d.total || 0);
+  });
+}
+
+function renderEmailLogsTable(logs, total) {
+  var tbody = g('emailLogsTbody');
+  if (!tbody) return;
+  if (!logs.length) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:30px;color:#606078">No email logs found</td></tr>';
+    var tc = g('emailLogTotal'); if (tc) tc.textContent = '0 emails';
+    return;
+  }
+  var tc = g('emailLogTotal'); if (tc) tc.textContent = total + ' total';
+  tbody.innerHTML = logs.map(function(l) {
+    var statusBadge = l.status === 'sent'
+      ? '<span class="badge bgr">Sent</span>'
+      : '<span class="badge brd">Failed</span>';
+    var catColor = { client: '#3b82f6', expert: '#FC8019', admin: '#a855f7' };
+    var catBadge = '<span class="badge" style="background:' + (catColor[l.category] || '#606078') + '20;color:' + (catColor[l.category] || '#606078') + ';border:1px solid ' + (catColor[l.category] || '#606078') + '40;">' + (l.category || '—') + '</span>';
+    var typeLabel = (l.type || '').replace(/_/g, ' ');
+    var date = l.createdAt ? new Date(l.createdAt).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : '—';
+    return '<tr>' +
+      '<td style="font-size:12px;color:#f0f0f4">' + esc(l.to) + '<br><small style="color:#606078">' + esc(l.toName || '') + '</small></td>' +
+      '<td>' + catBadge + '</td>' +
+      '<td style="font-size:12px;color:#a0a0b8">' + esc(typeLabel) + '</td>' +
+      '<td style="font-size:12px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(l.reason || l.subject || '—') + '</td>' +
+      '<td>' + statusBadge + (l.error ? '<br><small style="color:#ef4444">' + esc(l.error.substring(0,40)) + '</small>' : '') + '</td>' +
+      '<td style="font-size:12px;color:#606078">' + date + '</td>' +
+    '</tr>';
+  }).join('');
+}
+
+function buildEmailNotificationsUI(settings, logs, total) {
+  var groups = [
+    {
+      label: '👤 Client Emails',
+      items: [
+        { key: 'client_welcome',           label: 'Welcome Email',                  desc: 'Sent when a client registers' },
+        { key: 'client_post_created',      label: 'Request Posted',                 desc: 'Sent when client posts a new request' },
+        { key: 'client_expert_approached', label: 'Expert Approached',              desc: 'Sent when an expert submits a proposal' },
+        { key: 'client_post_suspended',    label: 'Post Suspended',                 desc: 'Sent when client\'s post is suspended (3 reports)' },
+        { key: 'client_restricted',        label: 'Account Restricted',             desc: 'Sent when client account is restricted' },
+        { key: 'client_banned',            label: 'Account Banned',                 desc: 'Sent when client account is banned' }
+      ]
+    },
+    {
+      label: '🧑‍💼 Expert Emails',
+      items: [
+        { key: 'expert_welcome',           label: 'Welcome Email',                  desc: 'Sent when an expert registers' },
+        { key: 'expert_credits_purchased', label: 'Credits Purchased',              desc: 'Sent when expert buys credits' },
+        { key: 'expert_credits_refunded',  label: 'Credits Refunded',               desc: 'Sent when admin refunds credits' },
+        { key: 'expert_approach_sent',     label: 'Approach Submitted',             desc: 'Sent when expert submits an approach' },
+        { key: 'expert_restricted',        label: 'Account Restricted',             desc: 'Sent when expert account is restricted' },
+        { key: 'expert_banned',            label: 'Account Banned',                 desc: 'Sent when expert account is banned' }
+      ]
+    },
+    {
+      label: '🔑 Admin Emails',
+      items: [
+        { key: 'admin_post_suspended',     label: 'Post Suspended Alert',           desc: 'Admin notified when a post is auto-suspended' },
+        { key: 'admin_user_restricted',    label: 'User Restricted Alert',          desc: 'Admin notified when any user is auto-restricted' },
+        { key: 'admin_daily_tickets',      label: 'Daily Ticket Digest (9:30 PM)',  desc: 'Daily summary of open tickets sent to admin' }
+      ]
+    }
+  ];
+
+  var togglesHTML = groups.map(function(group) {
+    var rows = group.items.map(function(item) {
+      var isOn = settings[item.key] !== false;
+      return '<div style="display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid #18181d;">' +
+        '<div>' +
+          '<div style="font-size:14px;font-weight:600;color:#f0f0f4">' + item.label + '</div>' +
+          '<div style="font-size:12px;color:#606078;margin-top:2px">' + item.desc + '</div>' +
+        '</div>' +
+        '<label style="position:relative;display:inline-block;width:44px;height:24px;flex-shrink:0;">' +
+          '<input type="checkbox" class="email-toggle" data-key="' + item.key + '" ' + (isOn ? 'checked' : '') + ' style="opacity:0;width:0;height:0;">' +
+          '<span style="position:absolute;cursor:pointer;inset:0;background:' + (isOn ? '#FC8019' : '#2a2a38') + ';border-radius:24px;transition:.2s;">' +
+            '<span style="position:absolute;content:\'\';height:18px;width:18px;left:' + (isOn ? '23px' : '3px') + ';bottom:3px;background:#fff;border-radius:50%;transition:.2s;"></span>' +
+          '</span>' +
+        '</label>' +
+      '</div>';
+    }).join('');
+    return '<div class="ch" style="margin-bottom:20px;">' +
+      '<div style="font-size:13px;font-weight:700;color:#FC8019;text-transform:uppercase;letter-spacing:.08em;margin-bottom:14px;">' + group.label + '</div>' +
+      rows +
+    '</div>';
+  }).join('');
+
+  var logsHTML = '<div class="ch">' +
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;">' +
+      '<div style="font-size:15px;font-weight:700;color:#f0f0f4">📬 Email Log <span id="emailLogTotal" style="font-size:12px;color:#606078;margin-left:6px">' + total + ' total</span></div>' +
+      '<div style="display:flex;gap:8px;flex-wrap:wrap;">' +
+        '<select id="emailLogCat" style="padding:6px 10px;background:#18181d;border:1px solid #2a2a38;border-radius:6px;color:#a0a0b8;font-size:13px;">' +
+          '<option value="all">All Categories</option>' +
+          '<option value="client">Client</option>' +
+          '<option value="expert">Expert</option>' +
+          '<option value="admin">Admin</option>' +
+        '</select>' +
+        '<select id="emailLogStat" style="padding:6px 10px;background:#18181d;border:1px solid #2a2a38;border-radius:6px;color:#a0a0b8;font-size:13px;">' +
+          '<option value="all">All Status</option>' +
+          '<option value="sent">Sent</option>' +
+          '<option value="failed">Failed</option>' +
+        '</select>' +
+        '<button id="testDigestBtn" class="btn bgho" style="font-size:12px;padding:6px 12px;">📋 Test Daily Digest</button>' +
+      '</div>' +
+    '</div>' +
+    '<div style="overflow-x:auto;">' +
+    '<table style="width:100%;border-collapse:collapse;font-size:13px;">' +
+      '<thead><tr style="background:#18181d;color:#606078;font-size:11px;text-transform:uppercase;">' +
+        '<th style="padding:10px 12px;text-align:left;">Sent To</th>' +
+        '<th style="padding:10px 12px;text-align:left;">Category</th>' +
+        '<th style="padding:10px 12px;text-align:left;">Type</th>' +
+        '<th style="padding:10px 12px;text-align:left;">Reason</th>' +
+        '<th style="padding:10px 12px;text-align:left;">Status</th>' +
+        '<th style="padding:10px 12px;text-align:left;">Time</th>' +
+      '</tr></thead>' +
+      '<tbody id="emailLogsTbody">' + (function() {
+        if (!logs.length) return '<tr><td colspan="6" style="text-align:center;padding:30px;color:#606078">No emails sent yet</td></tr>';
+        return logs.map(function(l) {
+          var statusBadge = l.status === 'sent' ? '<span class="badge bgr">Sent</span>' : '<span class="badge brd">Failed</span>';
+          var catColor = { client: '#3b82f6', expert: '#FC8019', admin: '#a855f7' };
+          var catBadge = '<span class="badge" style="background:' + (catColor[l.category]||'#606078') + '20;color:' + (catColor[l.category]||'#606078') + ';">' + (l.category||'—') + '</span>';
+          var date = l.createdAt ? new Date(l.createdAt).toLocaleString('en-IN',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) : '—';
+          return '<tr><td style="font-size:12px;color:#f0f0f4">' + esc(l.to) + '<br><small style="color:#606078">' + esc(l.toName||'') + '</small></td>' +
+            '<td>' + catBadge + '</td>' +
+            '<td style="font-size:12px;color:#a0a0b8">' + esc((l.type||'').replace(/_/g,' ')) + '</td>' +
+            '<td style="font-size:12px;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(l.reason||l.subject||'—') + '</td>' +
+            '<td>' + statusBadge + '</td>' +
+            '<td style="font-size:12px;color:#606078">' + date + '</td></tr>';
+        }).join('');
+      })() +
+      '</tbody>' +
+    '</table></div></div>';
+
+  return '<div style="max-width:860px;">' + togglesHTML + logsHTML + '</div>';
+}
