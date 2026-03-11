@@ -2515,7 +2515,88 @@ else html += '<a class="btn bgho" href="' + esc(doc.url) + '" target="_blank">Do
         }).join('') + '</div>';
     }).catch(function() { g('settStats').innerHTML = '<p style="color:#606078;text-align:center">Could not load stats</p>'; });
   }
+/* ═══ DOWNLOAD REPORTS ══════════════════════════════════════════════════ */
+  function downloadReport(type) {
+    var btn = g('dl' + type.charAt(0).toUpperCase() + type.slice(1));
+    if (btn) { btn.textContent = 'Loading...'; btn.disabled = true; }
 
+    var promise;
+    if (type === 'experts') {
+      promise = api('users?role=expert&limit=500').then(function(d) {
+        return (d.users||[]).map(function(u) {
+          return { Name: u.name, Email: u.email, Phone: u.phone||'', Credits: u.credits||0, Rating: u.rating||'-', Status: u.isBanned?'Banned':u.isRestricted?'Restricted':u.isFlagged?'Flagged':'Active', Joined: fmt(u.createdAt) };
+        });
+      });
+    } else if (type === 'clients') {
+      promise = api('users?role=client&limit=500').then(function(d) {
+        return (d.users||[]).map(function(u) {
+          return { Name: u.name, Email: u.email, Phone: u.phone||'', Credits: u.credits||0, Rating: u.rating||'-', Status: u.isBanned?'Banned':u.isRestricted?'Restricted':u.isFlagged?'Flagged':'Active', Joined: fmt(u.createdAt) };
+        });
+      });
+    } else if (type === 'approaches') {
+      promise = api('approaches?limit=500').then(function(d) {
+        return (d.approaches||[]).map(function(a) {
+          return { Expert: a.expert?a.expert.name:'-', Client: a.client?a.client.name:'-', Request: a.request?a.request.title:'-', Quote: a.quote||'-', Message: (a.message||'').substring(0,100), Credits: a.creditsSpent||0, Status: a.status||'-', Date: fmt(a.createdAt) };
+        });
+      });
+    } else if (type === 'posts') {
+      promise = api('requests?limit=500').then(function(d) {
+        return (d.requests||[]).map(function(p) {
+          return { Title: p.title||'-', Client: p.client?p.client.name:'-', Service: p.service||'-', Budget: p.budget||'-', Status: p.status||'-', Credits: p.credits||0, Date: fmt(p.createdAt) };
+        });
+      });
+    } else if (type === 'credits') {
+      promise = api('credits?limit=500').then(function(d) {
+        return (d.transactions||[]).map(function(tx) {
+          return { Expert: tx.user?tx.user.name:'-', Email: tx.user?tx.user.email:'-', Type: tx.type||'-', Amount: tx.amount||0, Balance: tx.balanceAfter||0, Description: (tx.description||'-').substring(0,80), Date: fmtT(tx.createdAt) };
+        });
+      });
+    }
+
+    if (!promise) return;
+    promise.then(function(rows) {
+      if (btn) { btn.textContent = btn.dataset.label || 'Download'; btn.disabled = false; }
+      if (!rows.length) { toast('No data to export', 'i'); return; }
+      // Show format picker
+      var fmt2 = confirm('Click OK for Excel (CSV), Cancel for printable PDF view');
+      if (fmt2) {
+        exportCSV(rows, type + '-report-' + new Date().toISOString().slice(0,10));
+        toast('CSV downloaded ✓');
+      } else {
+        exportPrintPDF(rows, type);
+      }
+    }).catch(function() {
+      if (btn) { btn.textContent = btn.dataset.label || 'Download'; btn.disabled = false; }
+      toast('Error loading data', 'e');
+    });
+  }
+
+  function exportPrintPDF(rows, title) {
+    if (!rows.length) return;
+    var keys = Object.keys(rows[0]);
+    var w = window.open('', '_blank');
+    var tableRows = rows.map(function(r) {
+      return '<tr>' + keys.map(function(k) { return '<td>' + String(r[k]||'').replace(/</g,'&lt;') + '</td>'; }).join('') + '</tr>';
+    }).join('');
+    w.document.write(
+      '<html><head><title>WorkIndex ' + title + ' Report</title>' +
+      '<style>body{font-family:system-ui;padding:20px;font-size:12px}' +
+      'h2{color:#FC8019;margin-bottom:4px}' +
+      'table{width:100%;border-collapse:collapse;margin-top:14px}' +
+      'th{background:#FC8019;color:#fff;padding:8px 10px;text-align:left;font-size:11px;text-transform:uppercase}' +
+      'td{padding:7px 10px;border-bottom:1px solid #eee;vertical-align:top}' +
+      'tr:nth-child(even){background:#f9f9f9}' +
+      '@media print{body{padding:8px}}' +
+      '</style></head><body>' +
+      '<h2>WorkIndex — ' + title.charAt(0).toUpperCase()+title.slice(1) + ' Report</h2>' +
+      '<div style="font-size:11px;color:#888;margin-bottom:10px">Generated: ' + new Date().toLocaleString('en-IN') + ' · Total: ' + rows.length + ' records</div>' +
+      '<table><thead><tr>' + keys.map(function(k){return '<th>'+k+'</th>';}).join('') + '</tr></thead><tbody>' + tableRows + '</tbody></table>' +
+      '</body></html>'
+    );
+    w.document.close();
+    setTimeout(function() { w.print(); }, 600);
+  }
+   
   function dangerAction(action) {
     var msgs = { clearLogs: 'Clear all communication logs older than 90 days?', clearFailedPayments: 'Clear all failed payment logs?' };
     if (!confirm(msgs[action]||'Are you sure?')) return;
