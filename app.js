@@ -4301,12 +4301,15 @@ async function loadMyTickets() {
 }
 
 // Close modal when clicking backdrop
-var ticketModalEl = document.getElementById('ticketModal');
-if (ticketModalEl) {
-  ticketModalEl.addEventListener('click', function(e) {
-    if (e.target === this) closeTicketModal();
-  });
-}
+document.addEventListener('DOMContentLoaded', function() {
+  var ticketModalEl = document.getElementById('ticketModal');
+  if (ticketModalEl) {
+    ticketModalEl.addEventListener('click', function(e) {
+      if (e.target === this) closeTicketModal();
+    });
+  }
+});
+
 // ═══════════════════════════════════════════════════════════
 //  CLIENT EXPLORE TAB — HIRE / SHORTLIST / BLOCK
 // ═══════════════════════════════════════════════════════════
