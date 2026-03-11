@@ -457,6 +457,7 @@
   }
   function ust(u) {
     if (u.isBanned) return '<span class="badge brd">Banned</span>';
+      if (u.isRestricted) return '<span class="badge brd">Restricted</span>';
     if (u.isFlagged) return '<span class="badge byw">Flagged</span>';
     return '<span class="badge bgr">Active</span>';
   }
