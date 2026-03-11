@@ -351,7 +351,7 @@ function showWarningPopupIfNeeded() {
       </div>
       <div style="font-size:14px;color:#a0a0b8;line-height:1.7;margin-bottom:20px;">${body}</div>
       <div style="display:flex;flex-direction:column;gap:10px;">
-        <button onclick="document.getElementById('warnPopupOverlay').remove(); switchTab('myTickets');" style="padding:12px;background:${color};border:none;border-radius:10px;color:#fff;font-size:14px;font-weight:700;cursor:pointer;">🎫 Raise a Support Ticket</button>
+        <button onclick="document.getElementById('warnPopupOverlay').remove(); openTicketModal();" style="padding:12px;background:${color};border:none;border-radius:10px;color:#fff;font-size:14px;font-weight:700;cursor:pointer;">🎫 Raise a Support Ticket</button>
         <button onclick="document.getElementById('warnPopupOverlay').remove();" style="padding:12px;background:transparent;border:1px solid #2a2a38;border-radius:10px;color:#a0a0b8;font-size:14px;cursor:pointer;">Dismiss</button>
       </div>
     </div>`;
