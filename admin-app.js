@@ -599,28 +599,107 @@ emailNotifications: loadEmailNotifications
     });
 
     var pr = u.profile || {};
-    var av = u.profilePhoto ? '<img src="' + esc(u.profilePhoto) + '" alt="">' : esc((u.name||'?').charAt(0).toUpperCase());
-    var p0 = '<div class="uhero"><div class="uav">' + av + '</div><div class="uhi"><h3>' + esc(u.name) + '</h3><p>' + esc(u.email) + ' / ' + esc(u.phone||'No phone') + '</p><div style="display:flex;gap:5px;flex-wrap:wrap">' + bdg(u.role) + ust(u) + (u.warnings ? '<span class="badge bo">' + u.warnings + ' warns</span>' : '') + '</div></div></div>';
-    var loc = u.location || {};
-    var locStr = [loc.city, loc.state, loc.pincode].filter(Boolean).join(', ') || (pr.city ? [pr.city, pr.state, pr.pincode].filter(Boolean).join(', ') : '') || '-';
-    p0 += '<div class="igrid">' +
-      '<div class="ic"><label>Credits</label><span style="color:#f59e0b">' + (u.credits||0) + '</span></div>' +
-      '<div class="ic"><label>Joined</label><span>' + fmt(u.createdAt) + '</span></div>' +
-      '<div class="ic"><label>Last Login</label><span>' + fmt(u.lastLogin) + '</span></div>' +
-      '<div class="ic"><label>Rating</label><span>' + (u.rating||'-') + ' (' + (u.reviewCount||0) + ')</span></div>' +
-      (u.role==='expert' ? '<div class="ic"><label>Specialization</label><span>' + esc(u.specialization||pr.specialization||'-') + '</span></div>' : '') +
-      (u.role==='expert' ? '<div class="ic"><label>Company</label><span>' + esc(u.companyName||pr.companyName||'-') + '</span></div>' : '') +
-      (u.role==='expert' ? '<div class="ic"><label>Experience</label><span>' + esc(String(u.yearsOfExperience||pr.yearsOfExperience||'-')) + ' yrs</span></div>' : '') +
-      '<div class="ic"><label>Location</label><span>' + esc(locStr) + '</span></div>' +
-      (u.role==='expert' && (u.servicesOffered||pr.servicesOffered||[]).length ? '<div class="ic" style="grid-column:1/-1"><label>Services</label><span>' + esc((u.servicesOffered||pr.servicesOffered||[]).join(', ')) + '</span></div>' : '') +
-      (u.bio ? '<div class="ic" style="grid-column:1/-1"><label>Bio</label><span style="font-size:12px;color:#a0a0b8">' + esc(u.bio.substring(0,200)) + '</span></div>' : '') +
-      (u.role==='expert' && u.whyChooseMe ? '<div class="ic" style="grid-column:1/-1"><label>Why Choose Me</label><span style="font-size:12px;color:#a0a0b8">' + esc(u.whyChooseMe.substring(0,200)) + '</span></div>' : '') +
-      (u.role==='expert' ? '<div class="ic"><label>Availability</label><span>' + esc(u.availability||'-') + '</span></div>' : '') +
-      (u.role==='expert' && u.hasWebsite ? '<div class="ic"><label>Website</label><span style="font-size:12px">' + esc(u.websiteUrl||'-') + '</span></div>' : '') +
-      (u.kyc ? '<div class="ic"><label>KYC</label><span>' + esc(u.kyc.status||'not_submitted') + '</span></div>' : '') +
-      '<div class="ic"><label>Warnings</label><span style="color:' + ((u.warnings||0)>=3?'#ef4444':'#f59e0b') + '">' + (u.warnings||0) + '/3</span></div>' +
-      '<div class="ic"><label>Total Approaches</label><span>' + (u.totalApproaches||0) + '</span></div>' +
-    '</div>';
+var av = u.profilePhoto ? '<img src="' + esc(u.profilePhoto) + '" alt="">' : esc((u.name||'?').charAt(0).toUpperCase());
+var p0 = '<div class="uhero"><div class="uav">' + av + '</div><div class="uhi"><h3>' + esc(u.name) + '</h3><p>' + esc(u.email) + ' / ' + esc(u.phone||'No phone') + '</p><div style="display:flex;gap:5px;flex-wrap:wrap">' + bdg(u.role) + ust(u) + (u.warnings ? '<span class="badge bo">' + u.warnings + ' warns</span>' : '') + '</div></div></div>';
+
+var loc = u.location || {};
+var locStr = [loc.city, loc.state, loc.pincode].filter(Boolean).join(', ') || [pr.city, pr.state, pr.pincode].filter(Boolean).join(', ') || '-';
+var kycStatus = (u.kyc && u.kyc.status) || 'not_submitted';
+var kycColor = kycStatus==='approved'?'#22c55e':kycStatus==='pending'?'#f59e0b':kycStatus==='rejected'?'#ef4444':'#606078';
+var warnColor = (u.warnings||0)>=3?'#ef4444':(u.warnings||0)>0?'#f59e0b':'#22c55e';
+var lastLoginStr = u.lastLogin
+  ? new Date(u.lastLogin).toLocaleString('en-IN',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})
+  : '<span style="color:#606078;font-style:italic">Never logged in</span>';
+
+p0 += '<div style="display:flex;flex-direction:column;gap:12px;margin-top:4px">';
+
+// ── Stat cards ──
+p0 += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">';
+p0 += '<div style="background:#18181d;border-radius:10px;padding:14px 16px"><div style="font-size:10px;color:#606078;text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px">Credits</div><div style="font-size:24px;font-weight:800;color:#f59e0b">' + (u.credits||0) + '</div></div>';
+p0 += '<div style="background:#18181d;border-radius:10px;padding:14px 16px"><div style="font-size:10px;color:#606078;text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px">Rating</div><div style="font-size:24px;font-weight:800;color:#FC8019">' + (u.rating||'–') + '<span style="font-size:12px;color:#606078;font-weight:400;margin-left:4px">(' + (u.reviewCount||0) + ')</span></div></div>';
+p0 += '<div style="background:#18181d;border-radius:10px;padding:14px 16px"><div style="font-size:10px;color:#606078;text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px">Warnings</div><div style="font-size:24px;font-weight:800;color:' + warnColor + '">' + (u.warnings||0) + '<span style="font-size:13px;color:#606078;font-weight:400">/3</span></div></div>';
+p0 += '<div style="background:#18181d;border-radius:10px;padding:14px 16px"><div style="font-size:10px;color:#606078;text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px">Approaches</div><div style="font-size:24px;font-weight:800;color:#f0f0f4">' + (u.totalApproaches||0) + '</div></div>';
+p0 += '</div>';
+
+// ── Account info card ──
+p0 += '<div style="background:#18181d;border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:0">';
+p0 += '<div style="font-size:10px;color:#606078;text-transform:uppercase;letter-spacing:.06em;font-weight:700;margin-bottom:10px">Account Info</div>';
+p0 += '<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid #222230"><span style="font-size:12px;color:#606078">Joined</span><span style="font-size:13px;color:#f0f0f4">' + fmt(u.createdAt) + '</span></div>';
+p0 += '<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid #222230"><span style="font-size:12px;color:#606078">Last Login</span><span style="font-size:13px;color:#f0f0f4">' + lastLoginStr + '</span></div>';
+p0 += '<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid #222230"><span style="font-size:12px;color:#606078">KYC</span><span style="font-size:13px;font-weight:600;color:' + kycColor + '">' + kycStatus.replace(/_/g,' ') + '</span></div>';
+p0 += '<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0"><span style="font-size:12px;color:#606078">Location</span><span style="font-size:13px;color:#f0f0f4;text-align:right;max-width:62%">' + esc(locStr) + '</span></div>';
+p0 += '</div>';
+
+// ── Expert professional info card ──
+if (u.role === 'expert') {
+  var spec = u.specialization||pr.specialization, comp = u.companyName||pr.companyName||pr.company;
+  var exp = u.yearsOfExperience||pr.yearsOfExperience||pr.experience, avail = u.availability||pr.availability;
+  var website = u.websiteUrl||pr.websiteUrl||pr.website;
+  if (spec||comp||exp||avail||website) {
+    p0 += '<div style="background:#18181d;border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:0">';
+    p0 += '<div style="font-size:10px;color:#606078;text-transform:uppercase;letter-spacing:.06em;font-weight:700;margin-bottom:10px">Professional</div>';
+    var proRows = [];
+    if (spec)    proRows.push(['Specialization', esc(spec), '#f0f0f4']);
+    if (comp)    proRows.push(['Company', esc(comp), '#f0f0f4']);
+    if (exp)     proRows.push(['Experience', esc(String(exp)) + ' yrs', '#f0f0f4']);
+    if (avail)   proRows.push(['Availability', esc(avail), '#22c55e']);
+    proRows.forEach(function(row, i) {
+      p0 += '<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;' + (i<proRows.length-1||website?'border-bottom:1px solid #222230':'') + '"><span style="font-size:12px;color:#606078">' + row[0] + '</span><span style="font-size:13px;color:' + row[2] + ';font-weight:600">' + row[1] + '</span></div>';
+    });
+    if (website) p0 += '<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0"><span style="font-size:12px;color:#606078">Website</span><a href="' + esc(website) + '" target="_blank" style="font-size:13px;color:#FC8019;text-decoration:none;max-width:65%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(website) + '</a></div>';
+    p0 += '</div>';
+  }
+
+  // Services
+  var services = u.servicesOffered||pr.servicesOffered||[];
+  if (services.length) {
+    p0 += '<div style="background:#18181d;border-radius:10px;padding:14px 16px">';
+    p0 += '<div style="font-size:10px;color:#606078;text-transform:uppercase;letter-spacing:.06em;font-weight:700;margin-bottom:10px">Services Offered</div>';
+    p0 += '<div style="display:flex;flex-wrap:wrap;gap:6px">' + services.map(function(s){ return '<span style="background:rgba(252,128,25,.12);color:#FC8019;border:1px solid rgba(252,128,25,.25);border-radius:6px;padding:5px 11px;font-size:12px;font-weight:600">' + esc(s) + '</span>'; }).join('') + '</div>';
+    p0 += '</div>';
+  }
+
+  // Bio
+  var bio = u.bio||pr.bio;
+  if (bio) {
+    p0 += '<div style="background:#18181d;border-radius:10px;padding:14px 16px">';
+    p0 += '<div style="font-size:10px;color:#606078;text-transform:uppercase;letter-spacing:.06em;font-weight:700;margin-bottom:10px">Bio</div>';
+    p0 += '<div style="font-size:13px;color:#c0c0d8;line-height:1.7;white-space:pre-wrap">' + esc(bio) + '</div>';
+    p0 += '</div>';
+  }
+
+  // Why Choose Me
+  var why = u.whyChooseMe||pr.whyChooseMe;
+  if (why) {
+    p0 += '<div style="background:#18181d;border-radius:10px;padding:14px 16px">';
+    p0 += '<div style="font-size:10px;color:#606078;text-transform:uppercase;letter-spacing:.06em;font-weight:700;margin-bottom:10px">Why Choose Me</div>';
+    p0 += '<div style="font-size:13px;color:#c0c0d8;line-height:1.7;white-space:pre-wrap">' + esc(why) + '</div>';
+    p0 += '</div>';
+  }
+
+  // Education
+  var edu = u.education||pr.education;
+  if (edu) {
+    p0 += '<div style="background:#18181d;border-radius:10px;padding:14px 16px">';
+    p0 += '<div style="font-size:10px;color:#606078;text-transform:uppercase;letter-spacing:.06em;font-weight:700;margin-bottom:10px">Education</div>';
+    p0 += '<div style="font-size:13px;color:#c0c0d8;line-height:1.7;white-space:pre-wrap">' + esc(edu) + '</div>';
+    p0 += '</div>';
+  }
+
+  // Portfolio
+  var portfolio = u.portfolio||pr.portfolio||[];
+  if (portfolio.length) {
+    p0 += '<div style="background:#18181d;border-radius:10px;padding:14px 16px">';
+    p0 += '<div style="font-size:10px;color:#606078;text-transform:uppercase;letter-spacing:.06em;font-weight:700;margin-bottom:10px">Portfolio</div>';
+    p0 += portfolio.map(function(link){
+      var url = typeof link==='string'?link:(link.url||link);
+      return '<div style="margin-bottom:8px"><a href="' + esc(url) + '" target="_blank" style="color:#FC8019;font-size:13px;text-decoration:none;word-break:break-all">🔗 ' + esc(url) + '</a></div>';
+    }).join('');
+    p0 += '</div>';
+  }
+}
+
+p0 += '</div>'; // close outer flex
      /* Action buttons */
     var actionRow = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">';
     actionRow += '<button class="btn bgho" style="justify-content:center" data-ledger-uid="' + u._id + '">Credit Ledger</button>';
