@@ -1,6 +1,6 @@
 {
   "rewrites": [
     { "source": "/expert/:id", "destination": "/index.html" },
-    { "source": "/((?!.*\\.).*)", "destination": "/index.html" }
+    { "source": "/((?!app\\.js|styles\\.css|admin\\.css|admin-app\\.js|admin\\.html|favicon\\.ico).*)", "destination": "/index.html" }
   ]
 }
