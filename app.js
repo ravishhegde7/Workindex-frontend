@@ -1536,8 +1536,15 @@ async function viewExpertProfile(expertId, loggedIn = false) {
           </div>
         ` : ''}
 
-        <button onclick="document.getElementById('expertProfileModal')?.remove()" style="width: 100%; padding: 14px; border: 1.5px solid var(--border); border-radius: 10px; background: transparent; color: var(--text); font-size: 15px; font-weight: 600; cursor: pointer;">Close</button>
-      </div>
+        <div style="display:flex;gap:10px;">
+          <button onclick="openPublicProfile('${expertId}')"
+            style="flex:1;padding:14px;border:1.5px solid var(--primary);border-radius:10px;background:transparent;color:var(--primary);font-size:14px;font-weight:600;cursor:pointer;">
+            🔗 Share Profile
+          </button>
+          <button onclick="document.getElementById('expertProfileModal')?.remove()"
+            style="flex:1;padding:14px;border:1.5px solid var(--border);border-radius:10px;background:transparent;color:var(--text);font-size:15px;font-weight:600;cursor:pointer;">Close</button>
+        </div>
+        </div>
     `;
 
     document.body.appendChild(modal);
