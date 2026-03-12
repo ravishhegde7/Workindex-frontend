@@ -2958,8 +2958,12 @@ function loadSettings() {
 
 // ─── INIT ON PAGE LOAD ─── 
 document.addEventListener('DOMContentLoaded', () => {
+  if (window.location.pathname.startsWith('/expert/')) {
+    loadPublicExpertPage();
+    return;
+  }
   initDarkMode();
-
+   
   // ── Handle back/forward browser buttons ──
   window.addEventListener('popstate', (e) => {
     if (e.state?.pageId) {
