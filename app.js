@@ -1804,57 +1804,82 @@ function renderBrowseFilterChips() {
     { value: 'photography', label: '📷 Photography' },
     { value: 'development', label: '💻 Development' },
   ];
-
   const activeFilter = state.browseServiceFilter || [];
-
   return services.map(s => {
-    const isActive = s.value === 'all'
-      ? activeFilter.length === 0
-      : activeFilter.includes(s.value);
-
-    return `<button
-      class="browse-filter-chip"
-      data-service="${s.value}"
-      onclick="setBrowseFilter('${s.value}')"
-      style="padding:7px 16px;
-             border:1.5px solid ${isActive ? 'var(--primary)' : 'var(--border)'};
-             border-radius:20px;
-             background:${isActive ? 'var(--primary)' : 'transparent'};
-             color:${isActive ? '#fff' : 'var(--text)'};
-             font-size:13px;font-weight:600;
-             cursor:pointer;white-space:nowrap;transition:all 0.2s;">
+    const isActive = s.value === 'all' ? activeFilter.length === 0 : activeFilter.includes(s.value);
+    return `<button class="browse-filter-chip" data-service="${s.value}" onclick="setBrowseFilter('${s.value}')"
+      style="padding:7px 16px;border:1.5px solid ${isActive ? 'var(--primary)' : 'var(--border)'};border-radius:20px;
+             background:${isActive ? 'var(--primary)' : 'transparent'};color:${isActive ? '#fff' : 'var(--text)'};
+             font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;transition:all 0.2s;">
       ${s.label}
     </button>`;
   }).join('');
 }
 
+async function applyBrowseFilters() {
+  PAGINATION.expertBrowse.page = 1;
+  await loadExpertData();
+}
+
+function renderBrowseToolbar() {
+  const sortOpts = [
+    { value: 'newest',    label: 'Newest First' },
+    { value: 'oldest',    label: 'Oldest First' },
+    { value: 'budget_h',  label: 'Budget: High → Low' },
+    { value: 'budget_l',  label: 'Budget: Low → High' },
+    { value: 'credits_h', label: 'Credits: High → Low' },
+  ];
+  const cur = state.browseSort || 'newest';
+  const hasSearch = state.browseSearch && state.browseSearch.trim();
+  return `
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px;">
+      <div style="flex:1;min-width:180px;position:relative;">
+        <input id="browseSearchInput" type="text" placeholder="🔍 Search requests..."
+          value="${state.browseSearch || ''}"
+          onkeydown="if(event.key==='Enter'){state.browseSearch=this.value.trim();applyBrowseFilters();}"
+          style="width:100%;padding:9px 38px 9px 14px;border:1.5px solid var(--border);border-radius:10px;
+                 background:var(--bg);color:var(--text);font-size:14px;box-sizing:border-box;">
+        <button onclick="state.browseSearch=document.getElementById('browseSearchInput').value.trim();applyBrowseFilters();"
+          style="position:absolute;right:8px;top:50%;transform:translateY(-50%);border:none;background:none;
+                 color:var(--primary);font-size:16px;cursor:pointer;padding:4px;">→</button>
+      </div>
+      <select onchange="state.browseSort=this.value;applyBrowseFilters();"
+        style="padding:9px 14px;border:1.5px solid var(--border);border-radius:10px;background:var(--bg);
+               color:var(--text);font-size:13px;font-weight:600;cursor:pointer;">
+        ${sortOpts.map(o => `<option value="${o.value}" ${cur === o.value ? 'selected' : ''}>${o.label}</option>`).join('')}
+      </select>
+      ${hasSearch ? `<button onclick="state.browseSearch='';document.getElementById('browseSearchInput').value='';applyBrowseFilters();"
+        style="padding:9px 14px;border:1.5px solid var(--border);border-radius:10px;background:transparent;
+               color:var(--text-muted);font-size:13px;cursor:pointer;white-space:nowrap;">✕ Clear</button>` : ''}
+    </div>`;
+}
+
 // ─── RENDER AVAILABLE REQUESTS FOR EXPERTS ───
 function renderAvailableRequests() {
-  // Update filter chips
   const filterBar = document.getElementById('browseFilterBar');
   if (filterBar) filterBar.innerHTML = renderBrowseFilterChips();
 
   const container = document.getElementById('browseRequestsContainer');
   if (!container) return;
-   
-  const filter = state.browseServiceFilter || [];
-  const allRequests = (state.availableRequests || []).filter(req =>
-    !filter.length || filter.includes(req.service)
-  );
+
+  // Filtering/sorting/search now done server-side
+  const allRequests = state.availableRequests || [];
+
   if (!allRequests.length) {
-    const isFiltered = (state.browseServiceFilter || []).length > 0;
+    const isFiltered = (state.browseServiceFilter || []).length > 0 || state.browseSearch;
     container.innerHTML = `
       <div class="empty-state">
         <div class="empty-icon">🔍</div>
-        <h3 class="empty-title">${isFiltered ? 'No requests for selected category' : 'No requests available'}</h3>
-        <p class="empty-text">${isFiltered ? 'Try selecting a different category above' : 'New requests will appear here'}</p>
+        <h3 class="empty-title">${isFiltered ? 'No requests match your filters' : 'No requests available'}</h3>
+        <p class="empty-text">${isFiltered ? 'Try a different search or category' : 'New requests will appear here'}</p>
       </div>`;
     return;
   }
 
   const items = paginate(allRequests, 'expertBrowse');
 
-  container.innerHTML = '<h2 style="margin-bottom:20px;">Available Requests</h2>' +
+  container.innerHTML = '<h2 style="margin-bottom:16px;">Available Requests</h2>' +
+    renderBrowseToolbar() +
     items.map(req => {
       const cur  = req.currentApproaches || 0;
       const max  = req.maxApproaches || 5;
@@ -1868,7 +1893,7 @@ function renderAvailableRequests() {
             <div style="flex:1;">
               <h3 style="font-size:18px;font-weight:700;color:var(--text);margin-bottom:4px;">${req.title}</h3>
               <p style="font-size:14px;color:var(--text-muted);">${req.service.toUpperCase()}</p>
-              <p style="font-size:13px;color:var(--text-muted);margin-top:4px;">👤 <strong>${req.client?.name || 'Client'}</strong></p>
+              <p style="font-size:13px;color:var(--text-muted);margin-top:4px;">👤 <strong>${req.client?.name || 'Client'}</strong>${req.client?.emailVerified ? ' <span style="font-size:11px;color:#22c55e;font-weight:600;">✉️ verified</span>' : ''}</p>
             </div>
             <span class="badge badge-primary">${req.credits || 20} credits</span>
           </div>
@@ -1906,6 +1931,7 @@ function renderAvailableRequests() {
         </div>`;
     }).join('') + paginationControlsHTML(allRequests, 'expertBrowse');
 }
+
 // ─── SHOW REQUEST DETAIL FOR EXPERT ───
 async function showExpertRequestDetail(requestId) {
   const req = state.availableRequests.find(r => r._id === requestId);
