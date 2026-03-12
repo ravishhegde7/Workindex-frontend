@@ -3302,13 +3302,17 @@ function renderExpertProfile() {
       <h2 style="font-size:22px;font-weight:800;color:var(--text);margin-bottom:4px;" id="expertProfileName">${user.name || 'Expert'}</h2>
       <p style="color:var(--text-muted);font-size:14px;margin-bottom:4px;" id="expertProfileEmail">${user.email || ''}</p>
       ${profile.specialization ? `<p style="color:var(--primary);font-size:14px;font-weight:600;">${profile.specialization}</p>` : ''}
-      <div style="display:flex;align-items:center;justify-content:center;gap:16px;margin-top:12px;margin-bottom:20px;flex-wrap:wrap;">
+      <div style="display:flex;align-items:center;justify-content:center;gap:16px;margin-top:12px;margin-bottom:16px;flex-wrap:wrap;">
         <span style="font-size:14px;color:var(--text-muted);">⭐ ${user.rating || '0.0'} (${user.reviewCount || 0} reviews)</span>
         <span style="font-size:14px;color:var(--text-muted);">💎 ${user.credits || 0} credits</span>
         ${profile.city ? `<span style="font-size:14px;color:var(--text-muted);">📍 ${profile.city}</span>` : ''}
       </div>
+      <button onclick="openPublicProfile('${user._id}')"
+        style="margin:0 20px 20px;width:calc(100% - 40px);padding:12px;border:1.5px solid var(--primary);border-radius:10px;background:transparent;color:var(--primary);font-size:14px;font-weight:700;cursor:pointer;">
+        🔗 Share My Profile
+      </button>
     </div>
-
+    
     <div style="padding:0 20px 40px;">
 <!-- ── BASIC INFO (EDITABLE) ── -->
       <div class="settings-section" style="margin-bottom:20px;">
