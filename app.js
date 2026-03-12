@@ -2958,8 +2958,10 @@ function loadSettings() {
 
 // ─── INIT ON PAGE LOAD ─── 
 document.addEventListener('DOMContentLoaded', () => {
+  console.log('[init] pathname:', window.location.pathname);
   if (window.location.pathname.startsWith('/expert/')) {
-        setTimeout(loadPublicExpertPage, 0);
+    console.log('[init] launching public profile page');
+    setTimeout(loadPublicExpertPage, 0);
     return;
   }
   initDarkMode();
