@@ -1875,14 +1875,20 @@ function renderAvailableRequests() {
   if (!allRequests.length) {
     const isFiltered = (state.browseServiceFilter || []).length > 0 || state.browseSearch;
     container.innerHTML = `
+      <h2 style="margin-bottom:16px;">Available Requests</h2>
+      ${renderBrowseToolbar()}
       <div class="empty-state">
         <div class="empty-icon">🔍</div>
         <h3 class="empty-title">${isFiltered ? 'No requests match your filters' : 'No requests available'}</h3>
         <p class="empty-text">${isFiltered ? 'Try a different search or category' : 'New requests will appear here'}</p>
+        ${isFiltered ? `<button onclick="state.browseSearch='';state.browseServiceFilter=[];state.browseSort='newest';document.getElementById('browseFilterBar').innerHTML=renderBrowseFilterChips();applyBrowseFilters();"
+          style="margin-top:16px;padding:10px 24px;background:var(--primary);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;">
+          ✕ Clear Filters
+        </button>` : ''}
       </div>`;
     return;
   }
-
+   
   const items = paginate(allRequests, 'expertBrowse');
 
   container.innerHTML = '<h2 style="margin-bottom:16px;">Available Requests</h2>' +
