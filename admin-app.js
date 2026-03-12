@@ -608,9 +608,13 @@ var kycStatus = (u.kyc && u.kyc.status) || 'not_submitted';
 var kycColor = kycStatus==='approved'?'#22c55e':kycStatus==='pending'?'#f59e0b':kycStatus==='rejected'?'#ef4444':'#606078';
 var warnColor = (u.warnings||0)>=3?'#ef4444':(u.warnings||0)>0?'#f59e0b':'#22c55e';
 var lastLoginStr = u.lastLogin
-  ? new Date(u.lastLogin).toLocaleString('en-IN',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})
+  ? new Date(u.lastLogin).toLocaleString('en-IN', {
+      day: 'numeric', month: 'short', year: 'numeric',
+      hour: '2-digit', minute: '2-digit',
+      timeZone: 'Asia/Kolkata'
+    }) + ' IST'
   : '<span style="color:#606078;font-style:italic">Never logged in</span>';
-
+     
 p0 += '<div style="display:flex;flex-direction:column;gap:12px;margin-top:4px">';
 
 // ── Stat cards ──
