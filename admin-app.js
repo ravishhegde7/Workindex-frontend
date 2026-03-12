@@ -655,8 +655,9 @@ if (u.role === 'expert') {
   }
 
   // Services
-  var services = u.servicesOffered||pr.servicesOffered||[];
-  if (services.length) {
+  var services = u.servicesOffered||(pr.servicesOffered)||[];
+  if (typeof services === 'string') services = services.split(',').map(function(s){return s.trim();}).filter(Boolean);
+   if (services.length) {
     p0 += '<div style="background:#18181d;border-radius:10px;padding:14px 16px">';
     p0 += '<div style="font-size:10px;color:#606078;text-transform:uppercase;letter-spacing:.06em;font-weight:700;margin-bottom:10px">Services Offered</div>';
     p0 += '<div style="display:flex;flex-wrap:wrap;gap:6px">' + services.map(function(s){ return '<span style="background:rgba(252,128,25,.12);color:#FC8019;border:1px solid rgba(252,128,25,.25);border-radius:6px;padding:5px 11px;font-size:12px;font-weight:600">' + esc(s) + '</span>'; }).join('') + '</div>';
@@ -664,7 +665,7 @@ if (u.role === 'expert') {
   }
 
   // Bio
-  var bio = u.bio||pr.bio;
+  var bio = u.bio||pr.bio||pr.about;
   if (bio) {
     p0 += '<div style="background:#18181d;border-radius:10px;padding:14px 16px">';
     p0 += '<div style="font-size:10px;color:#606078;text-transform:uppercase;letter-spacing:.06em;font-weight:700;margin-bottom:10px">Bio</div>';
@@ -690,15 +691,13 @@ if (u.role === 'expert') {
     p0 += '</div>';
   }
 
-  // Portfolio
-  var portfolio = u.portfolio||pr.portfolio||[];
-  if (portfolio.length) {
+  // Portfolio — stored as plain string in profile
+  var portfolioRaw = u.portfolio||pr.portfolio||'';
+  var portfolioText = Array.isArray(portfolioRaw) ? portfolioRaw.map(function(l){ return typeof l==='string'?l:(l.url||l.title||''); }).join('\n') : portfolioRaw;
+  if (portfolioText && portfolioText.trim()) {
     p0 += '<div style="background:#18181d;border-radius:10px;padding:14px 16px">';
     p0 += '<div style="font-size:10px;color:#606078;text-transform:uppercase;letter-spacing:.06em;font-weight:700;margin-bottom:10px">Portfolio</div>';
-    p0 += portfolio.map(function(link){
-      var url = typeof link==='string'?link:(link.url||link);
-      return '<div style="margin-bottom:8px"><a href="' + esc(url) + '" target="_blank" style="color:#FC8019;font-size:13px;text-decoration:none;word-break:break-all">🔗 ' + esc(url) + '</a></div>';
-    }).join('');
+    p0 += '<div style="font-size:13px;color:#c0c0d8;line-height:1.7;white-space:pre-wrap">' + esc(portfolioText) + '</div>';
     p0 += '</div>';
   }
 }
