@@ -2864,7 +2864,133 @@ else html += '<a class="btn bgho" href="' + esc(doc.url) + '" target="_blank">Do
 // 2. Add to PT and PS objects
 // 3. Add the full loadEmailNotifications function below
 // ═══════════════════════════════════════════════════════════
+/* ═══ REVENUE DASHBOARD ══════════════════════════════════ */
+  var _revChart = null, _revSvcChart = null;
 
+  function loadRevenue() {
+    var period = (g('revPeriod') || {}).value || 'month';
+    g('revSummary').innerHTML = '<div style="color:#a0a0b8;font-size:13px;padding:8px;">Loading...</div>';
+
+    api('revenue?period=' + period).then(function(d) {
+      if (!d.success) return;
+      var s = d.summary || {};
+
+      // ── Summary cards ──
+      var cards = [
+        { label: 'Amount Received',    value: '₹' + (s.amountReceived||0).toLocaleString('en-IN'), color: '#22c55e' },
+        { label: 'Credits Purchased',  value: (s.purchased||0).toLocaleString(),                   color: '#3b82f6' },
+        { label: 'Credits Spent',      value: (s.spent||0).toLocaleString(),                       color: '#FC8019' },
+        { label: 'Credits Refunded',   value: (s.refunded||0).toLocaleString(),                    color: '#a855f7' },
+        { label: 'Bonus Credits',      value: (s.bonus||0).toLocaleString(),                       color: '#f59e0b' },
+        { label: 'Total Purchases',    value: (s.txCount||0).toLocaleString(),                     color: '#06b6d4' }
+      ];
+      g('revSummary').innerHTML = cards.map(function(c) {
+        return '<div style="background:#18181d;border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:16px 18px;">' +
+          '<div style="font-size:12px;color:#a0a0b8;margin-bottom:6px;">' + c.label + '</div>' +
+          '<div style="font-size:22px;font-weight:700;color:' + c.color + '">' + c.value + '</div>' +
+          '</div>';
+      }).join('');
+
+      // ── Time series chart ──
+      var bp = d.byPeriod || [];
+      var labels  = bp.map(function(r) { return r.label; });
+      var purch   = bp.map(function(r) { return r.purchased  || 0; });
+      var spent   = bp.map(function(r) { return r.spent      || 0; });
+      var refund  = bp.map(function(r) { return r.refunded   || 0; });
+      var revenue = bp.map(function(r) { return r.amountReceived || 0; });
+
+      var ctx = g('revChart');
+      if (!ctx) return;
+      if (_revChart) { _revChart.destroy(); _revChart = null; }
+      var chartType = (g('revChartType') || {}).value || 'bar';
+
+      _revChart = new Chart(ctx, {
+        type: chartType,
+        data: {
+          labels: labels,
+          datasets: [
+            { label: '₹ Revenue',   data: revenue, backgroundColor: 'rgba(34,197,94,0.7)',  borderColor: '#22c55e', borderWidth: 2, tension: 0.3, fill: chartType==='line' },
+            { label: 'Purchased',   data: purch,   backgroundColor: 'rgba(59,130,246,0.7)', borderColor: '#3b82f6', borderWidth: 2, tension: 0.3 },
+            { label: 'Spent',       data: spent,   backgroundColor: 'rgba(252,128,25,0.7)', borderColor: '#FC8019', borderWidth: 2, tension: 0.3 },
+            { label: 'Refunded',    data: refund,  backgroundColor: 'rgba(168,85,247,0.7)', borderColor: '#a855f7', borderWidth: 2, tension: 0.3 }
+          ]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { labels: { color: '#a0a0b8', font: { size: 12 } } } },
+          scales: {
+            x: { ticks: { color: '#a0a0b8' }, grid: { color: 'rgba(255,255,255,.05)' } },
+            y: { ticks: { color: '#a0a0b8' }, grid: { color: 'rgba(255,255,255,.05)' } }
+          }
+        }
+      });
+
+      // ── Service breakdown ──
+      var bs = d.byService || [];
+      var svcLabels = bs.map(function(r) { return (r._id||'Other').toUpperCase(); });
+      var svcData   = bs.map(function(r) { return r.totalCredits || 0; });
+      var svcColors = ['#FC8019','#3b82f6','#22c55e','#f59e0b','#a855f7','#06b6d4','#ef4444','#84cc16'];
+
+      var svcCtx = g('revSvcChart');
+      if (svcCtx) {
+        if (_revSvcChart) { _revSvcChart.destroy(); _revSvcChart = null; }
+        var svcType = (g('revSvcChartType') || {}).value || 'bar';
+        _revSvcChart = new Chart(svcCtx, {
+          type: svcType,
+          data: {
+            labels: svcLabels,
+            datasets: [{ label: 'Credits Spent', data: svcData, backgroundColor: svcColors, borderColor: svcColors, borderWidth: 1, tension: 0.3 }]
+          },
+          options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { display: svcType==='pie', labels: { color: '#a0a0b8' } } },
+            scales: svcType === 'pie' ? {} : {
+              x: { ticks: { color: '#a0a0b8' }, grid: { color: 'rgba(255,255,255,.05)' } },
+              y: { ticks: { color: '#a0a0b8' }, grid: { color: 'rgba(255,255,255,.05)' } }
+            }
+          }
+        });
+      }
+
+      // ── Service table ──
+      var total = svcData.reduce(function(a,b){return a+b;},0)||1;
+      g('revSvcTable').innerHTML = '<table style="width:100%;font-size:13px;border-collapse:collapse;">' +
+        '<thead><tr>' +
+          '<th style="text-align:left;padding:8px 6px;color:#a0a0b8;border-bottom:1px solid rgba(255,255,255,.07);">Service</th>' +
+          '<th style="text-align:right;padding:8px 6px;color:#a0a0b8;border-bottom:1px solid rgba(255,255,255,.07);">Credits</th>' +
+          '<th style="text-align:right;padding:8px 6px;color:#a0a0b8;border-bottom:1px solid rgba(255,255,255,.07);">Requests</th>' +
+          '<th style="text-align:right;padding:8px 6px;color:#a0a0b8;border-bottom:1px solid rgba(255,255,255,.07);">Share</th>' +
+        '</tr></thead><tbody>' +
+        bs.map(function(r,i) {
+          var pct = Math.round((r.totalCredits/total)*100);
+          return '<tr>' +
+            '<td style="padding:8px 6px;color:#f0f0f4;font-weight:600;">' +
+              '<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:' + svcColors[i%svcColors.length] + ';margin-right:6px;"></span>' +
+              (r._id||'Other').toUpperCase() +
+            '</td>' +
+            '<td style="padding:8px 6px;text-align:right;color:#FC8019;">' + (r.totalCredits||0) + '</td>' +
+            '<td style="padding:8px 6px;text-align:right;color:#a0a0b8;">' + (r.count||0) + '</td>' +
+            '<td style="padding:8px 6px;text-align:right;">' +
+              '<div style="display:flex;align-items:center;justify-content:flex-end;gap:6px;">' +
+                '<div style="width:50px;height:6px;background:rgba(255,255,255,.1);border-radius:3px;overflow:hidden;">' +
+                  '<div style="width:' + pct + '%;height:100%;background:' + svcColors[i%svcColors.length] + ';border-radius:3px;"></div>' +
+                '</div>' +
+                '<span style="color:#a0a0b8;min-width:30px;">' + pct + '%</span>' +
+              '</div>' +
+            '</td>' +
+          '</tr>';
+        }).join('') +
+        '</tbody></table>';
+
+    }).catch(function(e) { console.error('Revenue err:', e); });
+  }
+
+  document.addEventListener('change', function(e) {
+    if (e.target.id === 'revPeriod' || e.target.id === 'revChartType' || e.target.id === 'revSvcChartType') {
+      loadRevenue();
+    }
+  });
+   
 /* ═══ EMAIL NOTIFICATIONS TAB ════════════════════════════ */
 var _emailSettings = {};
 
