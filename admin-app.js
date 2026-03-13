@@ -2986,7 +2986,7 @@ else html += '<a class="btn bgho" href="' + esc(doc.url) + '" target="_blank">Do
   }
 
   document.addEventListener('change', function(e) {
-    if (e.target.id === 'revPeriod' || e.target.id === 'revChartType' || e.target.id === 'revSvcChartType') {
+    if (e.target.id === 'revPeriod' || e.target.id === 'revChartType' || e.target.id === 'revSvcChartType' || e.target.id === 'revSvcPeriod') {
       loadRevenue();
     }
   });
