@@ -1184,11 +1184,36 @@ function showMsgModal(msg) {
       }
       if (t.adminNote) html += '<div style="margin-top:12px;padding:10px;background:#18181d;border-radius:8px;font-size:12px;color:#a0a0b8">Admin note: ' + esc(t.adminNote) + '</div>';
       html += '<textarea class="tnote" id="tkNote" rows="2" placeholder="Add admin note..." style="margin-top:12px">' + (t.adminNote||'') + '</textarea>';
+
+      // Canned responses
+      var isActive = t.status === 'open' || t.status === 'escalated' || t.status === 'pending_review';
+      if (isActive) {
+        html += '<div style="margin-top:16px;border-top:1px solid #2a2a38;padding-top:14px">';
+        html += '<div style="font-size:11px;color:#606078;text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px;font-weight:700">Quick Canned Response</div>';
+        html += '<div style="display:flex;flex-wrap:wrap;gap:8px">';
+        var canned = [
+          { type:'refund_approved',      label:'✅ Approve Refund',        color:'#22c55e' },
+          { type:'not_eligible',         label:'❌ Not Eligible',           color:'#ef4444' },
+          { type:'under_investigation',  label:'🔍 Under Investigation',    color:'#f59e0b' },
+          { type:'resolved_no_action',   label:'✔ Resolved',               color:'#3b82f6' },
+          { type:'contact_support',      label:'📞 Contact Support',        color:'#a855f7' }
+        ];
+        canned.forEach(function(c) {
+          html += '<button onclick="sendCannedResponse(\'' + _tkId + '\',\'' + c.type + '\',this)" style="padding:7px 13px;border-radius:7px;border:1px solid ' + c.color + '40;background:' + c.color + '15;color:' + c.color + ';font-size:12px;font-weight:600;cursor:pointer">' + c.label + '</button>';
+        });
+        html += '</div></div>';
+      }
+
+      // Client Activity button
+      html += '<div style="margin-top:12px">';
+      html += '<button onclick="loadClientActivity(\'' + (t.user && t.user._id ? t.user._id : '') + '\',\'' + esc(t.user && t.user.name ? t.user.name : 'User') + '\')" style="padding:7px 14px;border-radius:7px;border:1px solid rgba(252,128,25,.3);background:rgba(252,128,25,.1);color:#FC8019;font-size:12px;font-weight:600;cursor:pointer">📋 Client Activity Log</button>';
+      html += '</div>';
+
       g('tkModalBody').innerHTML = html;
       var isPending = t.status === 'pending_review';
       g('tkApproveBtn').style.display = isPending ? 'inline-flex' : 'none';
       g('tkRejectBtn').style.display = isPending ? 'inline-flex' : 'none';
-      g('tkResolveBtn').style.display = (t.status === 'open') ? 'inline-flex' : 'none';
+      g('tkResolveBtn').style.display = (t.status === 'open' || t.status === 'escalated') ? 'inline-flex' : 'none';
     }).catch(function() { g('tkModalBody').innerHTML = '<p style="color:#606078">Error</p>'; });
   }
 
@@ -2416,6 +2441,135 @@ else html += '<a class="btn bgho" href="' + esc(doc.url) + '" target="_blank">Do
       toast('Connection error — ticket not created', 'e');
     });
   }
+/* ═══ CANNED RESPONSE ═══════════════════════════════════════════════════ */
+  window.sendCannedResponse = function(tid, cannedType, btn) {
+    var note = g('tkNote') ? g('tkNote').value : '';
+    var labels = { refund_approved:'Approve refund?', not_eligible:'Mark as not eligible?', under_investigation:'Mark as under investigation?', resolved_no_action:'Mark as resolved?', contact_support:'Send contact support response?' };
+    if (!confirm(labels[cannedType] || 'Send this canned response?')) return;
+    if (btn) { btn.disabled = true; btn.textContent = 'Sending...'; }
+    api('tickets/' + tid + '/canned', 'POST', { cannedType: cannedType, note: note })
+      .then(function(d) {
+        if (btn) { btn.disabled = false; }
+        if (d.success) {
+          toast('Canned response sent!');
+          closeModal('ticketModal');
+          loadTickets();
+        } else toast(d.message || 'Failed', 'e');
+      }).catch(function() {
+        if (btn) { btn.disabled = false; }
+        toast('Error', 'e');
+      });
+  };
+
+  /* ═══ CLIENT ACTIVITY ════════════════════════════════════════════════════ */
+  window.loadClientActivity = function(uid, name) {
+    if (!uid) { toast('No user ID', 'e'); return; }
+    // Open drawer with activity
+    g('ov1').classList.add('on'); g('dr1').classList.add('on');
+    g('drT').textContent = '📋 Activity — ' + name;
+    g('drTabs').innerHTML = '';
+    g('drB').innerHTML = '<div style="text-align:center;padding:40px"><div class="spin"></div></div>';
+    api('audit/user/' + uid).then(function(d) {
+      var logs = d.logs || [];
+      if (!logs.length) {
+        g('drB').innerHTML = '<div class="empty"><h3>No activity found</h3><p style="font-size:13px;color:#606078">No audit events recorded for this user yet</p></div>';
+        return;
+      }
+      var actionColors = {
+        login: '#22c55e', request_created: '#3b82f6', approach_submitted: '#FC8019',
+        approach_accepted: '#22c55e', approach_rejected: '#ef4444',
+        service_completed: '#a855f7', ticket_followup: '#f59e0b'
+      };
+      var html = '<div style="font-size:12px;color:#606078;margin-bottom:14px">' + logs.length + ' events recorded</div>';
+      html += logs.map(function(l) {
+        var color = actionColors[l.action] || '#a0a0b8';
+        var meta = '';
+        if (l.targetName) meta += l.targetName;
+        if (l.metadata && l.metadata.ip) meta += (meta ? ' · ' : '') + 'IP: ' + l.metadata.ip;
+        return '<div style="display:flex;gap:10px;padding:10px 0;border-bottom:1px solid #18181d;align-items:flex-start">' +
+          '<div style="width:8px;height:8px;border-radius:50%;background:' + color + ';margin-top:5px;flex-shrink:0"></div>' +
+          '<div style="flex:1">' +
+            '<div style="font-size:13px;font-weight:600;color:#f0f0f4">' + esc(l.action.replace(/_/g,' ')) + '</div>' +
+            (meta ? '<div style="font-size:11px;color:#606078;margin-top:2px">' + esc(meta) + '</div>' : '') +
+            '<div style="font-size:11px;color:#606078;margin-top:2px">' + fmtT(l.createdAt) + '</div>' +
+          '</div>' +
+        '</div>';
+      }).join('');
+      g('drB').innerHTML = html;
+    }).catch(function() {
+      g('drB').innerHTML = '<div class="empty"><h3>Error loading activity</h3></div>';
+    });
+  };
+
+  /* ═══ AUDIT LOG TAB ══════════════════════════════════════════════════════ */
+  function loadAudit() {
+    var action = g('auditAction') ? g('auditAction').value : '';
+    var role   = g('auditRole')   ? g('auditRole').value   : '';
+    var search = g('auditSearch') ? g('auditSearch').value : '';
+    var from   = g('auditFrom')   ? g('auditFrom').value   : '';
+    var to     = g('auditTo')     ? g('auditTo').value     : '';
+    var qp = 'audit?limit=100' +
+      (action && action !== 'all' ? '&action=' + encodeURIComponent(action) : '') +
+      (role   && role   !== 'all' ? '&role='   + encodeURIComponent(role)   : '') +
+      (search ? '&search=' + encodeURIComponent(search) : '') +
+      (from   ? '&from='   + encodeURIComponent(from)   : '') +
+      (to     ? '&to='     + encodeURIComponent(to)     : '');
+    var tbody = g('auditTbody');
+    if (tbody) tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px"><div class="spin"></div></td></tr>';
+    api(qp).then(function(d) {
+      var logs  = d.logs  || [];
+      var total = d.total || logs.length;
+      var tc = g('auditTotal'); if (tc) tc.textContent = total + ' events';
+      if (!tbody) return;
+      if (!logs.length) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:30px;color:#606078">No audit events found</td></tr>';
+        return;
+      }
+      var roleColors = { admin:'#a855f7', expert:'#FC8019', client:'#3b82f6' };
+      var actionColors = {
+        login:'#22c55e', request_created:'#3b82f6', approach_submitted:'#FC8019',
+        approach_accepted:'#22c55e', approach_rejected:'#ef4444',
+        service_completed:'#a855f7', ticket_followup:'#f59e0b',
+        ticket_canned_response:'#06b6d4'
+      };
+      tbody.innerHTML = logs.map(function(l) {
+        var rc = roleColors[l.actorRole]  || '#a0a0b8';
+        var ac = actionColors[l.action]   || '#a0a0b8';
+        var meta = '';
+        if (l.targetName) meta = l.targetName;
+        return '<tr>' +
+          '<td style="font-size:12px;font-weight:600;color:#f0f0f4">' + esc(l.actorName||'-') +
+            '<br><span class="badge" style="background:' + rc + '20;color:' + rc + ';font-size:10px">' + (l.actorRole||'-') + '</span></td>' +
+          '<td><span style="font-size:12px;font-weight:600;color:' + ac + '">' + esc((l.action||'-').replace(/_/g,' ')) + '</span></td>' +
+          '<td style="font-size:12px;color:#a0a0b8">' + esc(l.targetType||'-') + '</td>' +
+          '<td style="font-size:12px;color:#a0a0b8;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(meta) + '</td>' +
+          '<td style="font-size:12px;color:#606078">' + fmtT(l.createdAt) + '</td>' +
+          '<td><button class="btn bgho" style="font-size:11px;padding:4px 8px" onclick="showAuditMeta(' + "'" + l._id + "'" + ')">Details</button></td>' +
+        '</tr>';
+      }).join('');
+      // store logs for details modal
+      window._auditLogs = logs;
+    }).catch(function() {
+      if (tbody) tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:30px;color:#ef4444">Error loading audit log</td></tr>';
+    });
+  }
+
+  window.showAuditMeta = function(id) {
+    var logs = window._auditLogs || [];
+    var l = logs.filter(function(x){ return x._id === id; })[0];
+    if (!l) return;
+    var meta = JSON.stringify(l.metadata || {}, null, 2);
+    alert('Action: ' + l.action + '\nActor: ' + l.actorName + ' (' + l.actorRole + ')\nTarget: ' + (l.targetName||'-') + '\nMetadata:\n' + meta);
+  };
+
+  window.exportAuditCSV = function() {
+    var logs = window._auditLogs || [];
+    if (!logs.length) { toast('No data to export', 'i'); return; }
+    exportCSV(logs.map(function(l) {
+      return { Actor: l.actorName, Role: l.actorRole, Action: l.action, Target: l.targetName||'-', Date: fmtT(l.createdAt) };
+    }), 'audit-log-' + new Date().toISOString().slice(0,10));
+  };
+   
 /* ═══ REPORTS ════════════════════════════════════════════════════════════ */
   function loadReports() {
     _pages['reports'] = 1;
