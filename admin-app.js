@@ -437,12 +437,13 @@
        suspReq: loadSuspendedRequests,
        reports: loadReports,
 emailNotifications: loadEmailNotifications,
-       revenue: loadRevenue
+       revenue: loadRevenue,
+         audit: loadAudit
     };
   }
 
-  var PT = { dashboard:'Dashboard', revenue:'Revenue Dashboard', heatmap:'Geographic Heatmap', experts:'Experts', clients:'Clients', approaches:'Approaches', chats:'Chats', credits:'Credits', refunds:'Refunds', actions:'Actions', tickets:'Tickets', posts:'Posts', reviews:'Reviews', registrations:'Registrations', kyc:'KYC Review', payments:'Payments', communication:'Communication', invoices:'Invoices', settings:'Settings', suspReq:'Suspended Requests', reports:'Reports', emailNotifications: 'Email Notifications' };
-  var PS = { dashboard:'Platform overview', revenue:'Credits, earnings & service breakdown', heatmap:'Expert & client locations across India', experts:'All registered experts', clients:'All registered clients', approaches:'Expert approach activity', chats:'All conversations', credits:'Credit ledger', refunds:'Pending refund requests', actions:'Ban, warn and flag users', tickets:'All support tickets', posts:'User posted requests', reviews:'Ratings & reviews', registrations:'Expert approval queue', kyc:'Identity verification queue', payments:'Failed payment tracking', communication:'Bulk email & notifications', invoices:'Generate invoices', settings:'Admin configuration & platform management', suspReq:'Posts flagged by 3+ experts pending admin review', reports:'All user reports and admin actions' , emailNotifications: 'Email logs and notification settings'};  function goTo(s) {
+  var PT = { dashboard:'Dashboard', revenue:'Revenue Dashboard', audit:'Audit Log', heatmap:'Geographic Heatmap', experts:'Experts', clients:'Clients', approaches:'Approaches', chats:'Chats', credits:'Credits', refunds:'Refunds', actions:'Actions', tickets:'Tickets', posts:'Posts', reviews:'Reviews', registrations:'Registrations', kyc:'KYC Review', payments:'Payments', communication:'Communication', invoices:'Invoices', settings:'Settings', suspReq:'Suspended Requests', reports:'Reports', emailNotifications: 'Email Notifications' };
+  var PS = { dashboard:'Platform overview', revenue:'Credits, earnings & service breakdown', audit:'Full filterable activity log', heatmap:'Expert & client locations across India', experts:'All registered experts', clients:'All registered clients', approaches:'Expert approach activity', chats:'All conversations', credits:'Credit ledger', refunds:'Pending refund requests', actions:'Ban, warn and flag users', tickets:'All support tickets', posts:'User posted requests', reviews:'Ratings & reviews', registrations:'Expert approval queue', kyc:'Identity verification queue', payments:'Failed payment tracking', communication:'Bulk email & notifications', invoices:'Generate invoices', settings:'Admin configuration & platform management', suspReq:'Posts flagged by 3+ experts pending admin review', reports:'All user reports and admin actions' , emailNotifications: 'Email logs and notification settings'};  function goTo(s) {
     qa('.sec').forEach(function(e) { e.classList.remove('on'); });
     qa('.ni').forEach(function(e) { e.classList.remove('on'); });
     qa('.mni').forEach(function(e) { e.classList.remove('on'); });
