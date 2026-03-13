@@ -378,6 +378,47 @@
         </div>
       </div>
 <div class="sec" id="sec-emailNotifications"></div>
+       <div class="sec" id="sec-revenue">
+        <div id="revSummary" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:20px;"></div>
+        <div class="card" style="margin-bottom:16px;">
+          <div class="ch" style="flex-wrap:wrap;gap:10px;">
+            <h3>Revenue Over Time</h3>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+              <select id="revPeriod" style="padding:7px 12px;background:#18181d;border:1px solid rgba(255,255,255,.1);border-radius:8px;color:#f0f0f4;font-size:13px;">
+                <option value="day">Daily</option>
+                <option value="week">Weekly</option>
+                <option value="month" selected>Monthly</option>
+              </select>
+              <select id="revChartType" style="padding:7px 12px;background:#18181d;border:1px solid rgba(255,255,255,.1);border-radius:8px;color:#f0f0f4;font-size:13px;">
+                <option value="bar">Bar Chart</option>
+                <option value="line">Line Chart</option>
+              </select>
+              <button class="abtn" onclick="loadRevenue()">Refresh</button>
+            </div>
+          </div>
+          <div style="padding:16px 0 0;">
+            <div id="revChartWrap" style="position:relative;height:260px;width:100%;overflow:hidden;">
+              <canvas id="revChart"></canvas>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="ch" style="flex-wrap:wrap;gap:10px;">
+            <h3>By Service Category</h3>
+            <select id="revSvcChartType" style="padding:7px 12px;background:#18181d;border:1px solid rgba(255,255,255,.1);border-radius:8px;color:#f0f0f4;font-size:13px;">
+              <option value="bar">Bar Chart</option>
+              <option value="pie">Pie Chart</option>
+            </select>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:16px 0 0;align-items:start;">
+            <div id="revSvcChartWrap" style="position:relative;height:260px;">
+              <canvas id="revSvcChart"></canvas>
+            </div>
+            <div id="revSvcTable"></div>
+          </div>
+        </div>
+      </div>
+      
       <div class="sec" id="sec-actions">
         <div class="card"><div class="ch"><h3>User Actions</h3><div class="fbar">
           <input type="text" id="acSrch" placeholder="Search any user..." style="width:200px">
