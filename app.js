@@ -4447,6 +4447,52 @@ async function submitUserTicket() {
     showToast('Network error. Please try again.', 'error');
   }
 }
+function renderFollowUpButton(ticket) {
+  if (ticket.status === 'resolved' || ticket.status === 'closed') return '';
+
+  var createdMs = ticket.createdAt ? new Date(ticket.createdAt).getTime() : 0;
+  var hoursSinceCreated = (Date.now() - createdMs) / (1000 * 60 * 60);
+  if (hoursSinceCreated < 48) {
+    var hoursLeft = Math.ceil(48 - hoursSinceCreated);
+    return '<div style="margin-top:10px; padding:8px 12px; background:var(--bg-gray); border-radius:8px; font-size:12px; color:var(--text-muted); text-align:center;">⏳ Follow Up available in ' + hoursLeft + ' hour(s)</div>';
+  }
+
+  // Check 24hr cooldown since last follow up
+  if (ticket.lastFollowUp) {
+    var hoursSinceFollowUp = (Date.now() - new Date(ticket.lastFollowUp).getTime()) / (1000 * 60 * 60);
+    if (hoursSinceFollowUp < 24) {
+      var hoursLeft2 = Math.ceil(24 - hoursSinceFollowUp);
+      return '<div style="margin-top:10px; padding:8px 12px; background:var(--bg-gray); border-radius:8px; font-size:12px; color:var(--text-muted); text-align:center;">⏳ Next Follow Up in ' + hoursLeft2 + ' hour(s)</div>';
+    }
+  }
+
+  return '<button onclick="sendTicketFollowUp(\'' + ticket._id + '\', this)" style="width:100%; margin-top:10px; padding:10px; border:1.5px solid #f59e0b; border-radius:8px; background:rgba(245,158,11,0.08); color:#f59e0b; font-size:13px; font-weight:700; cursor:pointer;">🔔 Follow Up</button>';
+}
+
+async function sendTicketFollowUp(ticketId, btn) {
+  if (!confirm('Send a follow up to admin? This will escalate your ticket.')) return;
+  btn.disabled = true;
+  btn.textContent = 'Sending...';
+  try {
+    var res = await fetch(API_URL + '/users/tickets/' + ticketId + '/followup', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + state.token }
+    });
+    var data = await res.json();
+    if (data.success) {
+      showToast('Follow up sent! Admin has been notified.', 'success');
+      loadMyTickets();
+    } else {
+      showToast(data.message || 'Could not send follow up', 'error');
+      btn.disabled = false;
+      btn.textContent = '🔔 Follow Up';
+    }
+  } catch (err) {
+    showToast('Network error', 'error');
+    btn.disabled = false;
+    btn.textContent = '🔔 Follow Up';
+  }
+}
 
 async function loadMyTickets() {
   var container = document.getElementById('myTicketsList');
