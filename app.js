@@ -4481,6 +4481,7 @@ async function loadMyTickets() {
           (t.adminNote ? '<span style="font-size:12px; color:#22c55e;">💬 Admin replied</span>' : '') +
         '</div>' +
         (t.adminNote ? '<div style="margin-top:10px; padding:10px; background:var(--bg-gray); border-radius:8px; font-size:13px; color:var(--text);"><strong>Admin:</strong> ' + t.adminNote + '</div>' : '') +
+        renderFollowUpButton(t) +
       '</div>';
     }).join('');
   } catch (err) {
