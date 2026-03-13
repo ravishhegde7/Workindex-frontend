@@ -3128,6 +3128,7 @@ function buildEmailNotificationsUI(settings, logs, total) {
       items: [
         { key: 'admin_post_suspended',     label: 'Post Suspended Alert',           desc: 'Admin notified when a post is auto-suspended' },
         { key: 'admin_user_restricted',    label: 'User Restricted Alert',          desc: 'Admin notified when any user is auto-restricted' },
+         { key: 'admin_ticket_escalated',   label: 'Ticket Escalated Alert',         desc: 'Admin notified when a user sends a follow-up and ticket is escalated' },
         { key: 'admin_daily_tickets',      label: 'Daily Ticket Digest (9:30 PM)',  desc: 'Daily summary of open tickets sent to admin' }
       ]
     }
