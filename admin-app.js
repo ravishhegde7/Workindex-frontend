@@ -72,7 +72,8 @@
       posts: function() { renderPostsPage(); },
       reviews: function() { renderReviewsPage(); },
       registrations: function() { renderRegistrationsPage(); },
-      kyc: function() { renderKycPage(); }
+      kyc: function() { renderKycPage(); },
+             audit: function() { renderAuditPage(); }
     };
     if (reloaders[key]) reloaders[key]();
     // Scroll to top of table
