@@ -426,6 +426,53 @@
           </div>
         </div>
       </div>
+ <div class="sec" id="sec-audit">
+        <div class="card" style="margin-bottom:16px">
+          <div class="ch" style="flex-wrap:wrap;gap:10px;">
+            <h3>📜 Audit Log <span id="auditTotal" style="font-size:12px;color:#606078;margin-left:6px;font-weight:400"></span></h3>
+            <button class="btn bgho" onclick="exportAuditCSV()" style="font-size:12px;padding:6px 12px">⬇ Export CSV</button>
+          </div>
+          <div style="padding:0 16px 14px;display:flex;flex-wrap:wrap;gap:8px">
+            <select id="auditAction" onchange="loadAudit()" style="padding:7px 10px;background:#18181d;border:1px solid #2a2a38;border-radius:6px;color:#a0a0b8;font-size:13px">
+              <option value="all">All Actions</option>
+              <option value="login">login</option>
+              <option value="request_created">request_created</option>
+              <option value="approach_submitted">approach_submitted</option>
+              <option value="approach_accepted">approach_accepted</option>
+              <option value="approach_rejected">approach_rejected</option>
+              <option value="service_completed">service_completed</option>
+              <option value="ticket_followup">ticket_followup</option>
+              <option value="ticket_canned_response">ticket_canned_response</option>
+            </select>
+            <select id="auditRole" onchange="loadAudit()" style="padding:7px 10px;background:#18181d;border:1px solid #2a2a38;border-radius:6px;color:#a0a0b8;font-size:13px">
+              <option value="all">All Roles</option>
+              <option value="expert">Expert</option>
+              <option value="client">Client</option>
+              <option value="admin">Admin</option>
+            </select>
+            <input id="auditSearch" oninput="loadAudit()" placeholder="Search name / action..." style="padding:7px 10px;background:#18181d;border:1px solid #2a2a38;border-radius:6px;color:#f0f0f4;font-size:13px;min-width:180px;outline:none">
+            <input id="auditFrom" type="date" onchange="loadAudit()" style="padding:7px 10px;background:#18181d;border:1px solid #2a2a38;border-radius:6px;color:#a0a0b8;font-size:13px">
+            <input id="auditTo" type="date" onchange="loadAudit()" style="padding:7px 10px;background:#18181d;border:1px solid #2a2a38;border-radius:6px;color:#a0a0b8;font-size:13px">
+          </div>
+        </div>
+        <div style="overflow-x:auto">
+          <table style="width:100%;border-collapse:collapse;font-size:13px">
+            <thead>
+              <tr style="background:#18181d;color:#606078;font-size:11px;text-transform:uppercase">
+                <th style="padding:10px 12px;text-align:left">Actor</th>
+                <th style="padding:10px 12px;text-align:left">Action</th>
+                <th style="padding:10px 12px;text-align:left">Target Type</th>
+                <th style="padding:10px 12px;text-align:left">Target</th>
+                <th style="padding:10px 12px;text-align:left">Time</th>
+                <th style="padding:10px 12px;text-align:left">Details</th>
+              </tr>
+            </thead>
+            <tbody id="auditTbody">
+              <tr><td colspan="6" style="text-align:center;padding:30px;color:#606078">Navigate to Audit Log to load events</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
       
       <div class="sec" id="sec-actions">
         <div class="card"><div class="ch"><h3>User Actions</h3><div class="fbar">
