@@ -2480,37 +2480,86 @@ else html += '<a class="btn bgho" href="' + esc(doc.url) + '" target="_blank">Do
   /* ═══ CLIENT ACTIVITY ════════════════════════════════════════════════════ */
   window.loadClientActivity = function(uid, name) {
     if (!uid) { toast('No user ID', 'e'); return; }
-    // Open drawer with activity
     g('ov1').classList.add('on'); g('dr1').classList.add('on');
     g('drT').textContent = '📋 Activity — ' + name;
     g('drTabs').innerHTML = '';
     g('drB').innerHTML = '<div style="text-align:center;padding:40px"><div class="spin"></div></div>';
-    api('audit/user/' + uid).then(function(d) {
-      var logs = d.logs || [];
-      if (!logs.length) {
+
+    // Fetch both: logs where user is actor AND logs where user is target
+    Promise.all([
+      api('audit/user/' + uid),
+      api('audit/target/' + uid)
+    ]).then(function(results) {
+      var actorLogs  = (results[0].logs || []).map(function(l) { return Object.assign({}, l, { _side: 'actor' }); });
+      var targetLogs = (results[1].logs || []).map(function(l) { return Object.assign({}, l, { _side: 'target' }); });
+
+      // Merge + deduplicate by _id + sort by date desc
+      var seen = {};
+      var all = actorLogs.concat(targetLogs).filter(function(l) {
+        if (seen[l._id]) return false;
+        seen[l._id] = true;
+        return true;
+      }).sort(function(a, b) { return new Date(b.createdAt) - new Date(a.createdAt); });
+
+      if (!all.length) {
         g('drB').innerHTML = '<div class="empty"><h3>No activity found</h3><p style="font-size:13px;color:#606078">No audit events recorded for this user yet</p></div>';
         return;
       }
+
       var actionColors = {
         login: '#22c55e', request_created: '#3b82f6', approach_submitted: '#FC8019',
         approach_accepted: '#22c55e', approach_rejected: '#ef4444',
-        service_completed: '#a855f7', ticket_followup: '#f59e0b'
+        service_completed: '#a855f7', ticket_followup: '#f59e0b',
+        expert_profile_viewed: '#3b82f6', service_received: '#22c55e',
+        client_hired_expert: '#f59e0b', expert_accepted_hire: '#22c55e'
       };
-      var html = '<div style="font-size:12px;color:#606078;margin-bottom:14px">' + logs.length + ' events recorded</div>';
-      html += logs.map(function(l) {
+
+      // Labels to show when the user is the TARGET (someone else did this TO them)
+      var targetLabels = {
+        expert_profile_viewed: '👁 Profile viewed by client',
+        approach_accepted:     '✅ Approach accepted by client',
+        approach_rejected:     '❌ Approach rejected by client',
+        client_hired_expert:   '🎯 Hired by client',
+        service_received:      '✔ Service marked received by client'
+      };
+
+      var html = '<div style="font-size:12px;color:#606078;margin-bottom:14px">' + all.length + ' events recorded</div>';
+      html += all.map(function(l) {
         var color = actionColors[l.action] || '#a0a0b8';
+        var isTarget = l._side === 'target';
+
+        // Label: use target-specific label if this user was the target, else normal action name
+        var label = isTarget && targetLabels[l.action]
+          ? targetLabels[l.action]
+          : l.action.replace(/_/g, ' ');
+
+        // Meta line: show who did the action if user is the target
         var meta = '';
-        if (l.targetName) meta += l.targetName;
-        if (l.metadata && l.metadata.ip) meta += (meta ? ' · ' : '') + 'IP: ' + l.metadata.ip;
-        return '<div style="display:flex;gap:10px;padding:10px 0;border-bottom:1px solid #18181d;align-items:flex-start">' +
-          '<div style="width:8px;height:8px;border-radius:50%;background:' + color + ';margin-top:5px;flex-shrink:0"></div>' +
+        if (isTarget) {
+          meta = 'by ' + esc(l.actorName || 'Unknown');
+          if (l.metadata && l.metadata.requestTitle) meta += ' · ' + esc(l.metadata.requestTitle);
+        } else {
+          if (l.targetName) meta = esc(l.targetName);
+          if (l.metadata && l.metadata.ip) meta += (meta ? ' · ' : '') + 'IP: ' + l.metadata.ip;
+          if (l.metadata && l.metadata.requestTitle) meta += (meta ? ' · ' : '') + esc(l.metadata.requestTitle);
+        }
+
+        // Dim border for target events so they're visually distinct
+        var borderStyle = isTarget ? 'border-bottom:1px solid #18181d;opacity:0.85' : 'border-bottom:1px solid #18181d';
+
+        return '<div style="display:flex;gap:10px;padding:10px 0;' + borderStyle + ';align-items:flex-start">' +
+          '<div style="width:8px;height:8px;border-radius:50%;background:' + color + ';margin-top:5px;flex-shrink:0' + (isTarget ? ';outline:2px solid rgba(255,255,255,.15);outline-offset:1px' : '') + '"></div>' +
           '<div style="flex:1">' +
-            '<div style="font-size:13px;font-weight:600;color:#f0f0f4">' + esc(l.action.replace(/_/g,' ')) + '</div>' +
-            (meta ? '<div style="font-size:11px;color:#606078;margin-top:2px">' + esc(meta) + '</div>' : '') +
+            '<div style="display:flex;align-items:center;gap:6px">' +
+              '<span style="font-size:13px;font-weight:600;color:#f0f0f4">' + esc(label) + '</span>' +
+              (isTarget ? '<span style="font-size:10px;background:rgba(255,255,255,.08);color:#a0a0b8;padding:2px 6px;border-radius:4px">incoming</span>' : '') +
+            '</div>' +
+            (meta ? '<div style="font-size:11px;color:#606078;margin-top:2px">' + meta + '</div>' : '') +
             '<div style="font-size:11px;color:#606078;margin-top:2px">' + fmtT(l.createdAt) + '</div>' +
           '</div>' +
         '</div>';
       }).join('');
+
       g('drB').innerHTML = html;
     }).catch(function() {
       g('drB').innerHTML = '<div class="empty"><h3>Error loading activity</h3></div>';
