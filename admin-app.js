@@ -73,7 +73,9 @@
       reviews: function() { renderReviewsPage(); },
       registrations: function() { renderRegistrationsPage(); },
       kyc: function() { renderKycPage(); },
-             audit: function() { renderAuditPage(); }
+             audit: function() { renderAuditPage(); },
+             actions: function() { renderActTblPage(); }
+
     };
     if (reloaders[key]) reloaders[key]();
     // Scroll to top of table
