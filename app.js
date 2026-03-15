@@ -3935,6 +3935,13 @@ function selectKycDocType(docType) {
   if (area) area.style.display = 'block';
 }
 
+function showKycOptions() {
+  const step1 = document.getElementById('kycStep1');
+  const btn = document.getElementById('kycStartBtn');
+  if (step1) step1.style.display = 'block';
+  if (btn) btn.style.display = 'none';
+}
+
 // ─── KYC DOC PREVIEW ───
 function previewKycDoc(event) {
   const file = event.target.files[0];
