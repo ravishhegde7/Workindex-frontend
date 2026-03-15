@@ -2042,18 +2042,23 @@ function renderAvailableRequests() {
     container.innerHTML = `
       <h2 style="margin-bottom:16px;">Available Requests</h2>
       ${renderBrowseToolbar()}
-      <div class="empty-state">
-        <div class="empty-icon">🔍</div>
-        <h3 class="empty-title">${isFiltered ? 'No requests match your filters' : 'No requests available'}</h3>
-        <p class="empty-text">${isFiltered ? 'Try a different search or category' : 'New requests will appear here'}</p>
+      <div style="text-align:center;padding:48px 20px;">
+        <svg width="100" height="100" viewBox="0 0 100 100" fill="none" style="margin-bottom:20px;opacity:0.6;">
+          <circle cx="100" cy="100" r="100" fill="rgba(252,128,25,0.06)"/>
+          <circle cx="42" cy="42" r="22" stroke="#FC8019" stroke-width="3" fill="none"/>
+          <line x1="58" y1="58" x2="76" y2="76" stroke="#FC8019" stroke-width="3" stroke-linecap="round"/>
+          <circle cx="42" cy="42" r="10" fill="rgba(252,128,25,0.12)"/>
+        </svg>
+        <h3 style="font-size:18px;font-weight:700;color:var(--text);margin-bottom:8px;">${isFiltered ? 'No matches found' : 'No requests yet'}</h3>
+        <p style="font-size:14px;color:var(--text-muted);line-height:1.6;max-width:260px;margin:0 auto 20px;">${isFiltered ? 'Try clearing your filters or searching something broader.' : 'New client requests will appear here. Check back soon!'}</p>
         ${isFiltered ? `<button onclick="state.browseSearch='';state.browseServiceFilter=[];state.browseSort='newest';document.getElementById('browseFilterBar').innerHTML=renderBrowseFilterChips();applyBrowseFilters();"
-          style="margin-top:16px;padding:10px 24px;background:var(--primary);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;">
+          style="padding:10px 24px;background:var(--primary);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;">
           ✕ Clear Filters
         </button>` : ''}
       </div>`;
     return;
   }
-   
+
   const items = paginate(allRequests, 'expertBrowse');
 
   container.innerHTML = '<h2 style="margin-bottom:16px;">Available Requests</h2>' +
