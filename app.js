@@ -2824,22 +2824,76 @@ function renderMyApproaches(interests = []) {
   ` + pagedApproaches.map(app => {
     const req = app.request;
     if (!req) return '';
+
+    // Time ago
+    const ago = (() => {
+      if (!app.createdAt) return '';
+      const diff = Date.now() - new Date(app.createdAt).getTime();
+      const hrs = Math.floor(diff / 3600000);
+      const days = Math.floor(diff / 86400000);
+      if (hrs < 1) return 'just now';
+      if (hrs < 24) return hrs + 'h ago';
+      if (days === 1) return 'Yesterday';
+      return days + 'd ago';
+    })();
+
+    // Service color
+    const svcColors = { itr:'#8b5cf6', gst:'#3b82f6', accounting:'#10b981', audit:'#f59e0b', photography:'#ec4899', development:'#06b6d4' };
+    const svcColor = svcColors[(req.service || '').toLowerCase()] || '#FC8019';
+
+    // Status config
+    const stConfig = {
+      pending:   { label: 'Pending',   color: '#f59e0b', bg: 'rgba(245,158,11,0.1)',  border: 'rgba(245,158,11,0.3)',  icon: '⏳' },
+      accepted:  { label: 'Accepted',  color: '#16a34a', bg: 'rgba(22,163,74,0.1)',   border: 'rgba(22,163,74,0.3)',   icon: '✅' },
+      rejected:  { label: 'Rejected',  color: '#dc2626', bg: 'rgba(220,38,38,0.1)',   border: 'rgba(220,38,38,0.3)',   icon: '❌' },
+      completed: { label: 'Completed', color: '#3b82f6', bg: 'rgba(59,130,246,0.1)',  border: 'rgba(59,130,246,0.3)',  icon: '🏆' },
+      withdrawn: { label: 'Withdrawn', color: '#6b7280', bg: 'rgba(107,114,128,0.1)', border: 'rgba(107,114,128,0.3)', icon: '↩️' }
+    };
+    const st = stConfig[app.status] || stConfig.pending;
+
     return `
-      <div class="request-card" style="background:var(--bg); border:1px solid var(--border); border-radius:12px; padding:20px; margin-bottom:16px; cursor:pointer;" onclick="showMyApproachDetail('${app._id}')">
-        <div style="display:flex; justify-content:space-between; align-items:start; margin-bottom:12px;">
-          <div style="flex:1;">
-            <h3 style="font-size:18px; font-weight:700; color:var(--text); margin-bottom:4px;">${req.title || 'Request'}</h3>
-            <p style="font-size:14px; color:var(--text-muted);">${(req.service || '').toUpperCase()}</p>
+      <div style="background:var(--bg);border:1.5px solid var(--border);border-radius:16px;overflow:hidden;margin-bottom:12px;transition:all 0.2s;border-left:4px solid ${st.color};"
+        onmouseover="this.style.boxShadow='0 4px 16px rgba(0,0,0,0.08)';this.style.transform='translateY(-1px)'"
+        onmouseout="this.style.boxShadow='none';this.style.transform='translateY(0)'">
+
+        <!-- Top strip -->
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--bg-gray);border-bottom:1px solid var(--border);">
+          <div style="display:flex;align-items:center;gap:6px;">
+            <span style="font-size:11px;font-weight:700;padding:2px 9px;border-radius:20px;background:${svcColor}18;color:${svcColor};text-transform:uppercase;letter-spacing:.04em;">${req.service || 'Service'}</span>
+            <span style="font-size:11px;font-weight:700;padding:2px 9px;border-radius:20px;background:${st.bg};color:${st.color};border:1px solid ${st.border};">${st.icon} ${st.label}</span>
           </div>
-          <span class="badge ${statusColors[app.status] || 'badge-warning'}">${(app.status || 'pending').toUpperCase()}</span>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="font-size:11px;color:var(--text-muted);">🕐 ${ago}</span>
+            <span style="font-size:11px;font-weight:700;padding:2px 9px;border-radius:20px;background:rgba(252,128,25,0.1);color:var(--primary);">🔥 ${app.creditsSpent || 0} cr</span>
+          </div>
         </div>
-        <p style="font-size:14px; color:var(--text-light); margin-bottom:12px;">${req.description || ''}</p>
-        <div style="display:flex; gap:20px; font-size:13px; color:var(--text-muted);">
-          <span>💰 ${app.creditsSpent || 0} credits spent</span>
-          <span>📅 ${new Date(app.createdAt).toLocaleDateString()}</span>
+
+        <!-- Body -->
+        <div style="padding:14px;">
+          <div style="margin-bottom:10px;">
+            <h4 style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:5px;line-height:1.3;">${req.title || 'Service Request'}</h4>
+            <div style="display:flex;align-items:center;gap:6px;">
+              <div style="width:20px;height:20px;border-radius:50%;background:${svcColor};color:#fff;font-size:9px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;">${(req.client?.name || 'C').charAt(0).toUpperCase()}</div>
+              <span style="font-size:12px;font-weight:600;color:var(--text-muted);">${req.client?.name || 'Client'}</span>
+              ${req.budget ? `<span style="font-size:11px;color:var(--text-muted);">· ₹${Number(req.budget).toLocaleString('en-IN')}</span>` : ''}
+            </div>
+          </div>
+
+          <p style="font-size:13px;color:var(--text-light);line-height:1.6;margin-bottom:12px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">${app.message || req.description || ''}</p>
+
+          ${app.status === 'pending'   ? `<div style="font-size:12px;color:#f59e0b;background:rgba(245,158,11,0.06);border-radius:8px;padding:8px 10px;margin-bottom:12px;">⏳ Waiting for client to review your proposal</div>` : ''}
+          ${app.status === 'accepted'  ? `<div style="font-size:12px;color:#16a34a;background:rgba(22,163,74,0.06);border-radius:8px;padding:8px 10px;margin-bottom:12px;">✅ Client accepted! Check your chat for messages.</div>` : ''}
+          ${app.status === 'rejected'  ? `<div style="font-size:12px;color:#dc2626;background:rgba(220,38,38,0.06);border-radius:8px;padding:8px 10px;margin-bottom:12px;">❌ Client chose another professional this time.</div>` : ''}
+          ${app.status === 'completed' ? `<div style="font-size:12px;color:#3b82f6;background:rgba(59,130,246,0.06);border-radius:8px;padding:8px 10px;margin-bottom:12px;">🏆 Service completed successfully!</div>` : ''}
+
+          <button onclick="showMyApproachDetail('${app._id}')"
+            style="width:100%;padding:10px;border:1.5px solid var(--border);border-radius:10px;background:transparent;color:var(--text);font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s;"
+            onmouseover="this.style.borderColor='var(--primary)';this.style.color='var(--primary)'"
+            onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text)'">
+            View Details →
+          </button>
         </div>
-      </div>
-    `;
+      </div>`;
   }).join('') + paginationControlsHTML(allApproaches, 'expertApproaches');
 }
 // ─── SHOW APPROACH DETAIL WITH CONTACT INFO ───
