@@ -3541,10 +3541,16 @@ function renderExpertProfile() {
         ` : `
           <p style="font-size:13px;color:var(--text-muted);margin-bottom:14px;">Upload one government ID to get a verified badge on your profile. Verified experts get 3× more client trust.</p>
           <!-- Step 1: Pick doc type -->
-          <div id="kycStep1">
+          <!-- Submit KYC button — shown first, hides on click -->
+          <button id="kycStartBtn" onclick="showKycOptions()"
+            style="width:100%;padding:12px;border:none;border-radius:10px;background:var(--primary);color:#fff;font-size:14px;font-weight:700;cursor:pointer;margin-bottom:4px;">
+            📋 Submit KYC Documents
+          </button>
+
+          <div id="kycStep1" style="display:none;">
             <p style="font-size:12px;color:var(--text-muted);margin-bottom:10px;">Select document type to upload:</p>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px;">
-              ${['Aadhaar Card','PAN Card','Voter ID','Driving License'].map(doc => `
+            ${['Aadhaar Card','PAN Card','Voter ID','Driving License'].map(doc => `
                 <label id="kyc_label_${doc.replace(/\s/g,'_')}"
                   style="display:flex;align-items:center;gap:8px;padding:10px 12px;border:1.5px solid var(--border);border-radius:10px;cursor:pointer;font-size:13px;font-weight:500;transition:all 0.2s;"
                   onmouseover="this.style.borderColor='var(--primary)'"
