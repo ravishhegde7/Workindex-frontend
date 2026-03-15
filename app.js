@@ -2004,6 +2004,32 @@ function renderAvailableRequests() {
   const container = document.getElementById('browseRequestsContainer');
   if (!container) return;
 
+  // ── Expert stat hero (inject once) ──
+  if (!document.getElementById('expertStatHero') && state.user) {
+    const u = state.user;
+    const hero = document.createElement('div');
+    hero.id = 'expertStatHero';
+    hero.style.cssText = 'display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px;';
+    const stats = [
+      { label: 'Credits', value: u.credits || 0, color: '#FC8019', icon: '💎', action: "openCreditModal()" },
+      { label: 'Approaches', value: u.totalApproaches || 0, color: '#3b82f6', icon: '📨', action: "switchTab('approaches')" },
+      { label: 'Rating', value: u.rating ? Number(u.rating).toFixed(1) : '—', color: '#f59e0b', icon: '⭐', action: "switchTab('ratings')" }
+    ];
+    hero.innerHTML = stats.map(s =>
+      `<div onclick="${s.action}" style="background:var(--bg);border:1.5px solid var(--border);border-radius:14px;padding:14px 12px;text-align:center;cursor:pointer;transition:all 0.2s;"
+        onmouseover="this.style.borderColor='${s.color}';this.style.transform='translateY(-2px)'"
+        onmouseout="this.style.borderColor='var(--border)';this.style.transform='translateY(0)'">
+        <div style="font-size:20px;margin-bottom:4px;">${s.icon}</div>
+        <div style="font-size:22px;font-weight:800;color:${s.color};line-height:1;">${s.value}</div>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:4px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;">${s.label}</div>
+      </div>`
+    ).join('');
+    container.parentNode.insertBefore(hero, container);
+  } else if (document.getElementById('expertStatHero') && state.user) {
+    // refresh credits live
+    const creditEl = document.querySelector('#expertStatHero div:first-child [style*="font-size:22px"]');
+    if (creditEl) creditEl.textContent = state.user.credits || 0;
+  }
   // Filtering/sorting/search now done server-side
   const allRequests = state.availableRequests || [];
 
