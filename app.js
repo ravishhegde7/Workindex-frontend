@@ -2817,9 +2817,10 @@ function renderMyApproaches(interests = []) {
   const pagedApproaches = paginate(allApproaches, 'expertApproaches');
 
   container.innerHTML = interestHTML + `
-    <h3 style="font-size:16px; font-weight:700; color:var(--text); margin-bottom:12px;">
-      📨 My Approaches (${allApproaches.length})
-    </h3>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+      <h3 style="font-size:18px;font-weight:800;color:var(--text);letter-spacing:-0.3px;">My Approaches</h3>
+      <span style="font-size:12px;font-weight:700;padding:4px 12px;border-radius:20px;background:var(--bg-gray);color:var(--text-muted);">${allApproaches.length} total</span>
+    </div>
   ` + pagedApproaches.map(app => {
     const req = app.request;
     if (!req) return '';
