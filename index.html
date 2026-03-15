@@ -841,87 +841,185 @@
 
 <!-- SETTINGS PAGE -->
 <div id="settings" class="page">
-  <div style="display: flex; align-items: center; padding: 16px 20px; border-bottom: 1px solid var(--border);">
-    <button onclick="goBack()" style="background: none; border: none; color: var(--text); font-size: 24px; cursor: pointer; padding: 0; margin-right: 12px;">←</button>
-    <h2 style="font-size: 18px; font-weight: 700; color: var(--text); flex: 1;">Settings</h2>
+
+  <!-- Top bar -->
+  <div style="display:flex;align-items:center;padding:16px 20px;border-bottom:1px solid var(--border);background:var(--bg);position:sticky;top:0;z-index:10;">
+    <button onclick="goBack()" style="width:36px;height:36px;border-radius:10px;border:1.5px solid var(--border);background:transparent;color:var(--text);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;margin-right:14px;">←</button>
+    <div>
+      <h2 style="font-size:17px;font-weight:700;color:var(--text);margin:0;">Settings</h2>
+      <p style="font-size:12px;color:var(--text-muted);margin:0;">Manage your account preferences</p>
+    </div>
   </div>
 
-  <div style="padding: 20px;">
-    <div class="settings-section">
-      <h3 class="settings-section-title">Appearance</h3>
-      <div class="settings-option">
-        <div class="settings-option-label">
-          <h4>Dark Mode</h4>
-          <p>Switch between light and dark theme</p>
+  <div style="max-width:640px;margin:0 auto;padding:24px 20px 60px;">
+
+    <!-- Account card -->
+    <div style="background:var(--bg);border:1.5px solid var(--border);border-radius:16px;overflow:hidden;margin-bottom:16px;">
+      <div style="padding:12px 16px;background:var(--bg-gray);border-bottom:1px solid var(--border);">
+        <span style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;">👤 Account</span>
+      </div>
+      <div style="padding:0 4px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 12px;border-bottom:1px solid var(--border);">
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div style="width:40px;height:40px;border-radius:50%;background:var(--primary);color:#fff;font-size:16px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;" id="settingsAvatar">?</div>
+            <div>
+              <div style="font-size:14px;font-weight:600;color:var(--text);" id="settingsName">Loading...</div>
+              <div style="font-size:12px;color:var(--text-muted);" id="settingsEmail"></div>
+            </div>
+          </div>
+          <span style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;background:rgba(252,128,25,0.1);color:var(--primary);" id="settingsRole">—</span>
         </div>
-        <label class="toggle-switch">
-          <input type="checkbox" id="darkModeToggle" onchange="toggleDarkMode()">
-          <span class="toggle-slider"></span>
-        </label>
+        <div onclick="showPage(state.user?.role === 'expert' ? 'expertDash' : 'clientDash'); switchTab('profile');"
+          style="display:flex;align-items:center;justify-content:space-between;padding:14px 12px;cursor:pointer;"
+          onmouseover="this.style.background='var(--bg-gray)'" onmouseout="this.style.background='transparent'">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span style="font-size:18px;">✏️</span>
+            <div>
+              <div style="font-size:14px;font-weight:500;color:var(--text);">Edit Profile</div>
+              <div style="font-size:12px;color:var(--text-muted);">Update your info and photo</div>
+            </div>
+          </div>
+          <span style="color:var(--text-muted);font-size:18px;">›</span>
+        </div>
       </div>
     </div>
 
-    <div class="settings-section">
-      <h3 class="settings-section-title">Notifications</h3>
-      <div class="settings-option">
-        <div class="settings-option-label">
-          <h4>Email Notifications</h4>
-          <p>Get updates via email</p>
-        </div>
-        <label class="toggle-switch">
-          <input type="checkbox" id="emailNotif" checked>
-          <span class="toggle-slider"></span>
-        </label>
+    <!-- Appearance card -->
+    <div style="background:var(--bg);border:1.5px solid var(--border);border-radius:16px;overflow:hidden;margin-bottom:16px;">
+      <div style="padding:12px 16px;background:var(--bg-gray);border-bottom:1px solid var(--border);">
+        <span style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;">🎨 Appearance</span>
       </div>
-      <div class="settings-option">
-        <div class="settings-option-label">
-          <h4>SMS Notifications</h4>
-          <p>Get updates via SMS</p>
+      <div style="padding:0 4px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 12px;">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span style="font-size:18px;">🌙</span>
+            <div>
+              <div style="font-size:14px;font-weight:500;color:var(--text);">Dark Mode</div>
+              <div style="font-size:12px;color:var(--text-muted);">Switch between light and dark theme</div>
+            </div>
+          </div>
+          <label class="toggle-switch" style="margin:0;">
+            <input type="checkbox" id="darkModeToggle" onchange="toggleDarkMode()">
+            <span class="toggle-slider"></span>
+          </label>
         </div>
-        <label class="toggle-switch">
-          <input type="checkbox" id="smsNotif">
-          <span class="toggle-slider"></span>
-        </label>
       </div>
     </div>
 
-    <div class="settings-section">
-      <h3 class="settings-section-title">Account</h3>
-      <div class="settings-option" onclick="logout()">
-        <div class="settings-option-label">
-          <h4 style="color: var(--red);">Logout</h4>
-          <p>Sign out of your account</p>
+    <!-- Notifications card -->
+    <div style="background:var(--bg);border:1.5px solid var(--border);border-radius:16px;overflow:hidden;margin-bottom:16px;">
+      <div style="padding:12px 16px;background:var(--bg-gray);border-bottom:1px solid var(--border);">
+        <span style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;">🔔 Notifications</span>
+      </div>
+      <div style="padding:0 4px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 12px;border-bottom:1px solid var(--border);">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span style="font-size:18px;">📧</span>
+            <div>
+              <div style="font-size:14px;font-weight:500;color:var(--text);">Email Notifications</div>
+              <div style="font-size:12px;color:var(--text-muted);">Approaches, updates and alerts</div>
+            </div>
+          </div>
+          <label class="toggle-switch" style="margin:0;">
+            <input type="checkbox" id="emailNotif" checked>
+            <span class="toggle-slider"></span>
+          </label>
         </div>
-        <span style="color: var(--red);">›</span>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 12px;">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span style="font-size:18px;">💬</span>
+            <div>
+              <div style="font-size:14px;font-weight:500;color:var(--text);">SMS Notifications</div>
+              <div style="font-size:12px;color:var(--text-muted);">Critical alerts via SMS</div>
+            </div>
+          </div>
+          <label class="toggle-switch" style="margin:0;">
+            <input type="checkbox" id="smsNotif">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
       </div>
     </div>
 
-    <div class="settings-section">
-      <h3 class="settings-section-title">About</h3>
-      <div class="settings-option">
-        <div class="settings-option-label">
-          <h4>Version</h4>
-          <p>WorkIndex v2.0</p>
-        </div>
+    <!-- Support card -->
+    <div style="background:var(--bg);border:1.5px solid var(--border);border-radius:16px;overflow:hidden;margin-bottom:16px;">
+      <div style="padding:12px 16px;background:var(--bg-gray);border-bottom:1px solid var(--border);">
+        <span style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;">🎫 Support</span>
       </div>
-          <div class="settings-option" onclick="openTicketModal()" style="cursor:pointer;">
-        <div class="settings-option-label">
-          <h4 style="color: var(--primary);">🎫 Raise a Support Ticket</h4>
-          <p>Report an issue or get help from our team</p>
+      <div style="padding:0 4px;">
+        <div onclick="openTicketModal()"
+          style="display:flex;align-items:center;justify-content:space-between;padding:14px 12px;cursor:pointer;border-bottom:1px solid var(--border);"
+          onmouseover="this.style.background='var(--bg-gray)'" onmouseout="this.style.background='transparent'">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span style="font-size:18px;">🎫</span>
+            <div>
+              <div style="font-size:14px;font-weight:500;color:var(--primary);">Raise a Support Ticket</div>
+              <div style="font-size:12px;color:var(--text-muted);">Report an issue or get help</div>
+            </div>
+          </div>
+          <span style="color:var(--text-muted);font-size:18px;">›</span>
         </div>
-        <span style="color: var(--primary);">›</span>
-      </div>
-      <div class="settings-option" onclick="showPage('myTickets')" style="cursor:pointer;">
-        <div class="settings-option-label">
-          <h4>My Tickets</h4>
-          <p>View your previously raised tickets</p>
+        <div onclick="showPage('myTickets')"
+          style="display:flex;align-items:center;justify-content:space-between;padding:14px 12px;cursor:pointer;"
+          onmouseover="this.style.background='var(--bg-gray)'" onmouseout="this.style.background='transparent'">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span style="font-size:18px;">📋</span>
+            <div>
+              <div style="font-size:14px;font-weight:500;color:var(--text);">My Tickets</div>
+              <div style="font-size:12px;color:var(--text-muted);">View previously raised tickets</div>
+            </div>
+          </div>
+          <span style="color:var(--text-muted);font-size:18px;">›</span>
         </div>
-        <span style="color: var(--text-muted);">›</span>
       </div>
     </div>
+
+    <!-- About card -->
+    <div style="background:var(--bg);border:1.5px solid var(--border);border-radius:16px;overflow:hidden;margin-bottom:16px;">
+      <div style="padding:12px 16px;background:var(--bg-gray);border-bottom:1px solid var(--border);">
+        <span style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;">ℹ️ About</span>
+      </div>
+      <div style="padding:0 4px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 12px;border-bottom:1px solid var(--border);">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span style="font-size:18px;">📱</span>
+            <div style="font-size:14px;font-weight:500;color:var(--text);">Version</div>
+          </div>
+          <span style="font-size:13px;color:var(--text-muted);font-weight:600;">WorkIndex v2.0</span>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 12px;">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span style="font-size:18px;">🔒</span>
+            <div style="font-size:14px;font-weight:500;color:var(--text);">Privacy Policy</div>
+          </div>
+          <span style="color:var(--text-muted);font-size:18px;">›</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Danger zone -->
+    <div style="background:var(--bg);border:1.5px solid rgba(239,68,68,0.3);border-radius:16px;overflow:hidden;">
+      <div style="padding:12px 16px;background:rgba(239,68,68,0.05);border-bottom:1px solid rgba(239,68,68,0.15);">
+        <span style="font-size:11px;font-weight:700;color:#ef4444;text-transform:uppercase;letter-spacing:.07em;">⚠️ Danger Zone</span>
+      </div>
+      <div style="padding:0 4px;">
+        <div onclick="logout()"
+          style="display:flex;align-items:center;justify-content:space-between;padding:14px 12px;cursor:pointer;border-radius:0 0 14px 14px;"
+          onmouseover="this.style.background='rgba(239,68,68,0.05)'" onmouseout="this.style.background='transparent'">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span style="font-size:18px;">🚪</span>
+            <div>
+              <div style="font-size:14px;font-weight:600;color:#ef4444;">Log Out</div>
+              <div style="font-size:12px;color:var(--text-muted);">Sign out of your account</div>
+            </div>
+          </div>
+          <span style="color:#ef4444;font-size:18px;">›</span>
+        </div>
+      </div>
+    </div>
+
   </div>
 </div>
-
 
 <!-- AUTH PAGE -->
 <div id="auth" class="page">
