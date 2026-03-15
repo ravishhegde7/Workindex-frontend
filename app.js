@@ -2989,6 +2989,22 @@ function loadSettings() {
   if (darkModeToggle) {
     darkModeToggle.checked = localStorage.getItem('darkMode') === 'true';
   }
+  // Populate user info
+  if (state.user) {
+    const u = state.user;
+    const av = document.getElementById('settingsAvatar');
+    const nm = document.getElementById('settingsName');
+    const em = document.getElementById('settingsEmail');
+    const rl = document.getElementById('settingsRole');
+    if (av) av.textContent = (u.name || '?').charAt(0).toUpperCase();
+    if (nm) nm.textContent = u.name || 'My Account';
+    if (em) em.textContent = u.email || '';
+    if (rl) rl.textContent = u.role === 'expert' ? 'Professional' : 'Customer';
+    // Sync profile photo
+    if (u.profilePhoto && av) {
+      av.innerHTML = `<img src="${u.profilePhoto}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+    }
+  }
 }
 
 // ─── INIT ON PAGE LOAD ─── 
