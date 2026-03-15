@@ -1805,17 +1805,12 @@ function renderClientRequests() {
     container.innerHTML = `
       <h2 style="margin-bottom:16px;">Available Requests</h2>
       ${renderBrowseToolbar()}
-      <div style="text-align:center;padding:48px 20px;">
-        <svg width="120" height="120" viewBox="0 0 120 120" fill="none" style="margin-bottom:20px;opacity:0.7;">
-          <circle cx="60" cy="60" r="56" fill="rgba(252,128,25,0.08)" stroke="rgba(252,128,25,0.2)" stroke-width="2"/>
-          <circle cx="52" cy="50" r="18" stroke="#FC8019" stroke-width="3" fill="none"/>
-          <line x1="65" y1="63" x2="80" y2="78" stroke="#FC8019" stroke-width="3" stroke-linecap="round"/>
-          <circle cx="52" cy="50" r="8" fill="rgba(252,128,25,0.15)"/>
-        </svg>
-        <h3 style="font-size:18px;font-weight:700;color:var(--text);margin-bottom:8px;">${isFiltered ? 'No matches found' : 'No requests yet'}</h3>
-        <p style="font-size:14px;color:var(--text-muted);line-height:1.6;max-width:280px;margin:0 auto 20px;">${isFiltered ? 'Try clearing your filters or search for something broader.' : 'New client requests will appear here. Check back soon!'}</p>
-        ${isFiltered ? `<button onclick="state.browseSearch='';state.browseServiceFilter=[];state.browseSort='newest';document.getElementById('browseFilterBar').innerHTML=renderBrowseFilterChips();applyBrowseFilters();"
-          style="padding:10px 24px;background:var(--primary);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;">
+      <div class="empty-state">
+        <div class="empty-icon">🔍</div>
+        <h3 class="empty-title">${isFiltered ? 'No requests match your filters' : 'No requests available'}</h3>
+        <p class="empty-text">${isFiltered ? 'Try a different search or category' : 'New requests will appear here'}</p>
+        ${isFiltered ? `<button onclick="state.browseSearch='';state.browseServiceFilter=[];state.browseSort='newest';applyBrowseFilters();"
+          style="margin-top:16px;padding:10px 24px;background:var(--primary);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;">
           ✕ Clear Filters
         </button>` : ''}
       </div>`;
@@ -2009,32 +2004,6 @@ function renderAvailableRequests() {
   const container = document.getElementById('browseRequestsContainer');
   if (!container) return;
 
-  // ── Expert stat hero (inject once) ──
-  if (!document.getElementById('expertStatHero') && state.user) {
-    const u = state.user;
-    const hero = document.createElement('div');
-    hero.id = 'expertStatHero';
-    hero.style.cssText = 'display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px;';
-    const stats = [
-      { label: 'Credits', value: u.credits || 0, color: '#FC8019', icon: '💎', action: "openCreditModal()" },
-      { label: 'Approaches', value: u.totalApproaches || 0, color: '#3b82f6', icon: '📨', action: "switchTab('approaches')" },
-      { label: 'Rating', value: u.rating ? Number(u.rating).toFixed(1) : '—', color: '#f59e0b', icon: '⭐', action: "switchTab('ratings')" }
-    ];
-    hero.innerHTML = stats.map(s =>
-      `<div onclick="${s.action}" style="background:var(--bg);border:1.5px solid var(--border);border-radius:14px;padding:14px 12px;text-align:center;cursor:pointer;transition:all 0.2s;"
-        onmouseover="this.style.borderColor='${s.color}';this.style.transform='translateY(-2px)'"
-        onmouseout="this.style.borderColor='var(--border)';this.style.transform='translateY(0)'">
-        <div style="font-size:20px;margin-bottom:4px;">${s.icon}</div>
-        <div style="font-size:22px;font-weight:800;color:${s.color};line-height:1;">${s.value}</div>
-        <div style="font-size:11px;color:var(--text-muted);margin-top:4px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;">${s.label}</div>
-      </div>`
-    ).join('');
-    container.parentNode.insertBefore(hero, container);
-  } else if (document.getElementById('expertStatHero') && state.user) {
-    // refresh credits live
-    const creditEl = document.querySelector('#expertStatHero div:first-child [style*="font-size:22px"]');
-    if (creditEl) creditEl.textContent = state.user.credits || 0;
-  }
   // Filtering/sorting/search now done server-side
   const allRequests = state.availableRequests || [];
 
