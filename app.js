@@ -1805,12 +1805,17 @@ function renderClientRequests() {
     container.innerHTML = `
       <h2 style="margin-bottom:16px;">Available Requests</h2>
       ${renderBrowseToolbar()}
-      <div class="empty-state">
-        <div class="empty-icon">🔍</div>
-        <h3 class="empty-title">${isFiltered ? 'No requests match your filters' : 'No requests available'}</h3>
-        <p class="empty-text">${isFiltered ? 'Try a different search or category' : 'New requests will appear here'}</p>
-        ${isFiltered ? `<button onclick="state.browseSearch='';state.browseServiceFilter=[];state.browseSort='newest';applyBrowseFilters();"
-          style="margin-top:16px;padding:10px 24px;background:var(--primary);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;">
+      <div style="text-align:center;padding:48px 20px;">
+        <svg width="120" height="120" viewBox="0 0 120 120" fill="none" style="margin-bottom:20px;opacity:0.7;">
+          <circle cx="60" cy="60" r="56" fill="rgba(252,128,25,0.08)" stroke="rgba(252,128,25,0.2)" stroke-width="2"/>
+          <circle cx="52" cy="50" r="18" stroke="#FC8019" stroke-width="3" fill="none"/>
+          <line x1="65" y1="63" x2="80" y2="78" stroke="#FC8019" stroke-width="3" stroke-linecap="round"/>
+          <circle cx="52" cy="50" r="8" fill="rgba(252,128,25,0.15)"/>
+        </svg>
+        <h3 style="font-size:18px;font-weight:700;color:var(--text);margin-bottom:8px;">${isFiltered ? 'No matches found' : 'No requests yet'}</h3>
+        <p style="font-size:14px;color:var(--text-muted);line-height:1.6;max-width:280px;margin:0 auto 20px;">${isFiltered ? 'Try clearing your filters or search for something broader.' : 'New client requests will appear here. Check back soon!'}</p>
+        ${isFiltered ? `<button onclick="state.browseSearch='';state.browseServiceFilter=[];state.browseSort='newest';document.getElementById('browseFilterBar').innerHTML=renderBrowseFilterChips();applyBrowseFilters();"
+          style="padding:10px 24px;background:var(--primary);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;">
           ✕ Clear Filters
         </button>` : ''}
       </div>`;
