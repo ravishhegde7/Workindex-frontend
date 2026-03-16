@@ -2985,7 +2985,7 @@ async function submitApproachReport() {
 }
 
 function openCompareModal() {
-  var approaches = (window._approachesForCompare || []).filter(function(a) { return _compareSelected.indexOf(a._id) !== -1; });
+    var approaches = (window._approachesForCompare || []).filter(function(a) { return _compareSelected.indexOf(a._id) !== -1 && a.expert; });
   if (!approaches.length) return;
   var req = window._reqForCompare || {};
   var existing = document.getElementById('compareModal');
