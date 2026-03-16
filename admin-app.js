@@ -2949,7 +2949,19 @@ function loadVisitStats() {
       toast(d.message||'Done');
     }).catch(function() { toast('Error', 'e'); });
   }
-
+window.deleteCategoryData = function() {
+    var sel = g('deleteCategorySelect');
+    if (!sel || !sel.value) { toast('Select a category first', 'e'); return; }
+    var category = sel.value;
+    if (!confirm('Delete ALL ' + category + '? This cannot be undone.')) return;
+    var confirmText = prompt('Type DELETE to confirm:');
+    if (confirmText !== 'DELETE') { toast('Cancelled', 'i'); return; }
+    api('danger/clear-category', 'POST', { category: category }).then(function(d) {
+      if (d.success) { toast(d.message, 's'); sel.value = ''; }
+      else toast(d.message || 'Failed', 'e');
+    }).catch(function() { toast('Error', 'e'); });
+  };
+   
   /* ═══════════════════════════════════════════════════════════
      INVOICE — TAX RATE TOGGLE
   ═══════════════════════════════════════════════════════════ */
