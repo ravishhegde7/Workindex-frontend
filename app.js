@@ -2715,105 +2715,225 @@ async function cancelRequest(requestId) {
 }
 
 // ─── SHOW REQUEST APPROACHES MODAL ───
+// ── Compare state ──
+var _compareSelected = [];
+
 function showRequestApproaches(req, approaches) {
-  const modal = document.createElement('div');
-  modal.style.cssText = 'position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 20px;';
-  modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
-  
-  const isCompleted = req.status === 'completed';
+  _compareSelected = [];
+  var modal = document.createElement('div');
+  modal.id = 'approachesModal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:1000;padding:20px;';
+  modal.onclick = function(e) { if (e.target === modal) modal.remove(); };
 
-  const approachesHTML = approaches.length > 0 ? approaches.map(app => {
-    const expert = app.expert;
-    return `
-      <div style="padding: 16px; background: var(--bg-gray); border-radius: 12px; margin-bottom: 12px;">
-        <div style="display: flex; gap: 12px; align-items: center; margin-bottom: 12px;">
-          <div class="avatar" style="width: 48px; height: 48px; font-size: 20px;">
-            ${expert.profilePhoto ? 
-              `<img src="${expert.profilePhoto}" alt="${expert.name}">` : 
-              expert.name.substring(0, 1).toUpperCase()
-            }
-          </div>
-          <div style="flex: 1;">
-            <h4 style="font-size: 16px; font-weight: 600; color: var(--text); margin-bottom: 2px;">${expert.name}</h4>
-            <p style="font-size: 13px; color: var(--text-muted);">${expert.specialization || 'Professional'}</p>
-          </div>
-          ${expert.rating ? `
-            <div style="display: flex; align-items: center; gap: 4px;">
-              <span style="color: var(--yellow); font-size: 16px;">★</span>
-              <span style="font-size: 14px; font-weight: 600;">${expert.rating.toFixed(1)}</span>
-            </div>
-          ` : ''}
-        </div>
+  var isCompleted = req.status === 'completed';
+  var svcColors = { itr:'#8b5cf6', gst:'#3b82f6', accounting:'#10b981', audit:'#f59e0b', photography:'#ec4899', development:'#06b6d4' };
 
-        ${app.quote ? `
-          <div style="display:inline-flex; align-items:center; gap:6px; background:rgba(252,128,25,0.1);
-                      border-radius:20px; padding:6px 14px; margin-bottom:10px;">
-            <span style="font-size:20px; font-weight:800; color:var(--primary);">₹${app.quote.toLocaleString('en-IN')}</span>
-            <span style="font-size:12px; color:var(--text-muted); font-weight:600;">quoted</span>
-          </div>
-        ` : ''}
+  var approachesHTML = approaches.length > 0 ? approaches.map(function(app) {
+    var expert = app.expert;
+    var kycVerified = expert.kyc && expert.kyc.status === 'approved';
+    var primarySvc = (expert.servicesOffered || (expert.profile && expert.profile.servicesOffered) || [])[0];
+    var svcColor = svcColors[primarySvc] || '#FC8019';
+    var safeId   = app._id;
+    var safeEid  = expert._id;
+    var safeName = (expert.name || '').replace(/'/g, '');
 
-        <p style="font-size: 14px; color: var(--text-light); margin-bottom: 12px; line-height:1.6;">${app.message}</p>
+    return '<div id="apCard_' + safeId + '" style="background:var(--bg);border:1.5px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:12px;transition:border-color 0.2s;">' +
 
-        <div style="display: flex; gap: 8px;">
-          <button onclick="viewExpertProfile('${expert._id}', true)" 
-            style="flex: 1; padding: 10px; border: 1.5px solid var(--primary); border-radius: 8px; background: transparent; color: var(--primary); font-size: 13px; font-weight: 600; cursor: pointer;">
-            View Profile
-          </button>
+      '<div style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid var(--border);">' +
+        '<label style="display:flex;align-items:center;cursor:pointer;flex-shrink:0;">' +
+          '<input type="checkbox" id="cmp_' + safeId + '" onchange="toggleCompare(\'' + safeId + '\',\'' + safeEid + '\',this)" style="width:18px;height:18px;accent-color:var(--primary);cursor:pointer;">' +
+        '</label>' +
+        '<div style="width:48px;height:48px;border-radius:50%;background:' + svcColor + ';color:#fff;font-size:18px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;">' +
+          (expert.profilePhoto ? '<img src="' + expert.profilePhoto + '" style="width:100%;height:100%;object-fit:cover;">' : (expert.name || '?').substring(0,1).toUpperCase()) +
+        '</div>' +
+        '<div style="flex:1;min-width:0;">' +
+          '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">' +
+            '<span style="font-size:15px;font-weight:700;color:var(--text);">' + expert.name + '</span>' +
+            (kycVerified ? '<span style="font-size:10px;font-weight:700;padding:1px 6px;border-radius:20px;background:rgba(34,197,94,0.1);color:#16a34a;">✓ KYC</span>' : '') +
+          '</div>' +
+          '<div style="font-size:12px;color:' + svcColor + ';font-weight:600;">' + (expert.specialization || (expert.profile && expert.profile.specialization) || 'Professional') + '</div>' +
+          (expert.rating ? '<div style="font-size:12px;color:#f59e0b;font-weight:700;">⭐ ' + Number(expert.rating).toFixed(1) + ' <span style="color:var(--text-muted);font-weight:400;">(' + (expert.reviewCount || 0) + ')</span></div>' : '<div style="font-size:12px;color:var(--text-muted);">No reviews yet</div>') +
+        '</div>' +
+        (app.quote ? '<div style="text-align:right;flex-shrink:0;background:rgba(252,128,25,0.08);border-radius:10px;padding:8px 12px;"><div style="font-size:18px;font-weight:800;color:var(--primary);">₹' + Number(app.quote).toLocaleString('en-IN') + '</div><div style="font-size:10px;color:var(--text-muted);font-weight:600;">QUOTED</div></div>' : '') +
+      '</div>' +
 
-          ${!isCompleted ? `
-            <button onclick="contactExpert('${expert._id}', '${req._id}', '${state.user._id}')" 
-              style="flex: 1; padding: 10px; border: none; border-radius: 8px; background: var(--primary); color: #fff; font-size: 13px; font-weight: 700; cursor: pointer;">
-              Contact
-            </button>
-          ` : ''}
-        </div>
+      '<div style="padding:12px 16px;border-bottom:1px solid var(--border);">' +
+        '<p style="font-size:13px;color:var(--text-light);line-height:1.6;margin:0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">' + (app.message || '') + '</p>' +
+      '</div>' +
 
-        ${isCompleted ? `
-          <div style="width:100%; margin-top:10px; padding:10px; border-radius:8px; background:#f0fff4; color:#4CAF50; font-size:13px; font-weight:600; text-align:center;">
-            ✅ Service Completed
-          </div>
-        ` : `
-          <button onclick="confirmServiceReceived('${req._id}', '${expert._id}', '${expert.name}', '${app._id}')" 
-            style="width: 100%; padding: 10px; border: 1.5px solid #4CAF50; border-radius: 8px; background: transparent; color: #4CAF50; font-size: 13px; font-weight: 600; cursor: pointer; margin-top: 10px;">
-            ✓ Service Received?
-          </button>
-        `}
-      </div>
-    `;
-  }).join('') : `
-    <div class="empty-state" style="padding: 40px 20px;">
-      <div class="empty-icon">👨‍💼</div>
-      <h3 class="empty-title">No approaches yet</h3>
-      <p class="empty-text">Professionals will approach you soon</p>
-    </div>
-  `;
-  
-  modal.innerHTML = `
-    <div style="background: var(--bg); border-radius: 16px; max-width: 500px; width: 100%; max-height: 80vh; overflow-y: auto; padding: 24px;">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-        <h2 style="font-size: 20px; font-weight: 700; color: var(--text);">${req.title}</h2>
-        <button onclick="this.closest('div').parentElement.remove()" style="padding: 8px; border: none; background: transparent; font-size: 24px; cursor: pointer; color: var(--text-muted);">×</button>
-      </div>
-      
-      <div style="margin-bottom: 20px;">
-        <h3 style="font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 12px;">Professionals Interested (${approaches.length})</h3>
-        ${approachesHTML}
-      </div>
-      
-      ${req.status === 'pending' || req.status === 'active' ? `
-        <button onclick="cancelRequest('${req._id}')" 
-          style="width: 100%; padding: 14px; margin-top: 12px; border: 1.5px solid #dc3545; border-radius: 10px; background: transparent; color: #dc3545; font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.2s;"
-          onmouseover="this.style.background='#dc3545'; this.style.color='#fff'"
-          onmouseout="this.style.background='transparent'; this.style.color='#dc3545'">
-          ✕ Cancel Request
-        </button>
-      ` : ''}
-    </div>
-  `;
-  
+      '<div style="display:grid;grid-template-columns:1fr 1fr auto;gap:8px;padding:12px 16px;">' +
+        '<button onclick="viewExpertProfile(\'' + safeEid + '\', true)" style="padding:10px;border:1.5px solid var(--border);border-radius:10px;background:transparent;color:var(--text);font-size:13px;font-weight:600;cursor:pointer;" onmouseover="this.style.borderColor=\'var(--primary)\';this.style.color=\'var(--primary)\'" onmouseout="this.style.borderColor=\'var(--border)\';this.style.color=\'var(--text)\'">View Profile</button>' +
+        (!isCompleted
+          ? '<button onclick="contactExpert(\'' + safeEid + '\',\'' + req._id + '\',\'' + state.user._id + '\')" style="padding:10px;border:none;border-radius:10px;background:var(--primary);color:#fff;font-size:13px;font-weight:700;cursor:pointer;">💬 Contact</button>'
+          : '<div style="padding:10px;border-radius:10px;background:rgba(34,197,94,0.08);color:#16a34a;font-size:13px;font-weight:600;text-align:center;">✅ Completed</div>') +
+        '<button onclick="showBlockFromApproaches(\'' + safeEid + '\',\'' + safeName + '\')" title="Block or report" style="width:40px;padding:10px 0;border:1.5px solid var(--border);border-radius:10px;background:transparent;color:var(--text-muted);font-size:14px;cursor:pointer;" onmouseover="this.style.borderColor=\'#ef4444\';this.style.color=\'#ef4444\'" onmouseout="this.style.borderColor=\'var(--border)\';this.style.color=\'var(--text-muted)\'">🚩</button>' +
+      '</div>' +
+
+      (!isCompleted
+        ? '<div style="padding:0 16px 12px;"><button onclick="confirmServiceReceived(\'' + req._id + '\',\'' + safeEid + '\',\'' + safeName + '\',\'' + safeId + '\')" style="width:100%;padding:10px;border:1.5px solid #22c55e;border-radius:10px;background:transparent;color:#22c55e;font-size:13px;font-weight:600;cursor:pointer;" onmouseover="this.style.background=\'rgba(34,197,94,0.08)\'" onmouseout="this.style.background=\'transparent\'">✓ Service Received?</button></div>'
+        : '') +
+    '</div>';
+  }).join('') :
+    '<div style="text-align:center;padding:40px 20px;">' +
+      '<div style="font-size:48px;margin-bottom:12px;">👨‍💼</div>' +
+      '<h3 style="font-size:17px;font-weight:700;color:var(--text);margin-bottom:6px;">No proposals yet</h3>' +
+      '<p style="font-size:14px;color:var(--text-muted);">Professionals will respond to your request soon</p>' +
+    '</div>';
+
+  modal.innerHTML =
+    '<div style="background:var(--bg);border-radius:18px;max-width:520px;width:100%;max-height:88vh;overflow-y:auto;display:flex;flex-direction:column;">' +
+
+      '<div style="padding:18px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--bg);z-index:2;border-radius:18px 18px 0 0;">' +
+        '<div>' +
+          '<h2 style="font-size:17px;font-weight:800;color:var(--text);margin:0 0 2px;">' + req.title + '</h2>' +
+          '<p style="font-size:12px;color:var(--text-muted);margin:0;">Professionals Interested (' + approaches.length + ')</p>' +
+        '</div>' +
+        '<button onclick="document.getElementById(\'approachesModal\').remove()" style="width:32px;height:32px;border:none;background:var(--bg-gray);border-radius:50%;font-size:18px;cursor:pointer;color:var(--text-muted);">×</button>' +
+      '</div>' +
+
+      (approaches.length >= 2
+        ? '<div style="padding:10px 20px;background:rgba(59,130,246,0.06);border-bottom:1px solid var(--border);"><p style="font-size:12px;color:#3b82f6;margin:0;font-weight:600;">☑️ Tick boxes to compare up to 5 experts side by side</p></div>'
+        : '') +
+
+      '<div style="padding:16px 20px;flex:1;">' + approachesHTML + '</div>' +
+
+      '<div id="compareBar" style="display:none;position:sticky;bottom:0;background:var(--bg);border-top:1px solid var(--border);padding:14px 20px;border-radius:0 0 18px 18px;">' +
+        '<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">' +
+          '<span id="compareCount" style="font-size:13px;font-weight:600;color:var(--text-muted);">0 selected</span>' +
+          '<button onclick="openCompareModal()" style="flex:1;padding:12px;background:linear-gradient(135deg,#3b82f6,#2563eb);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 4px 12px rgba(59,130,246,0.3);">⚖️ Compare Selected Experts</button>' +
+        '</div>' +
+      '</div>' +
+
+      ((req.status === 'pending' || req.status === 'active')
+        ? '<div style="padding:0 20px 16px;"><button onclick="cancelRequest(\'' + req._id + '\')" style="width:100%;padding:13px;border:1.5px solid #ef4444;border-radius:10px;background:transparent;color:#ef4444;font-size:14px;font-weight:600;cursor:pointer;" onmouseover="this.style.background=\'rgba(239,68,68,0.06)\'" onmouseout="this.style.background=\'transparent\'">✕ Cancel Request</button></div>'
+        : '') +
+    '</div>';
+
+  window._approachesForCompare = approaches;
+  window._reqForCompare = req;
   document.body.appendChild(modal);
 }
+
+function toggleCompare(appId, expertId, checkbox) {
+  var card = document.getElementById('apCard_' + appId);
+  if (checkbox.checked) {
+    if (_compareSelected.length >= 5) {
+      checkbox.checked = false;
+      showToast('Maximum 5 experts can be compared', 'error');
+      return;
+    }
+    _compareSelected.push(appId);
+    if (card) card.style.borderColor = '#3b82f6';
+  } else {
+    _compareSelected = _compareSelected.filter(function(id) { return id !== appId; });
+    if (card) card.style.borderColor = 'var(--border)';
+  }
+  var bar   = document.getElementById('compareBar');
+  var count = document.getElementById('compareCount');
+  if (bar)   bar.style.display = _compareSelected.length >= 2 ? 'block' : 'none';
+  if (count) count.textContent  = _compareSelected.length + ' selected';
+}
+
+function showBlockFromApproaches(expertId, expertName) {
+  _blockTargetId   = expertId;
+  _blockTargetName = expertName;
+  var modal = document.getElementById('blockReportModal');
+  if (modal) {
+    var nameEl = document.getElementById('blockModalName');
+    if (nameEl) nameEl.textContent = expertName;
+    modal.style.display = 'flex';
+  }
+}
+
+function openCompareModal() {
+  var approaches = (window._approachesForCompare || []).filter(function(a) { return _compareSelected.indexOf(a._id) !== -1; });
+  if (!approaches.length) return;
+  var req = window._reqForCompare || {};
+  var existing = document.getElementById('compareModal');
+  if (existing) existing.remove();
+
+  var svcColors = { itr:'#8b5cf6', gst:'#3b82f6', accounting:'#10b981', audit:'#f59e0b', photography:'#ec4899', development:'#06b6d4' };
+
+  var rows = [
+    { label: '💰 Quote',        fn: function(a) { return a.quote ? '<strong style="color:var(--primary);font-size:16px;">₹' + Number(a.quote).toLocaleString('en-IN') + '</strong>' : '<span style="color:var(--text-muted);">—</span>'; } },
+    { label: '⭐ Rating',        fn: function(a) { return a.expert.rating ? '<strong>' + Number(a.expert.rating).toFixed(1) + '</strong> <span style="color:var(--text-muted);font-size:11px;">(' + (a.expert.reviewCount || 0) + ' reviews)</span>' : '<span style="color:var(--text-muted);">No reviews</span>'; } },
+    { label: '🛡️ KYC',           fn: function(a) { return (a.expert.kyc && a.expert.kyc.status === 'approved') ? '<span style="color:#16a34a;font-weight:700;">✅ Verified</span>' : '<span style="color:var(--text-muted);">Not verified</span>'; } },
+    { label: '🟢 Availability',  fn: function(a) { var m = {available:'🟢 Available',busy:'🔴 Busy',away:'🟡 Away'}; return m[a.expert.availability || 'available'] || '🟢 Available'; } },
+    { label: '📅 Experience',    fn: function(a) { var exp = a.expert.yearsOfExperience || (a.expert.profile && (a.expert.profile.experience || a.expert.profile.yearsOfExperience)); return exp ? exp + ' yrs' : '<span style="color:var(--text-muted);">—</span>'; } },
+    { label: '💬 Their Message', fn: function(a) { var m = a.message || ''; return '<span style="font-size:12px;line-height:1.5;">' + m.substring(0,120) + (m.length > 120 ? '…' : '') + '</span>'; } },
+    { label: '💡 Why Choose Me', fn: function(a) { var w = a.expert.whyChooseMe; return w ? '<span style="font-size:12px;line-height:1.5;">' + w.substring(0,120) + (w.length > 120 ? '…' : '') + '</span>' : '<span style="color:var(--text-muted);">Not set</span>'; } },
+    { label: '📋 About',         fn: function(a) { var b = a.expert.bio || (a.expert.profile && a.expert.profile.bio) || ''; return b ? '<span style="font-size:12px;line-height:1.5;">' + b.substring(0,120) + (b.length > 120 ? '…' : '') + '</span>' : '<span style="color:var(--text-muted);">—</span>'; } },
+    { label: '🎓 Education',     fn: function(a) { return (a.expert.profile && a.expert.profile.education) || '<span style="color:var(--text-muted);">—</span>'; } },
+    { label: '🗂️ Portfolio',      fn: function(a) { var p = a.expert.profile && a.expert.profile.portfolio; return p ? '<span style="font-size:12px;line-height:1.5;">' + p.substring(0,100) + (p.length > 100 ? '…' : '') + '</span>' : '<span style="color:var(--text-muted);">—</span>'; } },
+    { label: '📍 Location',      fn: function(a) { return (a.expert.profile && a.expert.profile.city) || (a.expert.location && a.expert.location.city) || '<span style="color:var(--text-muted);">—</span>'; } }
+  ];
+
+  var colWidth = Math.max(160, Math.floor(Math.min(window.innerWidth - 80, 900) / approaches.length));
+
+  var headerCols = approaches.map(function(a) {
+    var primarySvc = (a.expert.servicesOffered || (a.expert.profile && a.expert.profile.servicesOffered) || [])[0];
+    var svcColor = svcColors[primarySvc] || '#FC8019';
+    return '<th style="width:' + colWidth + 'px;min-width:' + colWidth + 'px;padding:14px 12px;text-align:center;border-left:1px solid var(--border);vertical-align:top;">' +
+      '<div style="width:44px;height:44px;border-radius:50%;background:' + svcColor + ';color:#fff;font-size:16px;font-weight:800;display:flex;align-items:center;justify-content:center;margin:0 auto 8px;overflow:hidden;">' +
+        (a.expert.profilePhoto ? '<img src="' + a.expert.profilePhoto + '" style="width:100%;height:100%;object-fit:cover;">' : (a.expert.name || '?').substring(0,1).toUpperCase()) +
+      '</div>' +
+      '<div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:2px;">' + a.expert.name + '</div>' +
+      '<div style="font-size:11px;color:' + svcColor + ';font-weight:600;">' + (a.expert.specialization || (a.expert.profile && a.expert.profile.specialization) || 'Professional') + '</div>' +
+    '</th>';
+  }).join('');
+
+  var dataRows = rows.map(function(row) {
+    var cells = approaches.map(function(a) {
+      return '<td style="padding:12px;text-align:center;border-left:1px solid var(--border);vertical-align:middle;font-size:13px;color:var(--text);">' + row.fn(a) + '</td>';
+    }).join('');
+    return '<tr style="border-top:1px solid var(--border);">' +
+      '<td style="padding:12px 14px;font-size:12px;font-weight:700;color:var(--text-muted);white-space:nowrap;background:var(--bg-gray);position:sticky;left:0;z-index:1;min-width:110px;">' + row.label + '</td>' +
+      cells +
+    '</tr>';
+  }).join('');
+
+  var contactCells = approaches.map(function(a) {
+    return '<td style="padding:12px;border-left:1px solid var(--border);text-align:center;">' +
+      '<button onclick="contactExpert(\'' + a.expert._id + '\',\'' + req._id + '\',\'' + state.user._id + '\');document.getElementById(\'compareModal\').remove();" style="width:100%;padding:10px;background:var(--primary);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;">💬 Contact</button>' +
+    '</td>';
+  }).join('');
+
+  var modal = document.createElement('div');
+  modal.id = 'compareModal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;z-index:1001;padding:16px;';
+  modal.onclick = function(e) { if (e.target === modal) modal.remove(); };
+
+  modal.innerHTML =
+    '<div style="background:var(--bg);border-radius:18px;width:100%;max-width:960px;max-height:90vh;overflow:hidden;display:flex;flex-direction:column;">' +
+      '<div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">' +
+        '<div>' +
+          '<h2 style="font-size:17px;font-weight:800;color:var(--text);margin:0 0 2px;">⚖️ Compare Experts</h2>' +
+          '<p style="font-size:12px;color:var(--text-muted);margin:0;">' + approaches.length + ' experts · ' + (req.title || '') + '</p>' +
+        '</div>' +
+        '<button onclick="document.getElementById(\'compareModal\').remove()" style="width:32px;height:32px;border:none;background:var(--bg-gray);border-radius:50%;font-size:18px;cursor:pointer;color:var(--text-muted);">×</button>' +
+      '</div>' +
+      '<div style="overflow:auto;flex:1;">' +
+        '<table style="border-collapse:collapse;width:100%;min-width:' + (110 + colWidth * approaches.length) + 'px;">' +
+          '<thead style="position:sticky;top:0;z-index:2;background:var(--bg);">' +
+            '<tr>' +
+              '<th style="width:110px;min-width:110px;padding:14px;background:var(--bg-gray);position:sticky;left:0;z-index:3;"></th>' +
+              headerCols +
+            '</tr>' +
+          '</thead>' +
+          '<tbody>' +
+            dataRows +
+            '<tr style="border-top:2px solid var(--border);background:var(--bg);">' +
+              '<td style="padding:12px 14px;font-size:12px;font-weight:700;color:var(--text-muted);background:var(--bg-gray);position:sticky;left:0;">🎯 Contact</td>' +
+              contactCells +
+            '</tr>' +
+          '</tbody>' +
+        '</table>' +
+      '</div>' +
+    '</div>';
+
+  document.body.appendChild(modal);
+}
+
 // ─── VIEW EXPERT PROFILE ───
 
 // ─── CONTACT EXPERT ───
