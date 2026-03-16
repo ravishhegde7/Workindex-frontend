@@ -2816,6 +2816,43 @@ function showRequestApproaches(req, approaches) {
   window._reqForCompare = req;
   document.body.appendChild(modal);
 }
+function selectAllForCompare() {
+  var approaches = window._approachesForCompare || [];
+  var allIds = approaches.map(function(a) { return a._id; });
+  var btn = document.getElementById('selectAllBtn');
+  var isAllSelected = _compareSelected.length === allIds.length;
+
+  if (isAllSelected) {
+    // Deselect all
+    _compareSelected = [];
+    allIds.forEach(function(id) {
+      var cb = document.getElementById('cmp_' + id);
+      if (cb) cb.checked = false;
+      var card = document.getElementById('apCard_' + id);
+      if (card) card.style.borderColor = 'var(--border)';
+    });
+    if (btn) { btn.textContent = 'Select All'; btn.style.background = 'transparent'; btn.style.color = '#3b82f6'; }
+  } else {
+    // Select up to 5
+    _compareSelected = [];
+    var limit = Math.min(allIds.length, 5);
+    for (var i = 0; i < limit; i++) {
+      var id = allIds[i];
+      _compareSelected.push(id);
+      var cb = document.getElementById('cmp_' + id);
+      if (cb) cb.checked = true;
+      var card = document.getElementById('apCard_' + id);
+      if (card) card.style.borderColor = '#3b82f6';
+    }
+    if (allIds.length > 5) showToast('Only first 5 selected (maximum for compare)', 'info');
+    if (btn) { btn.textContent = 'Deselect All'; btn.style.background = 'rgba(59,130,246,0.08)'; btn.style.color = '#3b82f6'; }
+  }
+
+  var bar   = document.getElementById('compareBar');
+  var count = document.getElementById('compareCount');
+  if (bar)   bar.style.display = _compareSelected.length >= 2 ? 'block' : 'none';
+  if (count) count.textContent  = _compareSelected.length + ' selected';
+}
 
 function toggleCompare(appId, expertId, checkbox) {
   var card = document.getElementById('apCard_' + appId);
