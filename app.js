@@ -2792,9 +2792,12 @@ function showRequestApproaches(req, approaches) {
       '</div>' +
 
       (approaches.length >= 2
-        ? '<div style="padding:10px 20px;background:rgba(59,130,246,0.06);border-bottom:1px solid var(--border);"><p style="font-size:12px;color:#3b82f6;margin:0;font-weight:600;">☑️ Tick boxes to compare up to 5 experts side by side</p></div>'
+        ? '<div style="padding:10px 20px;background:rgba(59,130,246,0.06);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px;">' +
+            '<p style="font-size:12px;color:#3b82f6;margin:0;font-weight:600;">☑️ Tick boxes to compare up to 5 experts side by side</p>' +
+            '<button onclick="selectAllForCompare()" id="selectAllBtn" style="font-size:12px;font-weight:700;color:#3b82f6;background:transparent;border:1.5px solid #3b82f6;border-radius:8px;padding:4px 12px;cursor:pointer;white-space:nowrap;flex-shrink:0;">Select All</button>' +
+          '</div>'
         : '') +
-
+     
       '<div style="padding:16px 20px;flex:1;">' + approachesHTML + '</div>' +
 
       '<div id="compareBar" style="display:none;position:sticky;bottom:0;background:var(--bg);border-top:1px solid var(--border);padding:14px 20px;border-radius:0 0 18px 18px;">' +
