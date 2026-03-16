@@ -20,47 +20,6 @@ const state = {
   approachedRequests: [],
   myApproaches: []  // ← NEW: Store expert's approaches
 };
-// ─── INACTIVITY LOGOUT (30 minutes) ───
-const INACTIVITY_TIMEOUT = 30 * 60 * 1000;
-let inactivityTimer = null;
-
-function resetInactivityTimer() {
-  if (!state.token || !state.user) return;
-  clearTimeout(inactivityTimer);
-  inactivityTimer = setTimeout(() => {
-    handleSessionExpired();
-  }, INACTIVITY_TIMEOUT);
-}
-
-function startInactivityWatcher() {
-  const events = ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll', 'click'];
-  events.forEach(event => {
-    window.addEventListener(event, resetInactivityTimer, { passive: true });
-  });
-  resetInactivityTimer();
-}
-
-function stopInactivityWatcher() {
-  clearTimeout(inactivityTimer);
-  inactivityTimer = null;
-}
-
-function handleSessionExpired() {
-  stopInactivityWatcher();
-  if (notificationInterval) clearInterval(notificationInterval);
-  if (chatPollingInterval) clearInterval(chatPollingInterval);
-  notificationInterval = null;
-  chatPollingInterval = null;
-  currentChatId = null;
-  localStorage.removeItem('token');
-  localStorage.removeItem('user');
-  state.token = null;
-  state.user  = null;
-  showToast('Session expired due to inactivity. Please log in again.', 'error');
-  setTimeout(() => {
-    showPage('landing');
-  }, 1500);
-}
 
 // ─── DARK MODE ─── 
 function initDarkMode() {
@@ -75,11 +34,6 @@ function initDarkMode() {
 function toggleDarkMode() {
   const isDark = document.body.classList.toggle('dark-mode');
   localStorage.setItem('darkMode', isDark);
-  // Sync both toggles
-  const t1 = document.getElementById('darkModeToggle');
-  const t2 = document.getElementById('darkModeToggle2');
-  if (t1) t1.checked = isDark;
-  if (t2) t2.checked = isDark;
   showToast(isDark ? 'Dark mode enabled' : 'Light mode enabled', 'success');
 }
 
@@ -194,14 +148,7 @@ function switchTab(tabName) {
     else if (tabName === 'ratings') loadMyRatings();
     else if (tabName === 'approaches' && isExpert) loadMyApproaches();
     else if (tabName === 'profile' && isExpert) renderExpertProfile();
-    else if (tabName === 'chat') showChatList();
-    
-  // If switching AWAY from chat, clear the poll
-  if (tabName !== 'chat' && chatPollingInterval) {
-    clearInterval(chatPollingInterval);
-    chatPollingInterval = null;
-    currentChatId = null;
-  }
+    else if (tabName === 'chat') showChatList();  // ✅ works for both roles
   }
 }
 
@@ -272,26 +219,8 @@ function enterDashboard() {
   const dashPage = state.user.role === 'client' ? 'clientDash' : 'expertDash';
   showPage(dashPage);
   loadNotifications();
-  // Clear any existing interval before creating a new one
-  if (notificationInterval) clearInterval(notificationInterval);
-  notificationInterval = setInterval(loadNotifications, 30000);
-  startInactivityWatcher();
+  setInterval(loadNotifications, 30000);
 
-  // Always refresh user status from server (warnings, restrictions may have changed)
-  fetch(`${API_URL}/auth/me`, {
-    headers: { 'Authorization': `Bearer ${state.token}` }
-  }).then(r => r.json()).then(data => {
-    console.log('[/me raw response]', JSON.stringify(data));         // ← NEW
-    console.log('[/me isRestricted from server]', data?.user?.isRestricted); // ← NEW
-    if (data.success && data.user) {
-      state.user = { ...state.user, ...data.user };
-      localStorage.setItem('user', JSON.stringify(state.user));
-      console.log('[state.user after merge]', state.user.isRestricted, state.user.warnings);
-    }
-  }).catch(err => console.error('[/me failed]', err)).finally(() => {
-    setTimeout(() => showWarningPopupIfNeeded(), 600);
-  });
-   
   // Show service filter modal for new experts
   if (state.user.role === 'expert') {
     const hasFilter = state.user?.profile?.browseServiceFilter?.length > 0;
@@ -305,73 +234,11 @@ function enterDashboard() {
     }
   }
 }
-
-// ─── WARNING / RESTRICTION HELPERS ───
-function isUserRestricted() {
-  return !!(state.user && state.user.isRestricted);
-}
-
-function showRestrictedToast() {
-  showToast('Your account has restrictions. Please raise a ticket or contact admin to remove them.', 'error');
-}
-
-function showWarningPopupIfNeeded() {
-  const u = state.user;
-  if (!u) return;
-  if (!u.warnings && !u.isRestricted) return;
-
-  // ✅ Restricted users: always show, no suppression ever
-  if (u.isRestricted) {
-    // Also clear any stale seenKey for warning 3 so it never suppresses
-    localStorage.removeItem('warnSeen_' + u._id + '_3');
-    localStorage.removeItem('warnSeen_' + u._id + '_' + (u.warnings || 0));
-  } else {
-    const seenKey = 'warnSeen_' + u._id + '_' + (u.warnings || 0);
-    if (localStorage.getItem(seenKey)) return;
-    localStorage.setItem(seenKey, '1');
-  }
-  const isRestricted = u.isRestricted;
-  const warnCount = u.warnings || 0;
-  const reason = (u.lastWarning && u.lastWarning.reason) ? u.lastWarning.reason : 'Violation of platform guidelines';
-  const color = isRestricted ? '#ef4444' : '#f59e0b';
-  const icon  = isRestricted ? '🚫' : '⚠️';
-  const title = isRestricted ? 'Account Restricted' : `Warning ${warnCount} of 3`;
-  const body  = isRestricted
-    ? `Your account has been <strong>restricted</strong> due to repeated violations.<br><br>You can still log in and view content, but you cannot approach clients, start chats, or send messages until this restriction is lifted.<br><br><strong>Reason:</strong> ${reason}`
-    : `You have received <strong>Warning ${warnCount}/3</strong> on your account.<br><br><strong>Reason:</strong> ${reason}<br><br>${warnCount >= 2 ? '<span style="color:#ef4444;font-weight:600;">⚠️ One more violation will restrict your account.</span>' : 'Please review the platform guidelines to avoid further action.'}`;
-
-  const overlay = document.createElement('div');
-  overlay.id = 'warnPopupOverlay';
-  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;';
-  overlay.innerHTML = `
-    <div style="background:#1a1a24;border:2px solid ${color};border-radius:16px;max-width:440px;width:100%;padding:28px;">
-      <div style="text-align:center;margin-bottom:20px;">
-        <div style="font-size:40px;margin-bottom:10px;">${icon}</div>
-        <div style="font-size:18px;font-weight:800;color:${color};">${title}</div>
-      </div>
-      <div style="font-size:14px;color:#a0a0b8;line-height:1.7;margin-bottom:20px;">${body}</div>
-      <div style="display:flex;flex-direction:column;gap:10px;">
-        <button onclick="document.getElementById('warnPopupOverlay').remove(); setTimeout(function(){ openTicketModal(); }, 100);" style="padding:12px;background:${color};border:none;border-radius:10px;color:#fff;font-size:14px;font-weight:700;cursor:pointer;">🎫 Raise a Support Ticket</button>
-        <button onclick="document.getElementById('warnPopupOverlay').remove();" style="padding:12px;background:transparent;border:1px solid #2a2a38;border-radius:10px;color:#a0a0b8;font-size:14px;cursor:pointer;">Dismiss</button>
-      </div>
-    </div>`;
-  document.body.appendChild(overlay);
-}
-
 function logout() {
-  stopInactivityWatcher();
-  if (notificationInterval) clearInterval(notificationInterval);
-  if (chatPollingInterval) clearInterval(chatPollingInterval);
-  notificationInterval = null;
-  chatPollingInterval = null;
-  currentChatId = null;
-  if (browseAbortController) browseAbortController.abort();
-  if (expertsAbortController) expertsAbortController.abort();
   localStorage.removeItem('token');
   localStorage.removeItem('user');
   state.token = null;
   state.user = null;
-  clearAuthForms();
   showPage('landing');
   showToast('Logged out successfully', 'success');
 }
@@ -946,141 +813,6 @@ function renderRatingBars(ratings) {
   
   document.getElementById('ratingBars').innerHTML = barsHTML;
 }
-async function openPublicProfile(expertId) {
-  const url = `${window.location.origin}/expert/${expertId}`;
-  if (navigator.share) {
-    navigator.share({ title: 'Check out this expert on WorkIndex', url });
-  } else {
-    navigator.clipboard.writeText(url).then(() => showToast('Profile link copied!', 'success'));
-  }
-}
-
-async function loadPublicExpertPage() {
-  const match = window.location.pathname.match(/^\/expert\/([a-f0-9]{24})$/i);
-  if (!match) return;
-  const expertId = match[1];
-
-  document.body.innerHTML = `<div style="min-height:100vh;background:#0f0f13;display:flex;align-items:center;justify-content:center;padding:20px;font-family:'Inter',sans-serif;">
-    <div id="pubCard" style="color:#f0f0f4;font-size:15px;">Loading...</div>
-  </div>`;
-
-  try {
-    const res = await fetch(`${API_URL}/users/public/${expertId}`);
-    const data = await res.json();
-    if (!data.success) { document.getElementById('pubCard').textContent = 'Expert not found.'; return; }
-    const e = data.expert, pr = e.profile || {};
-    const spec = e.specialization || pr.specialization || 'Professional';
-    const bio = e.bio || pr.bio || '';
-    const exp = e.yearsOfExperience || pr.yearsOfExperience || pr.experience || '';
-    const services = e.servicesOffered || pr.servicesOffered || [];
-    const city = (e.location?.city || pr.city || '');
-    const state2 = (e.location?.state || pr.state || '');
-    const loc = [city, state2].filter(Boolean).join(', ');
-    const kycVerified = e.kyc?.status === 'approved';
-    const serviceLabels = { itr:'ITR Filing', gst:'GST', accounting:'Accounting', audit:'Audit', photography:'Photography', development:'Development' };
-    const initials = (e.name||'?').split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
-
-    document.body.innerHTML = `
-    <div style="min-height:100vh;background:linear-gradient(135deg,#0f0f13 0%,#1a1a24 100%);padding:24px 16px;font-family:'Inter',sans-serif;">
-      <div style="max-width:520px;margin:0 auto;">
-
-        <!-- Header branding -->
-        <div style="text-align:center;margin-bottom:20px;">
-          <span style="font-size:13px;color:#606078;font-weight:600;letter-spacing:.08em;">WORKINDEX</span>
-        </div>
-
-        <!-- Main card -->
-        <div style="background:#18181d;border-radius:20px;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,0.5);border:1px solid #222230;">
-
-          <!-- Top gradient banner -->
-          <div style="height:80px;background:linear-gradient(135deg,#FC8019,#e5610a);"></div>
-
-          <!-- Avatar overlapping banner -->
-          <div style="padding:0 24px 24px;margin-top:-44px;">
-            <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:16px;">
-              <div style="width:80px;height:80px;border-radius:50%;border:4px solid #18181d;overflow:hidden;background:#FC8019;display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:800;color:#fff;flex-shrink:0;">
-                ${e.profilePhoto ? `<img src="${e.profilePhoto}" style="width:100%;height:100%;object-fit:cover;">` : initials}
-              </div>
-              <div style="display:flex;gap:8px;margin-bottom:6px;">
-                ${kycVerified ? `<span style="background:rgba(34,197,94,0.12);color:#22c55e;border:1px solid rgba(34,197,94,0.25);border-radius:20px;padding:5px 12px;font-size:12px;font-weight:700;">✅ KYC Verified</span>` : ''}
-                ${e.emailVerified ? `<span style="background:rgba(252,128,25,0.12);color:#FC8019;border:1px solid rgba(252,128,25,0.25);border-radius:20px;padding:5px 12px;font-size:12px;font-weight:700;">✉️ Email Verified</span>` : ''}
-              </div>
-            </div>
-
-            <h1 style="font-size:24px;font-weight:800;color:#f0f0f4;margin:0 0 4px;">${e.name}</h1>
-            <p style="font-size:15px;color:#FC8019;font-weight:600;margin:0 0 6px;">${spec}</p>
-            ${loc ? `<p style="font-size:13px;color:#606078;margin:0 0 14px;">📍 ${loc}</p>` : ''}
-
-            <!-- Stats row -->
-            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px;">
-              <div style="background:#111116;border-radius:12px;padding:12px;text-align:center;">
-                <div style="font-size:20px;font-weight:800;color:#f59e0b;">${e.rating ? Number(e.rating).toFixed(1) : '—'}</div>
-                <div style="font-size:11px;color:#606078;margin-top:2px;">Rating</div>
-              </div>
-              <div style="background:#111116;border-radius:12px;padding:12px;text-align:center;">
-                <div style="font-size:20px;font-weight:800;color:#f0f0f4;">${e.reviewCount || 0}</div>
-                <div style="font-size:11px;color:#606078;margin-top:2px;">Reviews</div>
-              </div>
-              <div style="background:#111116;border-radius:12px;padding:12px;text-align:center;">
-                <div style="font-size:18px;font-weight:800;color:#f0f0f4;">${exp ? exp+'yr' : '—'}</div>
-                <div style="font-size:11px;color:#606078;margin-top:2px;">Experience</div>
-              </div>
-            </div>
-
-            ${services.length ? `
-            <div style="margin-bottom:20px;">
-              <div style="font-size:11px;color:#606078;font-weight:700;letter-spacing:.06em;margin-bottom:8px;">SERVICES</div>
-              <div style="display:flex;flex-wrap:wrap;gap:6px;">
-                ${services.map(s=>`<span style="background:rgba(252,128,25,0.12);color:#FC8019;border:1px solid rgba(252,128,25,0.25);border-radius:8px;padding:5px 12px;font-size:13px;font-weight:600;">${serviceLabels[s]||s}</span>`).join('')}
-              </div>
-            </div>` : ''}
-
-            ${bio ? `
-            <div style="margin-bottom:20px;">
-              <div style="font-size:11px;color:#606078;font-weight:700;letter-spacing:.06em;margin-bottom:8px;">ABOUT</div>
-              <p style="font-size:14px;color:#c0c0d8;line-height:1.7;margin:0;">${bio}</p>
-            </div>` : ''}
-
-            ${e.whyChooseMe ? `
-            <div style="margin-bottom:20px;padding:14px 16px;background:rgba(252,128,25,0.06);border-left:3px solid #FC8019;border-radius:0 10px 10px 0;">
-              <div style="font-size:11px;color:#FC8019;font-weight:700;letter-spacing:.06em;margin-bottom:6px;">💡 WHY CHOOSE ME</div>
-              <p style="font-size:14px;color:#c0c0d8;line-height:1.7;margin:0;">${e.whyChooseMe}</p>
-            </div>` : ''}
-
-            ${data.ratings?.length ? `
-            <div style="margin-bottom:20px;">
-              <div style="font-size:11px;color:#606078;font-weight:700;letter-spacing:.06em;margin-bottom:10px;">RECENT REVIEWS</div>
-              ${data.ratings.map(r=>`
-              <div style="background:#111116;border-radius:12px;padding:14px;margin-bottom:8px;">
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-                  <span style="font-size:14px;font-weight:600;color:#f0f0f4;">${r.client?.name||'Client'}</span>
-                  <span style="color:#f59e0b;font-size:14px;">${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}</span>
-                </div>
-                <p style="font-size:13px;color:#a0a0b8;margin:0;line-height:1.5;">${r.review}</p>
-              </div>`).join('')}
-            </div>` : ''}
-
-            <!-- CTA -->
-            <a href="/" style="display:block;text-align:center;padding:15px;background:#FC8019;color:#fff;border-radius:12px;font-size:15px;font-weight:700;text-decoration:none;margin-bottom:10px;">
-              Post a Request → Get Quotes
-            </a>
-            <p style="text-align:center;font-size:12px;color:#606078;margin:0;">Connect with ${e.name.split(' ')[0]} on WorkIndex</p>
-          </div>
-        </div>
-
-        <!-- Share button -->
-        <div style="text-align:center;margin-top:16px;">
-          <button onclick="navigator.clipboard.writeText(window.location.href).then(()=>this.textContent='✅ Link Copied!')"
-            style="background:transparent;border:1px solid #333;color:#606078;padding:8px 20px;border-radius:20px;font-size:13px;cursor:pointer;">
-            🔗 Copy Profile Link
-          </button>
-        </div>
-      </div>
-    </div>`;
-  } catch(err) {
-    document.getElementById('pubCard').textContent = 'Failed to load profile.';
-  }
-}
 
 async function respondToReview(ratingId) {
   const response = prompt('Your response to this review:');
@@ -1237,16 +969,10 @@ async function loadExperts(filters = {}) {
   loading.style.display = 'block';
   grid.innerHTML = '';
   empty.style.display = 'none';
-
-  // Cancel any previous experts fetch
-  if (expertsAbortController) expertsAbortController.abort();
-  expertsAbortController = new AbortController();
-
+  
   try {
     const params = new URLSearchParams(filters);
-    const res = await fetch(`${API_URL}/users/experts?${params}`, {
-      signal: expertsAbortController.signal
-    });
+    const res = await fetch(`${API_URL}/users/experts?${params}`);
     const data = await res.json();
     
     loading.style.display = 'none';
@@ -1258,7 +984,6 @@ async function loadExperts(filters = {}) {
       empty.style.display = 'block';
     }
   } catch (error) {
-    if (error.name === 'AbortError') return; // navigation cancelled this — ignore
     console.error('Load experts error:', error);
     loading.style.display = 'none';
     empty.style.display = 'block';
@@ -1269,130 +994,49 @@ function renderExperts() {
   if (!grid) return;
 
   const allExperts = state.experts || [];
-
-  if (!allExperts.length) {
-    grid.innerHTML = `
-      <div style="grid-column:1/-1;text-align:center;padding:48px 20px;">
-        <svg width="64" height="64" viewBox="0 0 64 64" fill="none" style="margin-bottom:16px;opacity:0.4;">
-          <circle cx="32" cy="24" r="12" stroke="#FC8019" stroke-width="2.5" fill="none"/>
-          <path d="M8 56c0-13.255 10.745-24 24-24s24 10.745 24 24" stroke="#FC8019" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-        </svg>
-        <h3 style="font-size:17px;font-weight:700;color:var(--text);margin-bottom:6px;">No experts found</h3>
-        <p style="font-size:14px;color:var(--text-muted);">Try a different service or clear your filters</p>
-      </div>`;
-    return;
-  }
-
-  const svcColors = { itr:'#8b5cf6', gst:'#3b82f6', accounting:'#10b981', audit:'#f59e0b', photography:'#ec4899', development:'#06b6d4' };
-  const serviceLabels = { itr:'ITR Filing', gst:'GST', accounting:'Accounting', audit:'Audit', photography:'Photography', development:'Development' };
-  const availMap = {
-    available: { dot: '#22c55e', label: 'Available' },
-    busy:      { dot: '#ef4444', label: 'Busy' },
-    away:      { dot: '#f59e0b', label: 'Away' }
-  };
-
   const items = paginate(allExperts, 'findExperts');
 
-  grid.innerHTML = items.map(expert => {
-    const profile = expert.profile || {};
-    const spec = expert.specialization || profile.specialization || 'Professional';
-    const bio = expert.bio || profile.bio || '';
-    const services = expert.servicesOffered || profile.servicesOffered || [];
-    const city = expert.location?.city || profile.city || '';
-    const exp = expert.yearsOfExperience || profile.yearsOfExperience || profile.experience || '';
-    const avail = availMap[expert.availability || 'available'];
-    const kycVerified = expert.kyc?.status === 'approved';
-    const initials = (expert.name || '?').substring(0, 2).toUpperCase();
-    const primarySvc = services[0];
-    const svcColor = svcColors[primarySvc] || '#FC8019';
-    const isShortlisted = (_clientShortlisted || []).includes(expert._id);
-
-    return `
-      <div style="background:var(--bg);border:1.5px solid var(--border);border-radius:16px;overflow:hidden;transition:all 0.2s;display:flex;flex-direction:column;"
-        onmouseover="this.style.borderColor='rgba(252,128,25,0.4)';this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 24px rgba(0,0,0,0.08)'"
-        onmouseout="this.style.borderColor='var(--border)';this.style.transform='translateY(0)';this.style.boxShadow='none'">
-
-        <!-- Colored top bar -->
-        <div style="height:5px;background:linear-gradient(90deg,${svcColor},${svcColor}88);"></div>
-
-        <!-- Card body -->
-        <div style="padding:16px;flex:1;display:flex;flex-direction:column;">
-
-          <!-- Avatar + name row -->
-          <div style="display:flex;gap:12px;align-items:flex-start;margin-bottom:12px;">
-            <div style="width:52px;height:52px;border-radius:50%;background:${svcColor};color:#fff;font-size:17px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;position:relative;">
-              ${expert.profilePhoto
-                ? `<img src="${expert.profilePhoto}" style="width:100%;height:100%;object-fit:cover;">`
-                : initials}
-              <!-- Availability dot -->
-              <span style="position:absolute;bottom:1px;right:1px;width:12px;height:12px;border-radius:50%;background:${avail.dot};border:2px solid var(--bg);"></span>
-            </div>
-            <div style="flex:1;min-width:0;">
-              <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-bottom:2px;">
-                <span style="font-size:15px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${expert.name}</span>
-                ${kycVerified ? `<span style="font-size:10px;font-weight:700;padding:1px 6px;border-radius:20px;background:rgba(34,197,94,0.1);color:#16a34a;flex-shrink:0;">✓ KYC</span>` : ''}
-              </div>
-              <div style="font-size:12px;font-weight:600;color:${svcColor};">${spec}</div>
-              <div style="display:flex;align-items:center;gap:8px;margin-top:4px;flex-wrap:wrap;">
-                ${expert.rating ? `<span style="font-size:12px;font-weight:700;color:#f59e0b;">⭐ ${Number(expert.rating).toFixed(1)} <span style="color:var(--text-muted);font-weight:400;">(${expert.reviewCount || 0})</span></span>` : '<span style="font-size:12px;color:var(--text-muted);">No reviews yet</span>'}
-                ${city ? `<span style="font-size:11px;color:var(--text-muted);">📍 ${city}</span>` : ''}
-                ${exp ? `<span style="font-size:11px;color:var(--text-muted);">${exp}yr exp</span>` : ''}
-              </div>
-            </div>
-          </div>
-
-          <!-- Bio -->
-          ${bio ? `<p style="font-size:12.5px;color:var(--text-light);line-height:1.55;margin-bottom:10px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">${bio}</p>` : ''}
-
-          <!-- Service tags -->
-          ${services.length ? `
-          <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:12px;">
-            ${services.slice(0, 3).map(s => `<span style="font-size:11px;font-weight:600;padding:2px 8px;border-radius:6px;background:${(svcColors[s]||'#FC8019')}14;color:${svcColors[s]||'#FC8019'};">${serviceLabels[s] || s}</span>`).join('')}
-          </div>` : '<div style="flex:1;"></div>'}
-
-          <!-- Action buttons -->
-          <div style="margin-top:auto;">
-            <button onclick="viewExpertProfile('${expert._id}', true)"
-              style="padding:10px;background:var(--primary);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;transition:all 0.2s;"
-              onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
-              View Profile
-            </button>
-            </div>
+  grid.innerHTML = items.map(expert => `
+    <div class="expert-card" onclick="viewExpertProfile('${expert._id}')">
+      <div class="expert-card-header">
+        <div class="avatar avatar-lg">
+          ${expert.profilePhoto
+            ? `<img src="${expert.profilePhoto}" alt="${expert.name}">`
+            : expert.name.substring(0, 2).toUpperCase()}
         </div>
-      </div>`;
-  }).join('') + paginationControlsHTML(allExperts, 'findExperts');
+        <div class="expert-card-info">
+          <div class="expert-card-name">${expert.name}</div>
+          <div class="expert-card-specialty">${expert.specialization || 'Professional'}</div>
+        </div>
+      </div>
+      <div class="expert-card-rating">
+        <div class="rating-stars">${renderStars(Math.floor(expert.rating || 0))}</div>
+        <span style="font-size:14px;color:var(--text-muted);">
+          ${expert.rating || '0.0'} (${expert.reviewCount || 0} reviews)
+        </span>
+      </div>
+      ${expert.bio ? `<div class="expert-card-bio">${expert.bio}</div>` : ''}
+      ${expert.servicesOffered?.length ? `
+        <div class="expert-card-tags">
+          ${expert.servicesOffered.slice(0, 3).map(s => `<span class="badge badge-primary">${s}</span>`).join('')}
+        </div>` : ''}
+      <div class="expert-card-footer">
+        ${expert.location ? `<div class="expert-location">📍 ${expert.location.city || 'India'}</div>` : ''}
+        <button class="btn-primary" style="padding:8px 16px;font-size:14px;">View Profile</button>
+      </div>
+    </div>
+  `).join('') + paginationControlsHTML(allExperts, 'findExperts');
 }
-function toggleShortlist(expertId, btn) {
-  _clientShortlisted = _clientShortlisted || [];
-  const idx = _clientShortlisted.indexOf(expertId);
-  if (idx === -1) {
-    _clientShortlisted.push(expertId);
-    btn.innerHTML = '❤️';
-    btn.style.color = '#ef4444';
-    btn.style.background = 'rgba(239,68,68,0.08)';
-    showToast('Expert saved to shortlist', 'success');
-  } else {
-    _clientShortlisted.splice(idx, 1);
-    btn.innerHTML = '🤍';
-    btn.style.color = 'var(--text-muted)';
-    btn.style.background = 'transparent';
-    showToast('Removed from shortlist', 'info');
-  }
-}
-
 function filterExperts(service) {
-  // Update active filter chip immediately (instant UI feedback)
+  // Update active filter chip
   document.querySelectorAll('.filter-chip').forEach(chip => {
     chip.classList.remove('active');
   });
   document.querySelector(`[data-service="${service}"]`)?.classList.add('active');
-
-  // Debounce the API call — prevents rapid chip clicks firing multiple requests
-  clearTimeout(searchTimeout);
-  searchTimeout = setTimeout(() => {
-    const filters = service !== 'all' ? { service } : {};
-    loadExperts(filters);
-  }, 300);
+  
+  // Load experts with filter
+  const filters = service !== 'all' ? { service } : {};
+  loadExperts(filters);
 }
 
 function sortExperts(sortBy) {
@@ -1615,7 +1259,7 @@ async function viewExpertProfile(expertId, loggedIn = false) {
         ` : ''}
 
         <button onclick="document.getElementById('expertProfileModal')?.remove()" style="width: 100%; padding: 14px; border: 1.5px solid var(--border); border-radius: 10px; background: transparent; color: var(--text); font-size: 15px; font-weight: 600; cursor: pointer;">Close</button>
-        </div>
+      </div>
     `;
 
     document.body.appendChild(modal);
@@ -1803,45 +1447,6 @@ function formatFileSize(bytes) {
   const i = Math.floor(Math.log(bytes) / Math.log(k));
   return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
 }
-// ─── PROFILE DROPDOWN ───
-function toggleProfileDropdown(dropdownId) {
-  const dropdown = document.getElementById(dropdownId);
-  if (!dropdown) return;
-
-  const isOpen = dropdown.style.display === 'block';
-
-  // Close all dropdowns first
-  document.querySelectorAll('#clientProfileDropdown, #expertProfileDropdown').forEach(d => {
-    d.style.display = 'none';
-  });
-
-  if (!isOpen) {
-    // Populate name/email before showing
-    if (state.user) {
-      const nameEl  = document.getElementById(dropdownId === 'clientProfileDropdown' ? 'clientDropdownName' : 'expertDropdownName');
-      const emailEl = document.getElementById(dropdownId === 'clientProfileDropdown' ? 'clientDropdownEmail' : 'expertDropdownEmail');
-      if (nameEl)  nameEl.textContent  = state.user.name  || 'My Account';
-      if (emailEl) emailEl.textContent = state.user.email || '';
-    }
-
-    // Sync dark mode toggle state
-    const isDark = localStorage.getItem('darkMode') === 'true';
-    const toggle = document.getElementById(dropdownId === 'clientProfileDropdown' ? 'darkModeToggle' : 'darkModeToggle2');
-    if (toggle) toggle.checked = isDark;
-
-    dropdown.style.display = 'block';
-
-    // Close when clicking outside
-    setTimeout(() => {
-      document.addEventListener('click', function closeDropdown(e) {
-        if (!dropdown.contains(e.target)) {
-          dropdown.style.display = 'none';
-          document.removeEventListener('click', closeDropdown);
-        }
-      });
-    }, 10);
-  }
-}
 
 // ─── LOAD CLIENT DATA ─── 
 async function loadClientData() {
@@ -1878,23 +1483,23 @@ function renderClientRequests() {
 
   const allRequests = state.requests || [];
 
-  // ── Client stat hero ──
-  const existingHero = document.getElementById('clientStatHero');
+  // ── Stat hero ──
+  const active    = allRequests.filter(r => r.status === 'active' || r.status === 'pending').length;
+  const totalAppr = allRequests.reduce(function(sum, r) { return sum + (r.approachCount || r.currentApproaches || 0); }, 0);
+  const completed = allRequests.filter(r => r.status === 'completed').length;
+
+  var existingHero = document.getElementById('clientStatHero');
   if (!existingHero) {
-    const hero = document.createElement('div');
+    var hero = document.createElement('div');
     hero.id = 'clientStatHero';
     hero.style.cssText = 'display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px;';
-    const active    = allRequests.filter(r => r.status === 'active' || r.status === 'pending').length;
-    const totalAppr = allRequests.reduce((sum, r) => sum + (r.approachCount || r.currentApproaches || 0), 0);
-    const completed = allRequests.filter(r => r.status === 'completed').length;
-    const stats = [
-      { label: 'Active',     value: active,    color: '#FC8019', icon: '📋' },
-      { label: 'Proposals',  value: totalAppr, color: '#3b82f6', icon: '📨' },
-      { label: 'Completed',  value: completed, color: '#22c55e', icon: '✅' }
+    var stats = [
+      { label: 'Active',    value: active,    color: '#FC8019', icon: '📋' },
+      { label: 'Proposals', value: totalAppr, color: '#3b82f6', icon: '📨' },
+      { label: 'Completed', value: completed, color: '#22c55e', icon: '✅' }
     ];
     hero.innerHTML = stats.map(function(s) {
-      return '<div onclick="' + s.action + '"' +
-        ' style="background:var(--bg);border:1.5px solid var(--border);border-radius:14px;padding:14px 12px;text-align:center;cursor:pointer;transition:all 0.2s;"' +
+      return '<div style="background:var(--bg);border:1.5px solid var(--border);border-radius:14px;padding:14px 12px;text-align:center;cursor:pointer;transition:all 0.2s;"' +
         ' onmouseover="this.style.borderColor=\'' + s.color + '\';this.style.transform=\'translateY(-2px)\'"' +
         ' onmouseout="this.style.borderColor=\'var(--border)\';this.style.transform=\'translateY(0)\'">' +
         '<div style="font-size:20px;margin-bottom:4px;">' + s.icon + '</div>' +
@@ -1904,106 +1509,95 @@ function renderClientRequests() {
     }).join('');
     container.parentNode.insertBefore(hero, container);
   } else {
-    const vals = existingHero.querySelectorAll('[style*="font-size:22px"]');
-    const active    = allRequests.filter(r => r.status === 'active' || r.status === 'pending').length;
-    const totalAppr = allRequests.reduce((sum, r) => sum + (r.approachCount || r.currentApproaches || 0), 0);
-    const completed = allRequests.filter(r => r.status === 'completed').length;
+    var vals = existingHero.querySelectorAll('[style*="font-size:22px"]');
     if (vals[0]) vals[0].textContent = active;
     if (vals[1]) vals[1].textContent = totalAppr;
     if (vals[2]) vals[2].textContent = completed;
   }
 
   if (!allRequests.length) {
-    container.innerHTML = `
-      <div style="text-align:center;padding:48px 20px;">
-        <svg width="80" height="80" viewBox="0 0 80 80" fill="none" style="margin-bottom:16px;opacity:0.5;">
-          <rect x="12" y="16" width="56" height="48" rx="8" stroke="#FC8019" stroke-width="2.5" fill="none"/>
-          <line x1="24" y1="32" x2="56" y2="32" stroke="#FC8019" stroke-width="2" stroke-linecap="round"/>
-          <line x1="24" y1="42" x2="48" y2="42" stroke="#FC8019" stroke-width="2" stroke-linecap="round"/>
-          <line x1="24" y1="52" x2="40" y2="52" stroke="#FC8019" stroke-width="2" stroke-linecap="round"/>
-        </svg>
-        <h3 style="font-size:18px;font-weight:700;color:var(--text);margin-bottom:8px;">No requests yet</h3>
-        <p style="font-size:14px;color:var(--text-muted);line-height:1.6;max-width:240px;margin:0 auto 20px;">Post your first request and get proposals from verified professionals within hours.</p>
-        <button onclick="document.getElementById('newRequestBtn')?.click()"
-          style="padding:12px 28px;background:var(--primary);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;">
-          + Post a Request
-        </button>
-      </div>`;
+    container.innerHTML = '<div style="text-align:center;padding:48px 20px;">' +
+      '<svg width="80" height="80" viewBox="0 0 80 80" fill="none" style="margin-bottom:16px;opacity:0.5;">' +
+      '<rect x="12" y="16" width="56" height="48" rx="8" stroke="#FC8019" stroke-width="2.5" fill="none"/>' +
+      '<line x1="24" y1="32" x2="56" y2="32" stroke="#FC8019" stroke-width="2" stroke-linecap="round"/>' +
+      '<line x1="24" y1="42" x2="48" y2="42" stroke="#FC8019" stroke-width="2" stroke-linecap="round"/>' +
+      '<line x1="24" y1="52" x2="40" y2="52" stroke="#FC8019" stroke-width="2" stroke-linecap="round"/>' +
+      '</svg>' +
+      '<h3 style="font-size:18px;font-weight:700;color:var(--text);margin-bottom:8px;">No requests yet</h3>' +
+      '<p style="font-size:14px;color:var(--text-muted);line-height:1.6;max-width:240px;margin:0 auto 20px;">Post your first request and get proposals from verified professionals within hours.</p>' +
+      '<button onclick="document.getElementById(\'newRequestBtn\')?.click()" style="padding:12px 28px;background:var(--primary);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;">+ Post a Request</button>' +
+      '</div>';
     return;
   }
 
-  const svcColors = { itr:'#8b5cf6', gst:'#3b82f6', accounting:'#10b981', audit:'#f59e0b', photography:'#ec4899', development:'#06b6d4' };
-  const stMap = {
+  var svcColors = { itr:'#8b5cf6', gst:'#3b82f6', accounting:'#10b981', audit:'#f59e0b', photography:'#ec4899', development:'#06b6d4' };
+  var stMap = {
     pending:   { label:'Pending',   color:'#f59e0b', bg:'rgba(245,158,11,0.1)',  icon:'⏳' },
     active:    { label:'Active',    color:'#FC8019', bg:'rgba(252,128,25,0.1)',  icon:'🟢' },
     completed: { label:'Completed', color:'#22c55e', bg:'rgba(34,197,94,0.1)',   icon:'✅' },
     cancelled: { label:'Cancelled', color:'#ef4444', bg:'rgba(239,68,68,0.1)',   icon:'❌' }
   };
 
-  const items = paginate(allRequests, 'clientRequests');
+  var items = paginate(allRequests, 'clientRequests');
 
-  container.innerHTML = items.map(req => {
-    const st = stMap[req.status] || stMap.pending;
-    const svcColor = svcColors[req.service] || '#FC8019';
-    const apprCount = req.approachCount || req.currentApproaches || 0;
-    const ago = (() => {
-      if (!req.createdAt) return '';
-      const diff = Date.now() - new Date(req.createdAt).getTime();
-      const hrs = Math.floor(diff / 3600000);
-      const days = Math.floor(diff / 86400000);
-      if (hrs < 1) return 'just now';
-      if (hrs < 24) return hrs + 'h ago';
-      if (days === 1) return 'Yesterday';
-      return days + 'd ago';
-    })();
+  container.innerHTML = items.map(function(req) {
+    var st = stMap[req.status] || stMap.pending;
+    var svcColor = svcColors[req.service] || '#FC8019';
+    var apprCount = req.approachCount || req.currentApproaches || 0;
+    var ago = '';
+    if (req.createdAt) {
+      var diff = Date.now() - new Date(req.createdAt).getTime();
+      var hrs  = Math.floor(diff / 3600000);
+      var days = Math.floor(diff / 86400000);
+      if (hrs < 1)       ago = 'just now';
+      else if (hrs < 24) ago = hrs + 'h ago';
+      else if (days ===1)ago = 'Yesterday';
+      else               ago = days + 'd ago';
+    }
 
-    return `
-      <div style="background:var(--bg);border:1.5px solid var(--border);border-radius:16px;overflow:hidden;margin-bottom:12px;transition:all 0.2s;cursor:pointer;border-left:4px solid ${st.color};"
-        onclick="showRequestDetail('${req._id}')"
-        onmouseover="this.style.boxShadow='0 8px 24px rgba(0,0,0,0.08)';this.style.transform='translateY(-2px)'"
-        onmouseout="this.style.boxShadow='none';this.style.transform='translateY(0)'">
+    return '<div style="background:var(--bg);border:1.5px solid var(--border);border-left:4px solid ' + st.color + ';border-radius:16px;overflow:hidden;margin-bottom:12px;transition:all 0.2s;cursor:pointer;"' +
+      ' onclick="showRequestDetail(\'' + req._id + '\')"' +
+      ' onmouseover="this.style.boxShadow=\'0 8px 24px rgba(0,0,0,0.08)\';this.style.transform=\'translateY(-2px)\'"' +
+      ' onmouseout="this.style.boxShadow=\'none\';this.style.transform=\'translateY(0)\'">' +
 
-        <!-- Top strip -->
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:var(--bg-gray);border-bottom:1px solid var(--border);flex-wrap:wrap;gap:6px;">
-          <div style="display:flex;align-items:center;gap:6px;">
-            <span style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;background:${svcColor}18;color:${svcColor};text-transform:uppercase;letter-spacing:.04em;">${req.service}</span>
-            <span style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;background:${st.bg};color:${st.color};">${st.icon} ${st.label}</span>
-          </div>
-          <span style="font-size:11px;color:var(--text-muted);">🕐 ${ago}</span>
-        </div>
+      '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:var(--bg-gray);border-bottom:1px solid var(--border);flex-wrap:wrap;gap:6px;">' +
+        '<div style="display:flex;align-items:center;gap:6px;">' +
+          '<span style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;background:' + svcColor + '18;color:' + svcColor + ';text-transform:uppercase;letter-spacing:.04em;">' + req.service + '</span>' +
+          '<span style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;background:' + st.bg + ';color:' + st.color + ';">' + st.icon + ' ' + st.label + '</span>' +
+        '</div>' +
+        (ago ? '<span style="font-size:11px;color:var(--text-muted);">🕐 ' + ago + '</span>' : '') +
+      '</div>' +
 
-        <!-- Body -->
-        <div style="padding:16px;">
-          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:10px;">
-            <div style="flex:1;">
-              <h3 style="font-size:17px;font-weight:800;color:var(--text);margin-bottom:6px;line-height:1.25;letter-spacing:-0.2px;">${req.title}</h3>
-              <div style="display:flex;flex-wrap:wrap;gap:8px;">
-                ${req.location ? `<span style="font-size:12px;color:var(--text-muted);">📍 ${req.location}</span>` : ''}
-                ${req.timeline ? `<span style="font-size:12px;color:var(--text-muted);">⏱ ${req.timeline}</span>` : ''}
-                <span style="font-size:12px;color:var(--text-muted);">👁 ${req.viewCount || 0} views</span>
-              </div>
-            </div>
-            <div style="text-align:right;flex-shrink:0;background:rgba(252,128,25,0.06);border:1.5px solid rgba(252,128,25,0.2);border-radius:12px;padding:8px 12px;">
-              <div style="font-size:18px;font-weight:800;color:var(--primary);line-height:1;">₹${req.budget ? Number(req.budget).toLocaleString('en-IN') : '—'}</div>
-              <div style="font-size:10px;color:var(--text-muted);margin-top:2px;font-weight:600;text-transform:uppercase;">Budget</div>
-            </div>
-          </div>
+      '<div style="padding:16px;">' +
+        '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:10px;">' +
+          '<div style="flex:1;">' +
+            '<h3 style="font-size:17px;font-weight:800;color:var(--text);margin-bottom:6px;line-height:1.25;">' + req.title + '</h3>' +
+            '<div style="display:flex;flex-wrap:wrap;gap:8px;">' +
+              (req.location ? '<span style="font-size:12px;color:var(--text-muted);">📍 ' + req.location + '</span>' : '') +
+              (req.timeline ? '<span style="font-size:12px;color:var(--text-muted);">⏱ ' + req.timeline + '</span>' : '') +
+              '<span style="font-size:12px;color:var(--text-muted);">👁 ' + (req.viewCount || 0) + ' views</span>' +
+            '</div>' +
+          '</div>' +
+          '<div style="text-align:right;flex-shrink:0;background:rgba(252,128,25,0.06);border:1.5px solid rgba(252,128,25,0.2);border-radius:12px;padding:8px 12px;">' +
+            '<div style="font-size:18px;font-weight:800;color:var(--primary);line-height:1;">₹' + (req.budget ? Number(req.budget).toLocaleString('en-IN') : '—') + '</div>' +
+            '<div style="font-size:10px;color:var(--text-muted);margin-top:2px;font-weight:600;text-transform:uppercase;">Budget</div>' +
+          '</div>' +
+        '</div>' +
 
-          <p style="font-size:13px;color:var(--text-light);line-height:1.6;margin-bottom:14px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">${req.description || ''}</p>
+        '<p style="font-size:13px;color:var(--text-light);line-height:1.6;margin-bottom:14px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">' + (req.description || '') + '</p>' +
 
-          ${apprCount > 0 ? `
-          <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:rgba(252,128,25,0.06);border-radius:10px;border:1px solid rgba(252,128,25,0.15);">
-            <span style="font-size:13px;font-weight:600;color:var(--primary);">📨 ${apprCount} proposal${apprCount > 1 ? 's' : ''} received</span>
-            <span style="font-size:12px;color:var(--primary);font-weight:700;">Review →</span>
-          </div>` : `
-          <div style="padding:10px 12px;background:var(--bg-gray);border-radius:10px;">
-            <span style="font-size:13px;color:var(--text-muted);">⏳ Waiting for professionals to respond</span>
-          </div>`}
-        </div>
-      </div>`;
+        (apprCount > 0
+          ? '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:rgba(252,128,25,0.06);border-radius:10px;border:1px solid rgba(252,128,25,0.15);">' +
+              '<span style="font-size:13px;font-weight:600;color:var(--primary);">📨 ' + apprCount + ' proposal' + (apprCount > 1 ? 's' : '') + ' received</span>' +
+              '<span style="font-size:12px;color:var(--primary);font-weight:700;">Review →</span>' +
+            '</div>'
+          : '<div style="padding:10px 12px;background:var(--bg-gray);border-radius:10px;">' +
+              '<span style="font-size:13px;color:var(--text-muted);">⏳ Waiting for professionals to respond</span>' +
+            '</div>') +
+      '</div>' +
+    '</div>';
   }).join('') + paginationControlsHTML(allRequests, 'clientRequests');
 }
-
 // ─── UPDATE CLIENT PROFILE ───
 function updateClientProfile() {
   const user = state.user;
@@ -2056,18 +1650,9 @@ async function loadExpertData() {
     console.error('Load user data error:', error);
   }
   
-  // Cancel any previous browse fetch
-  if (browseAbortController) browseAbortController.abort();
-  browseAbortController = new AbortController();
-
   // Load available requests for experts
   try {
-    const browseParams = new URLSearchParams();
-    if (state.browseServiceFilter?.length === 1) browseParams.set('service', state.browseServiceFilter[0]);
-    if (state.browseSearch) browseParams.set('search', state.browseSearch);
-    if (state.browseSort) browseParams.set('sort', state.browseSort);
-    const res = await fetch(`${API_URL}/requests/available?${browseParams}`, {
-      signal: browseAbortController.signal,
+    const res = await fetch(`${API_URL}/requests/available`, {
       headers: {
         'Authorization': `Bearer ${state.token}`,
         'Content-Type': 'application/json'
@@ -2085,7 +1670,6 @@ async function loadExpertData() {
       // ✅ REMOVE renderExpertProfile() from here
     }
   } catch (error) {
-    if (error.name === 'AbortError') return; // navigation cancelled this — ignore
     console.error('Load expert data error:', error);
   }
   
@@ -2102,305 +1686,104 @@ function renderBrowseFilterChips() {
     { value: 'photography', label: '📷 Photography' },
     { value: 'development', label: '💻 Development' },
   ];
+
   const activeFilter = state.browseServiceFilter || [];
+
   return services.map(s => {
-    const isActive = s.value === 'all' ? activeFilter.length === 0 : activeFilter.includes(s.value);
-    return `<button class="browse-filter-chip" data-service="${s.value}" onclick="setBrowseFilter('${s.value}')"
-      style="padding:7px 16px;border:1.5px solid ${isActive ? 'var(--primary)' : 'var(--border)'};border-radius:20px;
-             background:${isActive ? 'var(--primary)' : 'transparent'};color:${isActive ? '#fff' : 'var(--text)'};
-             font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;transition:all 0.2s;">
+    const isActive = s.value === 'all'
+      ? activeFilter.length === 0
+      : activeFilter.includes(s.value);
+
+    return `<button
+      class="browse-filter-chip"
+      data-service="${s.value}"
+      onclick="setBrowseFilter('${s.value}')"
+      style="padding:7px 16px;
+             border:1.5px solid ${isActive ? 'var(--primary)' : 'var(--border)'};
+             border-radius:20px;
+             background:${isActive ? 'var(--primary)' : 'transparent'};
+             color:${isActive ? '#fff' : 'var(--text)'};
+             font-size:13px;font-weight:600;
+             cursor:pointer;white-space:nowrap;transition:all 0.2s;">
       ${s.label}
     </button>`;
   }).join('');
 }
 
-async function applyBrowseFilters() {
-  PAGINATION.expertBrowse.page = 1;
-  await loadExpertData();
-}
-
-function renderBrowseToolbar() {
-  const sortOpts = [
-    { value: 'newest',    label: 'Newest First' },
-    { value: 'oldest',    label: 'Oldest First' },
-    { value: 'budget_h',  label: 'Budget: High → Low' },
-    { value: 'budget_l',  label: 'Budget: Low → High' },
-    { value: 'credits_h', label: 'Credits: High → Low' },
-  ];
-  const cur = state.browseSort || 'newest';
-  const hasSearch = state.browseSearch && state.browseSearch.trim();
-  return `
-    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px;">
-      <div style="flex:1;min-width:180px;position:relative;">
-        <input id="browseSearchInput" type="text" placeholder="🔍 Search requests..."
-          value="${state.browseSearch || ''}"
-          onkeydown="if(event.key==='Enter'){state.browseSearch=this.value.trim();applyBrowseFilters();}"
-          style="width:100%;padding:9px 38px 9px 14px;border:1.5px solid var(--border);border-radius:10px;
-                 background:var(--bg);color:var(--text);font-size:14px;box-sizing:border-box;">
-        <button onclick="state.browseSearch=document.getElementById('browseSearchInput').value.trim();applyBrowseFilters();"
-          style="position:absolute;right:8px;top:50%;transform:translateY(-50%);border:none;background:none;
-                 color:var(--primary);font-size:16px;cursor:pointer;padding:4px;">→</button>
-      </div>
-      <select onchange="state.browseSort=this.value;applyBrowseFilters();"
-        style="padding:9px 14px;border:1.5px solid var(--border);border-radius:10px;background:var(--bg);
-               color:var(--text);font-size:13px;font-weight:600;cursor:pointer;">
-        ${sortOpts.map(o => `<option value="${o.value}" ${cur === o.value ? 'selected' : ''}>${o.label}</option>`).join('')}
-      </select>
-      ${hasSearch ? `<button onclick="state.browseSearch='';state.browseServiceFilter=[];document.getElementById('browseSearchInput').value='';applyBrowseFilters();"
-        style="padding:9px 14px;border:1.5px solid var(--border);border-radius:10px;background:transparent;
-               color:var(--text-muted);font-size:13px;cursor:pointer;white-space:nowrap;">✕ Clear</button>` : ''}
-    </div>`;
-}
-
 // ─── RENDER AVAILABLE REQUESTS FOR EXPERTS ───
 function renderAvailableRequests() {
+  // Update filter chips
   const filterBar = document.getElementById('browseFilterBar');
   if (filterBar) filterBar.innerHTML = renderBrowseFilterChips();
 
   const container = document.getElementById('browseRequestsContainer');
   if (!container) return;
-/* ─── CLIENT STAT HERO CARDS ─── */
-#clientStatHero > div:nth-child(1) {
-  background: linear-gradient(135deg,#fff8f3,#fff3e8) !important;
-  border-color: rgba(252,128,25,0.25) !important;
-}
-#clientStatHero > div:nth-child(2) {
-  background: linear-gradient(135deg,#f0f7ff,#e8f2ff) !important;
-  border-color: rgba(59,130,246,0.25) !important;
-}
-#clientStatHero > div:nth-child(3) {
-  background: linear-gradient(135deg,#f0fdf4,#dcfce7) !important;
-  border-color: rgba(34,197,94,0.25) !important;
-}
-body.dark-mode #clientStatHero > div:nth-child(1) {
-  background: linear-gradient(135deg,rgba(252,128,25,0.12),rgba(252,128,25,0.06)) !important;
-  border-color: rgba(252,128,25,0.3) !important;
-}
-body.dark-mode #clientStatHero > div:nth-child(2) {
-  background: linear-gradient(135deg,rgba(59,130,246,0.12),rgba(59,130,246,0.06)) !important;
-  border-color: rgba(59,130,246,0.3) !important;
-}
-body.dark-mode #clientStatHero > div:nth-child(3) {
-  background: linear-gradient(135deg,rgba(34,197,94,0.12),rgba(34,197,94,0.06)) !important;
-  border-color: rgba(34,197,94,0.3) !important;
-}
    
-  // ── Expert stat hero (inject once, refresh credits on re-render) ──
-  const existingHero = document.getElementById('expertStatHero');
-  if (!existingHero && state.user) {
-    const u = state.user;
-    const hero = document.createElement('div');
-    hero.id = 'expertStatHero';
-    hero.style.cssText = 'display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px;';
-    const stats = [
-      { label: 'Credits',   value: u.credits || 0,                          color: '#FC8019', icon: '💎', action: 'openCreditModal()' },
-      { label: 'Approaches',value: u.totalApproaches || 0,                   color: '#3b82f6', icon: '📨', action: "switchTab('approaches')" },
-      { label: 'Rating',    value: u.rating ? Number(u.rating).toFixed(1) : '—', color: '#f59e0b', icon: '⭐', action: "switchTab('ratings')" }
-    ];
-    hero.innerHTML = stats.map(s =>
-      `<div onclick="${s.action}"
-        style="background:var(--bg);border:1.5px solid var(--border);border-radius:14px;padding:14px 12px;text-align:center;cursor:pointer;transition:all 0.2s;"
-        onmouseover="this.style.borderColor='${s.color}';this.style.transform='translateY(-2px)'"
-        onmouseout="this.style.borderColor='var(--border)';this.style.transform='translateY(0)'">
-        <div style="font-size:20px;margin-bottom:4px;">${s.icon}</div>
-        <div style="font-size:22px;font-weight:800;color:${s.color};line-height:1;">${s.value}</div>
-        <div style="font-size:11px;color:var(--text-muted);margin-top:4px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;">${s.label}</div>
-      </div>`
-    ).join('');
-    container.parentNode.insertBefore(hero, container);
-  } else if (existingHero && state.user) {
-    const vals = existingHero.querySelectorAll('[style*="font-size:22px"]');
-    if (vals[0]) vals[0].textContent = state.user.credits || 0;
-    if (vals[1]) vals[1].textContent = state.user.totalApproaches || 0;
-    if (vals[2]) vals[2].textContent = state.user.rating ? Number(state.user.rating).toFixed(1) : '—';
-  }
-
-  // Filtering/sorting/search now done server-side
-  const allRequests = state.availableRequests || [];
-   
+  const filter = state.browseServiceFilter || [];
+  const allRequests = (state.availableRequests || []).filter(req =>
+    !filter.length || filter.includes(req.service)
+  );
   if (!allRequests.length) {
-    const isFiltered = (state.browseServiceFilter || []).length > 0 || state.browseSearch;
+    const isFiltered = (state.browseServiceFilter || []).length > 0;
     container.innerHTML = `
-      <h2 style="margin-bottom:16px;">Available Requests</h2>
-      ${renderBrowseToolbar()}
-      <div style="text-align:center;padding:48px 20px;">
-        <svg width="100" height="100" viewBox="0 0 100 100" fill="none" style="margin-bottom:20px;opacity:0.6;">
-          <circle cx="100" cy="100" r="100" fill="rgba(252,128,25,0.06)"/>
-          <circle cx="42" cy="42" r="22" stroke="#FC8019" stroke-width="3" fill="none"/>
-          <line x1="58" y1="58" x2="76" y2="76" stroke="#FC8019" stroke-width="3" stroke-linecap="round"/>
-          <circle cx="42" cy="42" r="10" fill="rgba(252,128,25,0.12)"/>
-        </svg>
-        <h3 style="font-size:18px;font-weight:700;color:var(--text);margin-bottom:8px;">${isFiltered ? 'No matches found' : 'No requests yet'}</h3>
-        <p style="font-size:14px;color:var(--text-muted);line-height:1.6;max-width:260px;margin:0 auto 20px;">${isFiltered ? 'Try clearing your filters or searching something broader.' : 'New client requests will appear here. Check back soon!'}</p>
-        ${isFiltered ? `<button onclick="state.browseSearch='';state.browseServiceFilter=[];state.browseSort='newest';document.getElementById('browseFilterBar').innerHTML=renderBrowseFilterChips();applyBrowseFilters();"
-          style="padding:10px 24px;background:var(--primary);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;">
-          ✕ Clear Filters
-        </button>` : ''}
+      <div class="empty-state">
+        <div class="empty-icon">🔍</div>
+        <h3 class="empty-title">${isFiltered ? 'No requests for selected category' : 'No requests available'}</h3>
+        <p class="empty-text">${isFiltered ? 'Try selecting a different category above' : 'New requests will appear here'}</p>
       </div>`;
     return;
   }
 
   const items = paginate(allRequests, 'expertBrowse');
 
-  container.innerHTML = '<h2 style="margin-bottom:16px;font-size:20px;font-weight:800;letter-spacing:-0.3px;">Available Requests</h2>' +
-    renderBrowseToolbar() +
-    '<div class="req-grid">' +
+  container.innerHTML = '<h2 style="margin-bottom:20px;">Available Requests</h2>' +
     items.map(req => {
       const cur  = req.currentApproaches || 0;
       const max  = req.maxApproaches || 5;
       const pct  = (cur / max) * 100;
       const left = max - cur;
-      const col  = cur >= 4 ? '#ef4444' : cur >= 3 ? '#f59e0b' : 'var(--primary)';
-
-      // Time posted
-      const postedAgo = (() => {
-        if (!req.createdAt) return 'Recently';
-        const diff = Date.now() - new Date(req.createdAt).getTime();
-        const mins = Math.floor(diff / 60000);
-        const hrs  = Math.floor(diff / 3600000);
-        const days = Math.floor(diff / 86400000);
-        if (mins < 60) return mins + 'm ago';
-        if (hrs < 24)  return hrs + 'h ago';
-        return days + 'd ago';
-      })();
-
-      // Urgency
-      const urgencyMap = {
-        immediate: { label: '🔴 Urgent',      color: '#ef4444', bg: 'rgba(239,68,68,0.1)'   },
-        '2-3days':  { label: '🟠 2-3 Days',   color: '#f97316', bg: 'rgba(249,115,22,0.1)'  },
-        week:       { label: '🟡 This Week',  color: '#f59e0b', bg: 'rgba(245,158,11,0.1)'  },
-        month:      { label: '🟢 This Month', color: '#22c55e', bg: 'rgba(34,197,94,0.1)'   },
-        flexible:   { label: '🔵 Flexible',   color: '#6b7280', bg: 'rgba(107,114,128,0.1)' }
-      };
-      const urgencyKey = (req.answers && req.answers.urgency) || req.timeline || 'flexible';
-      const urgency = urgencyMap[urgencyKey] || urgencyMap.flexible;
-
-      // Service color
-      const svcColors = { itr:'#8b5cf6', gst:'#3b82f6', accounting:'#10b981', audit:'#f59e0b', photography:'#ec4899', development:'#06b6d4' };
-      const svcColor = svcColors[req.service] || '#FC8019';
-
-      // Answer tags — show relevant questionnaire answers as pills
-      const answerTags = [];
-      const a = req.answers || {};
-      if (a.itrAnnualIncome)        answerTags.push('Income: ' + a.itrAnnualIncome.replace('above','> ').replace('below','< '));
-      if (a.itrTaxpayerType)        answerTags.push(a.itrTaxpayerType.charAt(0).toUpperCase() + a.itrTaxpayerType.slice(1));
-      if (a.gstTurnover)            answerTags.push('Turnover: ' + a.gstTurnover);
-      if (a.gstServiceType)         answerTags.push(a.gstServiceType.replace(/_/g,' '));
-      if (a.accountingFrequency)    answerTags.push(a.accountingFrequency.replace(/-/g,' '));
-      if (a.accountingTransactions) answerTags.push(a.accountingTransactions + ' txns/mo');
-      if (a.photographyType)        answerTags.push(a.photographyType.charAt(0).toUpperCase() + a.photographyType.slice(1));
-      if (a.photographyDuration)    answerTags.push(a.photographyDuration.replace(/-/g,' '));
-      if (a.devProjectType)         answerTags.push(a.devProjectType.replace(/-/g,' '));
-      if (a.devTimeline)            answerTags.push(a.devTimeline.replace(/-/g,' '));
-      if (a.auditType)              answerTags.push(a.auditType.replace(/_/g,' ') + ' audit');
-      if (a.auditTurnover)          answerTags.push('Turnover: ' + a.auditTurnover);
-
-      // Location from answers
-      const location = (() => {
-        if (a.fullAddress && a.fullAddress.city) return a.fullAddress.city + (a.fullAddress.state ? ', ' + a.fullAddress.state : '');
-        if (a.clientLocation && a.clientLocation.city) return a.clientLocation.city;
-        return req.location || 'Online';
-      })();
-
-      // Service location type
-      const locType = a.serviceLocationType || '';
-      const locLabel = locType === 'my-location' ? '🏠 At client' : locType === 'professional-office' ? '🏢 At office' : '💻 Online';
+      const col  = cur >= 4 ? '#f39c12' : cur >= 3 ? '#3498db' : 'var(--primary)';
 
       return `
-        <div style="background:var(--bg);border:1.5px solid var(--border);border-radius:18px;overflow:hidden;transition:all 0.2s;margin-bottom:0;"
-          onmouseover="this.style.borderColor='rgba(252,128,25,0.5)';this.style.transform='translateY(-3px)';this.style.boxShadow='0 12px 32px rgba(0,0,0,0.1)'"
-          onmouseout="this.style.borderColor='var(--border)';this.style.transform='translateY(0)';this.style.boxShadow='none'">
-
-          <!-- TOP STRIP: service + urgency + time + credits -->
-          <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:var(--bg-gray);border-bottom:1px solid var(--border);flex-wrap:wrap;gap:6px;">
-            <div style="display:flex;align-items:center;gap:6px;">
-              <span style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;background:${svcColor}18;color:${svcColor};letter-spacing:.04em;text-transform:uppercase;">${req.service}</span>
-              <span style="font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;background:${urgency.bg};color:${urgency.color};">${urgency.label}</span>
+        <div class="request-card" style="background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:16px;">
+          <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:12px;">
+            <div style="flex:1;">
+              <h3 style="font-size:18px;font-weight:700;color:var(--text);margin-bottom:4px;">${req.title}</h3>
+              <p style="font-size:14px;color:var(--text-muted);">${req.service.toUpperCase()}</p>
+              <p style="font-size:13px;color:var(--text-muted);margin-top:4px;">👤 <strong>${req.client?.name || 'Client'}</strong></p>
             </div>
-            <div style="display:flex;align-items:center;gap:8px;">
-              <span style="font-size:11px;color:var(--text-muted);">🕐 ${postedAgo}</span>
-              <span style="font-size:12px;font-weight:700;padding:4px 12px;border-radius:20px;background:rgba(252,128,25,0.12);color:var(--primary);">💎 ${req.credits || 20} credits</span>
-            </div>
+            <span class="badge badge-primary">${req.credits || 20} credits</span>
           </div>
-
-          <!-- MAIN BODY -->
-          <div style="padding:18px;">
-
-            <!-- Title row + budget hero -->
-            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;gap:12px;">
-              <div style="flex:1;">
-                <h3 style="font-size:18px;font-weight:800;color:var(--text);margin-bottom:8px;line-height:1.25;letter-spacing:-0.2px;">${req.title}</h3>
-                <!-- Client trust signal -->
-                <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
-                  <div style="width:24px;height:24px;border-radius:50%;background:${svcColor};color:#fff;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;">${(req.client?.name || 'C').charAt(0).toUpperCase()}</div>
-                  <span style="font-size:13px;font-weight:600;color:var(--text);">${req.client?.name || 'Client'}</span>
-                  ${req.client?.emailVerified ? '<span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;background:rgba(34,197,94,0.1);color:#16a34a;border:1px solid rgba(34,197,94,0.2);">✓ Verified</span>' : '<span style="font-size:10px;padding:2px 8px;border-radius:20px;background:var(--bg-gray);color:var(--text-muted);">Unverified</span>'}
-                  <span style="font-size:11px;color:var(--text-muted);">· ${location}</span>
-                </div>
-              </div>
-              <!-- Budget hero number -->
-              <div style="text-align:right;flex-shrink:0;background:rgba(252,128,25,0.06);border:1.5px solid rgba(252,128,25,0.2);border-radius:12px;padding:10px 14px;">
-                <div style="font-size:22px;font-weight:800;color:var(--primary);line-height:1;">₹${req.budget ? Number(req.budget).toLocaleString('en-IN') : '—'}</div>
-                <div style="font-size:10px;color:var(--text-muted);margin-top:2px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;">Budget</div>
-              </div>
+          <p style="font-size:14px;color:var(--text-light);margin-bottom:16px;line-height:1.5;">${req.description}</p>
+          <div style="display:flex;gap:20px;font-size:13px;color:var(--text-muted);margin-bottom:12px;">
+            <span>📍 ${req.location || 'Online'}</span>
+            <span>💰 ₹${req.budget ? req.budget.toLocaleString('en-IN') : 'Budget negotiable'}</span>
+            <span>⏱️ ${req.timeline || 'Flexible'}</span>
+          </div>
+          <div style="margin-bottom:16px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+              <span style="font-size:13px;font-weight:600;color:var(--text-muted);">👥 Approaches</span>
+              <span style="font-size:14px;font-weight:700;color:${col};">${cur}/${max}</span>
             </div>
-
-            <!-- Description -->
-            <p style="font-size:13.5px;color:var(--text-light);line-height:1.65;margin-bottom:14px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">${req.description}</p>
-
-            <!-- Answer tags (scope pills) -->
-            ${answerTags.length ? `
-            <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:14px;">
-              ${answerTags.map(t => `<span style="font-size:11px;font-weight:600;padding:3px 9px;border-radius:6px;background:var(--bg-gray);color:var(--text-muted);border:1px solid var(--border);">${t}</span>`).join('')}
-              <span style="font-size:11px;font-weight:600;padding:3px 9px;border-radius:6px;background:var(--bg-gray);color:var(--text-muted);border:1px solid var(--border);">${locLabel}</span>
-            </div>` : `
-            <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:14px;">
-              <span style="font-size:11px;font-weight:600;padding:3px 9px;border-radius:6px;background:var(--bg-gray);color:var(--text-muted);border:1px solid var(--border);">${locLabel}</span>
-              <span style="font-size:11px;font-weight:600;padding:3px 9px;border-radius:6px;background:var(--bg-gray);color:var(--text-muted);border:1px solid var(--border);">⏱ ${req.timeline || 'Flexible'}</span>
-            </div>`}
-
-            <!-- Approaches progress -->
-            <div style="margin-bottom:16px;padding:10px 12px;background:var(--bg-gray);border-radius:10px;">
-              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-                <span style="font-size:12px;font-weight:600;color:var(--text-muted);">👥 Responses</span>
-                <span style="font-size:12px;font-weight:700;color:${col};">${cur}/${max} slots filled</span>
-              </div>
-              <div style="height:5px;background:var(--border);border-radius:3px;overflow:hidden;">
-                <div style="height:100%;width:${pct}%;background:${col};border-radius:3px;transition:width 0.4s;"></div>
-              </div>
-              ${cur >= 4 ? `<div style="font-size:11px;color:#ef4444;font-weight:700;margin-top:5px;">⚠️ Only ${left} spot left — respond now!</div>`
-                         : cur === 0 ? `<div style="font-size:11px;color:#22c55e;font-weight:600;margin-top:5px;">✨ Be the first to respond</div>`
-                         : `<div style="font-size:11px;color:var(--text-muted);margin-top:5px;">${left} spots remaining</div>`}
+            <div style="height:8px;background:var(--bg-gray);border-radius:4px;overflow:hidden;margin-bottom:4px;">
+              <div style="height:100%;width:${pct}%;background:${col};transition:width 0.3s;"></div>
             </div>
-
-            <!-- Action buttons -->
-            <div style="display:grid;grid-template-columns:1fr 2fr 44px;gap:8px;">
-              <button onclick="showExpertRequestDetail('${req._id}')"
-                style="padding:12px;border:1.5px solid var(--border);border-radius:10px;background:transparent;color:var(--text);font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s;"
-                onmouseover="this.style.borderColor='var(--primary)';this.style.color='var(--primary)'"
-                onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text)'">
-                View Details
-              </button>
-              <button onclick="approachClient('${req._id}')"
-                style="padding:12px;border:none;border-radius:10px;background:linear-gradient(135deg,#FC8019,#e87010);color:#fff;font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 4px 14px rgba(252,128,25,0.3);transition:all 0.2s;letter-spacing:0.01em;"
-                onmouseover="this.style.transform='translateY(-1px)';this.style.boxShadow='0 6px 20px rgba(252,128,25,0.42)'"
-                onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 4px 14px rgba(252,128,25,0.3)'">
-                Approach Client →
-              </button>
-              <button onclick="reportRequest('${req._id}', '${(req.title||'').replace(/'/g, '')}')"
-                style="width:44px;padding:12px 0;border:1.5px solid var(--border);border-radius:10px;background:transparent;color:var(--text-muted);font-size:14px;cursor:pointer;transition:all 0.2s;"
-                title="Report this request"
-                onmouseover="this.style.borderColor='#ef4444';this.style.color='#ef4444';this.style.background='rgba(239,68,68,0.06)'"
-                onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-muted)';this.style.background='transparent'">
-                🚩
-              </button>
-            </div>
-
+            ${cur >= 4 ? `<div style="font-size:12px;color:#e74c3c;font-weight:600;">⚠️ Only ${left} spot${left === 1 ? '' : 's'} left!</div>`
+                       : cur >= 3 ? `<div style="font-size:12px;color:#f39c12;">${left} spots remaining</div>` : ''}
+          </div>
+          <div style="display:flex;gap:12px;">
+            <button onclick="showExpertRequestDetail('${req._id}')"
+              style="flex:1;padding:12px;border:1.5px solid var(--primary);border-radius:10px;background:transparent;color:var(--primary);font-size:14px;font-weight:600;cursor:pointer;">
+              View Details
+            </button>
+            <button onclick="approachClient('${req._id}')"
+              style="flex:1;padding:12px;border:none;border-radius:10px;background:var(--primary);color:#fff;font-size:14px;font-weight:700;cursor:pointer;">
+              Approach Client
+            </button>
           </div>
         </div>`;
-    }).join('') + '</div>' + paginationControlsHTML(allRequests, 'expertBrowse');
+    }).join('') + paginationControlsHTML(allRequests, 'expertBrowse');
 }
-
 // ─── SHOW REQUEST DETAIL FOR EXPERT ───
 async function showExpertRequestDetail(requestId) {
   const req = state.availableRequests.find(r => r._id === requestId);
@@ -2480,74 +1863,6 @@ async function showExpertRequestDetail(requestId) {
   
   document.body.appendChild(modal);
 }
-// ─── REPORT A REQUEST ───
-function reportRequest(requestId, requestTitle) {
-  const existing = document.getElementById('reportRequestModal');
-  if (existing) existing.remove();
-
-  const overlay = document.createElement('div');
-  overlay.id = 'reportRequestModal';
-  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;';
-  overlay.onclick = e => { if (e.target === overlay) overlay.remove(); };
-
-  overlay.innerHTML = `
-    <div style="background:var(--bg);border:1.5px solid #ef4444;border-radius:16px;max-width:420px;width:100%;padding:24px;">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
-        <span style="font-size:16px;font-weight:800;color:#ef4444;">🚩 Report Request</span>
-        <span onclick="document.getElementById('reportRequestModal').remove()" style="cursor:pointer;font-size:22px;color:var(--text-muted);">×</span>
-      </div>
-      <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px;line-height:1.6;">
-        Reporting: <strong style="color:var(--text);">${requestTitle}</strong><br><br>
-        If this request appears fake, suspicious or violates platform guidelines, let us know. If 3 or more experts report the same request, the client account will be automatically restricted pending admin review.
-      </p>
-      <div style="margin-bottom:16px;">
-        <label style="font-size:13px;font-weight:600;color:var(--text-muted);display:block;margin-bottom:8px;">Reason</label>
-        <select id="reportRequestReason" style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:10px;background:var(--bg);color:var(--text);font-size:14px;">
-          <option value="fake_request">Fake or test request</option>
-          <option value="suspicious_details">Suspicious details / no intent to hire</option>
-          <option value="already_contacted">Client already contacted me off-platform</option>
-          <option value="spam">Spam or duplicate post</option>
-          <option value="other">Other</option>
-        </select>
-      </div>
-      <div style="margin-bottom:20px;">
-        <label style="font-size:13px;font-weight:600;color:var(--text-muted);display:block;margin-bottom:8px;">Additional details <span style="font-weight:400;">(optional)</span></label>
-        <textarea id="reportRequestNote" rows="3" placeholder="Describe what seems suspicious..." style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:10px;background:var(--bg);color:var(--text);font-size:14px;resize:none;box-sizing:border-box;"></textarea>
-      </div>
-      <div style="display:flex;gap:10px;">
-        <button onclick="document.getElementById('reportRequestModal').remove()" style="flex:1;padding:12px;border:1px solid var(--border);border-radius:10px;background:transparent;color:var(--text-muted);font-size:14px;cursor:pointer;">Cancel</button>
-        <button onclick="submitRequestReport('${requestId}')" style="flex:2;padding:12px;border:none;border-radius:10px;background:#ef4444;color:#fff;font-size:14px;font-weight:700;cursor:pointer;">Submit Report</button>
-      </div>
-    </div>`;
-  document.body.appendChild(overlay);
-}
-
-async function submitRequestReport(requestId) {
-  const reason = document.getElementById('reportRequestReason')?.value;
-  const note   = document.getElementById('reportRequestNote')?.value.trim();
-  if (!reason) return;
-
-  const btn = document.querySelector('#reportRequestModal button:last-child');
-  if (btn) { btn.disabled = true; btn.textContent = 'Submitting...'; }
-
-  try {
-    const res = await fetch(`${API_URL}/requests/${requestId}/report`, {
-      method: 'POST',
-      headers: { 'Authorization': `Bearer ${state.token}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ reason, note })
-    });
-    const data = await res.json();
-    document.getElementById('reportRequestModal')?.remove();
-    if (data.success) {
-      showToast('Report submitted. Thank you for keeping the platform safe.', 'success');
-    } else {
-      showToast(data.message || 'Failed to submit report', 'error');
-    }
-  } catch {
-    showToast('Network error. Please try again.', 'error');
-    if (btn) { btn.disabled = false; btn.textContent = 'Submit Report'; }
-  }
-}
 
 // ─── FORMAT KEY FOR DISPLAY ───
 function formatKey(key) {
@@ -2567,7 +1882,6 @@ function approachClient(requestId) {
 }
 
 async function submitApproach() {
-  if (isUserRestricted()) { showRestrictedToast(); return; }
   const modal    = document.getElementById('approachModal');
   const requestId = modal.dataset.requestId;
   const message  = document.getElementById('approachMessage').value.trim();
@@ -2751,159 +2065,106 @@ async function cancelRequest(requestId) {
 
 // ─── SHOW REQUEST APPROACHES MODAL ───
 // ── Compare state ──
-let _compareSelected = [];
+var _compareSelected = [];
 
 function showRequestApproaches(req, approaches) {
   _compareSelected = [];
-  const modal = document.createElement('div');
+  var modal = document.createElement('div');
   modal.id = 'approachesModal';
   modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:1000;padding:20px;';
-  modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
+  modal.onclick = function(e) { if (e.target === modal) modal.remove(); };
 
-  const isCompleted = req.status === 'completed';
+  var isCompleted = req.status === 'completed';
+  var svcColors = { itr:'#8b5cf6', gst:'#3b82f6', accounting:'#10b981', audit:'#f59e0b', photography:'#ec4899', development:'#06b6d4' };
 
-  const approachesHTML = approaches.length > 0 ? approaches.map(app => {
-    const expert = app.expert;
-    const kycVerified = expert.kyc?.status === 'approved';
-    const svcColors = { itr:'#8b5cf6', gst:'#3b82f6', accounting:'#10b981', audit:'#f59e0b', photography:'#ec4899', development:'#06b6d4' };
-    const primarySvc = (expert.servicesOffered || expert.profile?.servicesOffered || [])[0];
-    const svcColor = svcColors[primarySvc] || '#FC8019';
+  var approachesHTML = approaches.length > 0 ? approaches.map(function(app) {
+    var expert = app.expert;
+    var kycVerified = expert.kyc && expert.kyc.status === 'approved';
+    var primarySvc = (expert.servicesOffered || (expert.profile && expert.profile.servicesOffered) || [])[0];
+    var svcColor = svcColors[primarySvc] || '#FC8019';
+    var safeId   = app._id;
+    var safeEid  = expert._id;
+    var safeName = (expert.name || '').replace(/'/g, '');
 
-    return `
-      <div id="apCard_${app._id}" style="background:var(--bg);border:1.5px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:12px;transition:border-color 0.2s;">
+    return '<div id="apCard_' + safeId + '" style="background:var(--bg);border:1.5px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:12px;transition:border-color 0.2s;">' +
 
-        <!-- Card header -->
-        <div style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid var(--border);">
-          <!-- Compare checkbox -->
-          <label style="display:flex;align-items:center;cursor:pointer;flex-shrink:0;">
-            <input type="checkbox" id="cmp_${app._id}"
-              onchange="toggleCompare('${app._id}', '${expert._id}', this)"
-              style="width:18px;height:18px;accent-color:var(--primary);cursor:pointer;">
-          </label>
+      '<div style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid var(--border);">' +
+        '<label style="display:flex;align-items:center;cursor:pointer;flex-shrink:0;">' +
+          '<input type="checkbox" id="cmp_' + safeId + '" onchange="toggleCompare(\'' + safeId + '\',\'' + safeEid + '\',this)" style="width:18px;height:18px;accent-color:var(--primary);cursor:pointer;">' +
+        '</label>' +
+        '<div style="width:48px;height:48px;border-radius:50%;background:' + svcColor + ';color:#fff;font-size:18px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;">' +
+          (expert.profilePhoto ? '<img src="' + expert.profilePhoto + '" style="width:100%;height:100%;object-fit:cover;">' : (expert.name || '?').substring(0,1).toUpperCase()) +
+        '</div>' +
+        '<div style="flex:1;min-width:0;">' +
+          '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">' +
+            '<span style="font-size:15px;font-weight:700;color:var(--text);">' + expert.name + '</span>' +
+            (kycVerified ? '<span style="font-size:10px;font-weight:700;padding:1px 6px;border-radius:20px;background:rgba(34,197,94,0.1);color:#16a34a;">✓ KYC</span>' : '') +
+          '</div>' +
+          '<div style="font-size:12px;color:' + svcColor + ';font-weight:600;">' + (expert.specialization || (expert.profile && expert.profile.specialization) || 'Professional') + '</div>' +
+          (expert.rating ? '<div style="font-size:12px;color:#f59e0b;font-weight:700;">⭐ ' + Number(expert.rating).toFixed(1) + ' <span style="color:var(--text-muted);font-weight:400;">(' + (expert.reviewCount || 0) + ')</span></div>' : '<div style="font-size:12px;color:var(--text-muted);">No reviews yet</div>') +
+        '</div>' +
+        (app.quote ? '<div style="text-align:right;flex-shrink:0;background:rgba(252,128,25,0.08);border-radius:10px;padding:8px 12px;"><div style="font-size:18px;font-weight:800;color:var(--primary);">₹' + Number(app.quote).toLocaleString('en-IN') + '</div><div style="font-size:10px;color:var(--text-muted);font-weight:600;">QUOTED</div></div>' : '') +
+      '</div>' +
 
-          <!-- Avatar -->
-          <div style="width:48px;height:48px;border-radius:50%;background:${svcColor};color:#fff;font-size:18px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;">
-            ${expert.profilePhoto ? `<img src="${expert.profilePhoto}" style="width:100%;height:100%;object-fit:cover;">` : expert.name.substring(0,1).toUpperCase()}
-          </div>
+      '<div style="padding:12px 16px;border-bottom:1px solid var(--border);">' +
+        '<p style="font-size:13px;color:var(--text-light);line-height:1.6;margin:0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">' + (app.message || '') + '</p>' +
+      '</div>' +
 
-          <!-- Name + spec -->
-          <div style="flex:1;min-width:0;">
-            <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
-              <span style="font-size:15px;font-weight:700;color:var(--text);">${expert.name}</span>
-              ${kycVerified ? `<span style="font-size:10px;font-weight:700;padding:1px 6px;border-radius:20px;background:rgba(34,197,94,0.1);color:#16a34a;">✓ KYC</span>` : ''}
-            </div>
-            <div style="font-size:12px;color:${svcColor};font-weight:600;">${expert.specialization || expert.profile?.specialization || 'Professional'}</div>
-            ${expert.rating ? `<div style="font-size:12px;color:#f59e0b;font-weight:700;">⭐ ${Number(expert.rating).toFixed(1)} <span style="color:var(--text-muted);font-weight:400;">(${expert.reviewCount || 0})</span></div>` : '<div style="font-size:12px;color:var(--text-muted);">No reviews yet</div>'}
-          </div>
+      '<div style="display:grid;grid-template-columns:1fr 1fr auto;gap:8px;padding:12px 16px;">' +
+        '<button onclick="viewExpertProfile(\'' + safeEid + '\', true)" style="padding:10px;border:1.5px solid var(--border);border-radius:10px;background:transparent;color:var(--text);font-size:13px;font-weight:600;cursor:pointer;" onmouseover="this.style.borderColor=\'var(--primary)\';this.style.color=\'var(--primary)\'" onmouseout="this.style.borderColor=\'var(--border)\';this.style.color=\'var(--text)\'">View Profile</button>' +
+        (!isCompleted
+          ? '<button onclick="contactExpert(\'' + safeEid + '\',\'' + req._id + '\',\'' + state.user._id + '\')" style="padding:10px;border:none;border-radius:10px;background:var(--primary);color:#fff;font-size:13px;font-weight:700;cursor:pointer;">💬 Contact</button>'
+          : '<div style="padding:10px;border-radius:10px;background:rgba(34,197,94,0.08);color:#16a34a;font-size:13px;font-weight:600;text-align:center;">✅ Completed</div>') +
+        '<button onclick="showBlockFromApproaches(\'' + safeEid + '\',\'' + safeName + '\')" title="Block or report" style="width:40px;padding:10px 0;border:1.5px solid var(--border);border-radius:10px;background:transparent;color:var(--text-muted);font-size:14px;cursor:pointer;" onmouseover="this.style.borderColor=\'#ef4444\';this.style.color=\'#ef4444\'" onmouseout="this.style.borderColor=\'var(--border)\';this.style.color=\'var(--text-muted)\'">🚩</button>' +
+      '</div>' +
 
-          <!-- Quote -->
-          ${app.quote ? `
-          <div style="text-align:right;flex-shrink:0;background:rgba(252,128,25,0.08);border-radius:10px;padding:8px 12px;">
-            <div style="font-size:18px;font-weight:800;color:var(--primary);">₹${app.quote.toLocaleString('en-IN')}</div>
-            <div style="font-size:10px;color:var(--text-muted);font-weight:600;">QUOTED</div>
-          </div>` : ''}
-        </div>
+      (!isCompleted
+        ? '<div style="padding:0 16px 12px;"><button onclick="confirmServiceReceived(\'' + req._id + '\',\'' + safeEid + '\',\'' + safeName + '\',\'' + safeId + '\')" style="width:100%;padding:10px;border:1.5px solid #22c55e;border-radius:10px;background:transparent;color:#22c55e;font-size:13px;font-weight:600;cursor:pointer;" onmouseover="this.style.background=\'rgba(34,197,94,0.08)\'" onmouseout="this.style.background=\'transparent\'">✓ Service Received?</button></div>'
+        : '') +
+    '</div>';
+  }).join('') :
+    '<div style="text-align:center;padding:40px 20px;">' +
+      '<div style="font-size:48px;margin-bottom:12px;">👨‍💼</div>' +
+      '<h3 style="font-size:17px;font-weight:700;color:var(--text);margin-bottom:6px;">No proposals yet</h3>' +
+      '<p style="font-size:14px;color:var(--text-muted);">Professionals will respond to your request soon</p>' +
+    '</div>';
 
-        <!-- Message -->
-        <div style="padding:12px 16px;border-bottom:1px solid var(--border);">
-          <p style="font-size:13px;color:var(--text-light);line-height:1.6;margin:0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">${app.message}</p>
-        </div>
+  modal.innerHTML =
+    '<div style="background:var(--bg);border-radius:18px;max-width:520px;width:100%;max-height:88vh;overflow-y:auto;display:flex;flex-direction:column;">' +
 
-        <!-- Actions -->
-        <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:8px;padding:12px 16px;">
-          <button onclick="viewExpertProfile('${expert._id}', true)"
-            style="padding:10px;border:1.5px solid var(--border);border-radius:10px;background:transparent;color:var(--text);font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s;"
-            onmouseover="this.style.borderColor='var(--primary)';this.style.color='var(--primary)'"
-            onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text)'">
-            View Profile
-          </button>
-          ${!isCompleted ? `
-          <button onclick="contactExpert('${expert._id}', '${req._id}', '${state.user._id}')"
-            style="padding:10px;border:none;border-radius:10px;background:var(--primary);color:#fff;font-size:13px;font-weight:700;cursor:pointer;">
-            💬 Contact
-          </button>` : `
-          <div style="padding:10px;border-radius:10px;background:rgba(34,197,94,0.08);color:#16a34a;font-size:13px;font-weight:600;text-align:center;">✅ Completed</div>`}
-          <button onclick="showBlockFromApproaches('${expert._id}', '${expert.name.replace(/'/g,'')}')"
-            title="Block or report"
-            style="width:40px;padding:10px 0;border:1.5px solid var(--border);border-radius:10px;background:transparent;color:var(--text-muted);font-size:14px;cursor:pointer;transition:all 0.2s;"
-            onmouseover="this.style.borderColor='#ef4444';this.style.color='#ef4444'"
-            onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-muted)'">
-            🚩
-          </button>
-        </div>
+      '<div style="padding:18px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--bg);z-index:2;border-radius:18px 18px 0 0;">' +
+        '<div>' +
+          '<h2 style="font-size:17px;font-weight:800;color:var(--text);margin:0 0 2px;">' + req.title + '</h2>' +
+          '<p style="font-size:12px;color:var(--text-muted);margin:0;">Professionals Interested (' + approaches.length + ')</p>' +
+        '</div>' +
+        '<button onclick="document.getElementById(\'approachesModal\').remove()" style="width:32px;height:32px;border:none;background:var(--bg-gray);border-radius:50%;font-size:18px;cursor:pointer;color:var(--text-muted);">×</button>' +
+      '</div>' +
 
-        ${!isCompleted ? `
-        <div style="padding:0 16px 12px;">
-          <button onclick="confirmServiceReceived('${req._id}', '${expert._id}', '${expert.name.replace(/'/g,'')}', '${app._id}')"
-            style="width:100%;padding:10px;border:1.5px solid #22c55e;border-radius:10px;background:transparent;color:#22c55e;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s;"
-            onmouseover="this.style.background='rgba(34,197,94,0.08)'"
-            onmouseout="this.style.background='transparent'">
-            ✓ Service Received?
-          </button>
-        </div>` : ''}
-      </div>`;
-  }).join('') : `
-    <div style="text-align:center;padding:40px 20px;">
-      <div style="font-size:48px;margin-bottom:12px;">👨‍💼</div>
-      <h3 style="font-size:17px;font-weight:700;color:var(--text);margin-bottom:6px;">No proposals yet</h3>
-      <p style="font-size:14px;color:var(--text-muted);">Professionals will respond to your request soon</p>
-    </div>`;
+      (approaches.length >= 2
+        ? '<div style="padding:10px 20px;background:rgba(59,130,246,0.06);border-bottom:1px solid var(--border);"><p style="font-size:12px;color:#3b82f6;margin:0;font-weight:600;">☑️ Tick boxes to compare up to 5 experts side by side</p></div>'
+        : '') +
 
-  modal.innerHTML = `
-    <div style="background:var(--bg);border-radius:18px;max-width:520px;width:100%;max-height:88vh;overflow-y:auto;display:flex;flex-direction:column;">
+      '<div style="padding:16px 20px;flex:1;">' + approachesHTML + '</div>' +
 
-      <!-- Header -->
-      <div style="padding:18px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--bg);z-index:2;border-radius:18px 18px 0 0;">
-        <div>
-          <h2 style="font-size:17px;font-weight:800;color:var(--text);margin:0 0 2px;">${req.title}</h2>
-          <p style="font-size:12px;color:var(--text-muted);margin:0;">Professionals Interested (${approaches.length})</p>
-        </div>
-        <button onclick="document.getElementById('approachesModal').remove()"
-          style="width:32px;height:32px;border:none;background:var(--bg-gray);border-radius:50%;font-size:18px;cursor:pointer;color:var(--text-muted);display:flex;align-items:center;justify-content:center;">×</button>
-      </div>
+      '<div id="compareBar" style="display:none;position:sticky;bottom:0;background:var(--bg);border-top:1px solid var(--border);padding:14px 20px;border-radius:0 0 18px 18px;">' +
+        '<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">' +
+          '<span id="compareCount" style="font-size:13px;font-weight:600;color:var(--text-muted);">0 selected</span>' +
+          '<button onclick="openCompareModal()" style="flex:1;padding:12px;background:linear-gradient(135deg,#3b82f6,#2563eb);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 4px 12px rgba(59,130,246,0.3);">⚖️ Compare Selected Experts</button>' +
+        '</div>' +
+      '</div>' +
 
-      ${approaches.length >= 2 ? `
-      <!-- Compare hint -->
-      <div style="padding:10px 20px;background:rgba(59,130,246,0.06);border-bottom:1px solid var(--border);">
-        <p style="font-size:12px;color:#3b82f6;margin:0;font-weight:600;">☑️ Check boxes to compare up to 5 experts side by side</p>
-      </div>` : ''}
+      ((req.status === 'pending' || req.status === 'active')
+        ? '<div style="padding:0 20px 16px;"><button onclick="cancelRequest(\'' + req._id + '\')" style="width:100%;padding:13px;border:1.5px solid #ef4444;border-radius:10px;background:transparent;color:#ef4444;font-size:14px;font-weight:600;cursor:pointer;" onmouseover="this.style.background=\'rgba(239,68,68,0.06)\'" onmouseout="this.style.background=\'transparent\'">✕ Cancel Request</button></div>'
+        : '') +
+    '</div>';
 
-      <!-- Cards -->
-      <div style="padding:16px 20px;flex:1;">
-        ${approachesHTML}
-      </div>
-
-      <!-- Compare bar (hidden until 2+ selected) -->
-      <div id="compareBar" style="display:none;position:sticky;bottom:0;background:var(--bg);border-top:1px solid var(--border);padding:14px 20px;border-radius:0 0 18px 18px;">
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
-          <span id="compareCount" style="font-size:13px;font-weight:600;color:var(--text-muted);">0 selected</span>
-          <button onclick="openCompareModal()"
-            style="flex:1;padding:12px;background:linear-gradient(135deg,#3b82f6,#2563eb);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 4px 12px rgba(59,130,246,0.3);">
-            ⚖️ Compare Selected Experts
-          </button>
-        </div>
-      </div>
-
-      ${req.status === 'pending' || req.status === 'active' ? `
-      <div style="padding:0 20px 16px;">
-        <button onclick="cancelRequest('${req._id}')"
-          style="width:100%;padding:13px;border:1.5px solid #ef4444;border-radius:10px;background:transparent;color:#ef4444;font-size:14px;font-weight:600;cursor:pointer;transition:all 0.2s;"
-          onmouseover="this.style.background='rgba(239,68,68,0.06)'"
-          onmouseout="this.style.background='transparent'">
-          ✕ Cancel Request
-        </button>
-      </div>` : ''}
-    </div>`;
-
-  // Store approaches data on window for compare modal
   window._approachesForCompare = approaches;
   window._reqForCompare = req;
-
   document.body.appendChild(modal);
 }
 
 function toggleCompare(appId, expertId, checkbox) {
-  const card = document.getElementById('apCard_' + appId);
+  var card = document.getElementById('apCard_' + appId);
   if (checkbox.checked) {
     if (_compareSelected.length >= 5) {
       checkbox.checked = false;
@@ -2913,228 +2174,115 @@ function toggleCompare(appId, expertId, checkbox) {
     _compareSelected.push(appId);
     if (card) card.style.borderColor = '#3b82f6';
   } else {
-    _compareSelected = _compareSelected.filter(id => id !== appId);
+    _compareSelected = _compareSelected.filter(function(id) { return id !== appId; });
     if (card) card.style.borderColor = 'var(--border)';
   }
-
-  const bar = document.getElementById('compareBar');
-  const count = document.getElementById('compareCount');
-  if (bar) bar.style.display = _compareSelected.length >= 2 ? 'block' : 'none';
-  if (count) count.textContent = _compareSelected.length + ' selected';
+  var bar   = document.getElementById('compareBar');
+  var count = document.getElementById('compareCount');
+  if (bar)   bar.style.display = _compareSelected.length >= 2 ? 'block' : 'none';
+  if (count) count.textContent  = _compareSelected.length + ' selected';
 }
 
 function showBlockFromApproaches(expertId, expertName) {
-  _blockTargetId = expertId;
+  _blockTargetId   = expertId;
   _blockTargetName = expertName;
-  const modal = document.getElementById('blockReportModal');
+  var modal = document.getElementById('blockReportModal');
   if (modal) {
-    document.getElementById('blockModalName').textContent = expertName;
-    document.querySelectorAll('input[name="blockType"]').forEach(radio => {
-      radio.addEventListener('change', function() {
-        const reasonBox = document.getElementById('blockReasonBox');
-        if (reasonBox) reasonBox.style.display = this.value === 'report' ? 'block' : 'none';
-      });
-    });
+    var nameEl = document.getElementById('blockModalName');
+    if (nameEl) nameEl.textContent = expertName;
     modal.style.display = 'flex';
   }
 }
 
 function openCompareModal() {
-  const approaches = (window._approachesForCompare || []).filter(a => _compareSelected.includes(a._id));
+  var approaches = (window._approachesForCompare || []).filter(function(a) { return _compareSelected.indexOf(a._id) !== -1; });
   if (!approaches.length) return;
-
-  const req = window._reqForCompare || {};
-  const existing = document.getElementById('compareModal');
+  var req = window._reqForCompare || {};
+  var existing = document.getElementById('compareModal');
   if (existing) existing.remove();
 
-  const svcColors = { itr:'#8b5cf6', gst:'#3b82f6', accounting:'#10b981', audit:'#f59e0b', photography:'#ec4899', development:'#06b6d4' };
+  var svcColors = { itr:'#8b5cf6', gst:'#3b82f6', accounting:'#10b981', audit:'#f59e0b', photography:'#ec4899', development:'#06b6d4' };
 
-  // Rows to compare
-  const rows = [
-    { key: 'quote',        label: '💰 Quote',          fn: a => a.quote ? `<strong style="color:var(--primary);font-size:16px;">₹${Number(a.quote).toLocaleString('en-IN')}</strong>` : '<span style="color:var(--text-muted);">—</span>' },
-    { key: 'rating',       label: '⭐ Rating',          fn: a => a.expert.rating ? `<strong>${Number(a.expert.rating).toFixed(1)}</strong> <span style="color:var(--text-muted);font-size:11px;">(${a.expert.reviewCount || 0} reviews)</span>` : '<span style="color:var(--text-muted);">No reviews</span>' },
-    { key: 'kyc',          label: '🛡️ KYC',             fn: a => a.expert.kyc?.status === 'approved' ? '<span style="color:#16a34a;font-weight:700;">✅ Verified</span>' : '<span style="color:var(--text-muted);">Not verified</span>' },
-    { key: 'availability', label: '🟢 Availability',    fn: a => { const m = {available:'🟢 Available',busy:'🔴 Busy',away:'🟡 Away'}; return m[a.expert.availability||'available'] || '🟢 Available'; } },
-    { key: 'experience',   label: '📅 Experience',      fn: a => { const exp = a.expert.yearsOfExperience || a.expert.profile?.experience || a.expert.profile?.yearsOfExperience; return exp ? exp + ' yrs' : '<span style="color:var(--text-muted);">—</span>'; } },
-    { key: 'message',      label: '💬 Their Message',   fn: a => `<span style="font-size:12px;line-height:1.5;">${(a.message || '').substring(0,120)}${a.message?.length > 120 ? '…' : ''}</span>` },
-    { key: 'why',          label: '💡 Why Choose Me',   fn: a => { const w = a.expert.whyChooseMe; return w ? `<span style="font-size:12px;line-height:1.5;">${w.substring(0,120)}${w.length>120?'…':''}</span>` : '<span style="color:var(--text-muted);">Not set</span>'; } },
-    { key: 'bio',          label: '📋 About',           fn: a => { const b = a.expert.bio || a.expert.profile?.bio; return b ? `<span style="font-size:12px;line-height:1.5;">${b.substring(0,120)}${b.length>120?'…':''}</span>` : '<span style="color:var(--text-muted);">—</span>'; } },
-    { key: 'education',    label: '🎓 Education',       fn: a => a.expert.profile?.education || '<span style="color:var(--text-muted);">—</span>' },
-    { key: 'portfolio',    label: '🗂️ Portfolio',        fn: a => { const p = a.expert.profile?.portfolio; return p ? `<span style="font-size:12px;line-height:1.5;">${p.substring(0,100)}${p.length>100?'…':''}</span>` : '<span style="color:var(--text-muted);">—</span>'; } },
-    { key: 'city',         label: '📍 Location',        fn: a => a.expert.profile?.city || a.expert.location?.city || '<span style="color:var(--text-muted);">—</span>' },
+  var rows = [
+    { label: '💰 Quote',        fn: function(a) { return a.quote ? '<strong style="color:var(--primary);font-size:16px;">₹' + Number(a.quote).toLocaleString('en-IN') + '</strong>' : '<span style="color:var(--text-muted);">—</span>'; } },
+    { label: '⭐ Rating',        fn: function(a) { return a.expert.rating ? '<strong>' + Number(a.expert.rating).toFixed(1) + '</strong> <span style="color:var(--text-muted);font-size:11px;">(' + (a.expert.reviewCount || 0) + ' reviews)</span>' : '<span style="color:var(--text-muted);">No reviews</span>'; } },
+    { label: '🛡️ KYC',           fn: function(a) { return (a.expert.kyc && a.expert.kyc.status === 'approved') ? '<span style="color:#16a34a;font-weight:700;">✅ Verified</span>' : '<span style="color:var(--text-muted);">Not verified</span>'; } },
+    { label: '🟢 Availability',  fn: function(a) { var m = {available:'🟢 Available',busy:'🔴 Busy',away:'🟡 Away'}; return m[a.expert.availability || 'available'] || '🟢 Available'; } },
+    { label: '📅 Experience',    fn: function(a) { var exp = a.expert.yearsOfExperience || (a.expert.profile && (a.expert.profile.experience || a.expert.profile.yearsOfExperience)); return exp ? exp + ' yrs' : '<span style="color:var(--text-muted);">—</span>'; } },
+    { label: '💬 Their Message', fn: function(a) { var m = a.message || ''; return '<span style="font-size:12px;line-height:1.5;">' + m.substring(0,120) + (m.length > 120 ? '…' : '') + '</span>'; } },
+    { label: '💡 Why Choose Me', fn: function(a) { var w = a.expert.whyChooseMe; return w ? '<span style="font-size:12px;line-height:1.5;">' + w.substring(0,120) + (w.length > 120 ? '…' : '') + '</span>' : '<span style="color:var(--text-muted);">Not set</span>'; } },
+    { label: '📋 About',         fn: function(a) { var b = a.expert.bio || (a.expert.profile && a.expert.profile.bio) || ''; return b ? '<span style="font-size:12px;line-height:1.5;">' + b.substring(0,120) + (b.length > 120 ? '…' : '') + '</span>' : '<span style="color:var(--text-muted);">—</span>'; } },
+    { label: '🎓 Education',     fn: function(a) { return (a.expert.profile && a.expert.profile.education) || '<span style="color:var(--text-muted);">—</span>'; } },
+    { label: '🗂️ Portfolio',      fn: function(a) { var p = a.expert.profile && a.expert.profile.portfolio; return p ? '<span style="font-size:12px;line-height:1.5;">' + p.substring(0,100) + (p.length > 100 ? '…' : '') + '</span>' : '<span style="color:var(--text-muted);">—</span>'; } },
+    { label: '📍 Location',      fn: function(a) { return (a.expert.profile && a.expert.profile.city) || (a.expert.location && a.expert.location.city) || '<span style="color:var(--text-muted);">—</span>'; } }
   ];
 
-  const colWidth = Math.max(160, Math.floor(Math.min(window.innerWidth - 80, 900) / approaches.length));
+  var colWidth = Math.max(160, Math.floor(Math.min(window.innerWidth - 80, 900) / approaches.length));
 
-  // Header row: expert avatars + names
-  const headerCols = approaches.map(a => {
-    const primarySvc = (a.expert.servicesOffered || a.expert.profile?.servicesOffered || [])[0];
-    const svcColor = svcColors[primarySvc] || '#FC8019';
-    return `
-      <th style="width:${colWidth}px;min-width:${colWidth}px;padding:14px 12px;text-align:center;border-left:1px solid var(--border);vertical-align:top;">
-        <div style="width:44px;height:44px;border-radius:50%;background:${svcColor};color:#fff;font-size:16px;font-weight:800;display:flex;align-items:center;justify-content:center;margin:0 auto 8px;overflow:hidden;">
-          ${a.expert.profilePhoto ? `<img src="${a.expert.profilePhoto}" style="width:100%;height:100%;object-fit:cover;">` : a.expert.name.substring(0,1).toUpperCase()}
-        </div>
-        <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:2px;">${a.expert.name}</div>
-        <div style="font-size:11px;color:${svcColor};font-weight:600;">${a.expert.specialization || a.expert.profile?.specialization || 'Professional'}</div>
-      </th>`;
+  var headerCols = approaches.map(function(a) {
+    var primarySvc = (a.expert.servicesOffered || (a.expert.profile && a.expert.profile.servicesOffered) || [])[0];
+    var svcColor = svcColors[primarySvc] || '#FC8019';
+    return '<th style="width:' + colWidth + 'px;min-width:' + colWidth + 'px;padding:14px 12px;text-align:center;border-left:1px solid var(--border);vertical-align:top;">' +
+      '<div style="width:44px;height:44px;border-radius:50%;background:' + svcColor + ';color:#fff;font-size:16px;font-weight:800;display:flex;align-items:center;justify-content:center;margin:0 auto 8px;overflow:hidden;">' +
+        (a.expert.profilePhoto ? '<img src="' + a.expert.profilePhoto + '" style="width:100%;height:100%;object-fit:cover;">' : (a.expert.name || '?').substring(0,1).toUpperCase()) +
+      '</div>' +
+      '<div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:2px;">' + a.expert.name + '</div>' +
+      '<div style="font-size:11px;color:' + svcColor + ';font-weight:600;">' + (a.expert.specialization || (a.expert.profile && a.expert.profile.specialization) || 'Professional') + '</div>' +
+    '</th>';
   }).join('');
 
-  // Data rows
-  const dataRows = rows.map(row => {
-    const cells = approaches.map(a => `
-      <td style="padding:12px;text-align:center;border-left:1px solid var(--border);vertical-align:middle;font-size:13px;color:var(--text);">
-        ${row.fn(a)}
-      </td>`).join('');
-    return `
-      <tr style="border-top:1px solid var(--border);">
-        <td style="padding:12px 14px;font-size:12px;font-weight:700;color:var(--text-muted);white-space:nowrap;background:var(--bg-gray);position:sticky;left:0;z-index:1;min-width:110px;">${row.label}</td>
-        ${cells}
-      </tr>`;
+  var dataRows = rows.map(function(row) {
+    var cells = approaches.map(function(a) {
+      return '<td style="padding:12px;text-align:center;border-left:1px solid var(--border);vertical-align:middle;font-size:13px;color:var(--text);">' + row.fn(a) + '</td>';
+    }).join('');
+    return '<tr style="border-top:1px solid var(--border);">' +
+      '<td style="padding:12px 14px;font-size:12px;font-weight:700;color:var(--text-muted);white-space:nowrap;background:var(--bg-gray);position:sticky;left:0;z-index:1;min-width:110px;">' + row.label + '</td>' +
+      cells +
+    '</tr>';
   }).join('');
 
-  // Contact buttons row
-  const contactCells = approaches.map(a => `
-    <td style="padding:12px;border-left:1px solid var(--border);text-align:center;">
-      <button onclick="contactExpert('${a.expert._id}', '${req._id}', '${state.user._id}');document.getElementById('compareModal').remove();"
-        style="width:100%;padding:10px;background:var(--primary);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;">
-        💬 Contact
-      </button>
-    </td>`).join('');
+  var contactCells = approaches.map(function(a) {
+    return '<td style="padding:12px;border-left:1px solid var(--border);text-align:center;">' +
+      '<button onclick="contactExpert(\'' + a.expert._id + '\',\'' + req._id + '\',\'' + state.user._id + '\');document.getElementById(\'compareModal\').remove();" style="width:100%;padding:10px;background:var(--primary);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;">💬 Contact</button>' +
+    '</td>';
+  }).join('');
 
-  const modal = document.createElement('div');
+  var modal = document.createElement('div');
   modal.id = 'compareModal';
   modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;z-index:1001;padding:16px;';
-  modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
+  modal.onclick = function(e) { if (e.target === modal) modal.remove(); };
 
-  modal.innerHTML = `
-    <div style="background:var(--bg);border-radius:18px;width:100%;max-width:960px;max-height:90vh;overflow:hidden;display:flex;flex-direction:column;">
-
-      <!-- Header -->
-      <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
-        <div>
-          <h2 style="font-size:17px;font-weight:800;color:var(--text);margin:0 0 2px;">⚖️ Compare Experts</h2>
-          <p style="font-size:12px;color:var(--text-muted);margin:0;">${approaches.length} experts · ${req.title}</p>
-        </div>
-        <button onclick="document.getElementById('compareModal').remove()"
-          style="width:32px;height:32px;border:none;background:var(--bg-gray);border-radius:50%;font-size:18px;cursor:pointer;color:var(--text-muted);">×</button>
-      </div>
-
-      <!-- Scrollable table -->
-      <div style="overflow:auto;flex:1;">
-        <table style="border-collapse:collapse;width:100%;min-width:${110 + colWidth * approaches.length}px;">
-          <thead style="position:sticky;top:0;z-index:2;background:var(--bg);">
-            <tr>
-              <th style="width:110px;min-width:110px;padding:14px;background:var(--bg-gray);position:sticky;left:0;z-index:3;"></th>
-              ${headerCols}
-            </tr>
-          </thead>
-          <tbody>
-            ${dataRows}
-            <tr style="border-top:2px solid var(--border);background:var(--bg);">
-              <td style="padding:12px 14px;font-size:12px;font-weight:700;color:var(--text-muted);background:var(--bg-gray);position:sticky;left:0;">🎯 Contact</td>
-              ${contactCells}
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>`;
+  modal.innerHTML =
+    '<div style="background:var(--bg);border-radius:18px;width:100%;max-width:960px;max-height:90vh;overflow:hidden;display:flex;flex-direction:column;">' +
+      '<div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">' +
+        '<div>' +
+          '<h2 style="font-size:17px;font-weight:800;color:var(--text);margin:0 0 2px;">⚖️ Compare Experts</h2>' +
+          '<p style="font-size:12px;color:var(--text-muted);margin:0;">' + approaches.length + ' experts · ' + (req.title || '') + '</p>' +
+        '</div>' +
+        '<button onclick="document.getElementById(\'compareModal\').remove()" style="width:32px;height:32px;border:none;background:var(--bg-gray);border-radius:50%;font-size:18px;cursor:pointer;color:var(--text-muted);">×</button>' +
+      '</div>' +
+      '<div style="overflow:auto;flex:1;">' +
+        '<table style="border-collapse:collapse;width:100%;min-width:' + (110 + colWidth * approaches.length) + 'px;">' +
+          '<thead style="position:sticky;top:0;z-index:2;background:var(--bg);">' +
+            '<tr>' +
+              '<th style="width:110px;min-width:110px;padding:14px;background:var(--bg-gray);position:sticky;left:0;z-index:3;"></th>' +
+              headerCols +
+            '</tr>' +
+          '</thead>' +
+          '<tbody>' +
+            dataRows +
+            '<tr style="border-top:2px solid var(--border);background:var(--bg);">' +
+              '<td style="padding:12px 14px;font-size:12px;font-weight:700;color:var(--text-muted);background:var(--bg-gray);position:sticky;left:0;">🎯 Contact</td>' +
+              contactCells +
+            '</tr>' +
+          '</tbody>' +
+        '</table>' +
+      '</div>' +
+    '</div>';
 
   document.body.appendChild(modal);
 }
 
-  const approachesHTML = approaches.length > 0 ? approaches.map(app => {
-    const expert = app.expert;
-    return `
-      <div style="padding: 16px; background: var(--bg-gray); border-radius: 12px; margin-bottom: 12px;">
-        <div style="display: flex; gap: 12px; align-items: center; margin-bottom: 12px;">
-          <div class="avatar" style="width: 48px; height: 48px; font-size: 20px;">
-            ${expert.profilePhoto ? 
-              `<img src="${expert.profilePhoto}" alt="${expert.name}">` : 
-              expert.name.substring(0, 1).toUpperCase()
-            }
-          </div>
-          <div style="flex: 1;">
-            <h4 style="font-size: 16px; font-weight: 600; color: var(--text); margin-bottom: 2px;">${expert.name}</h4>
-            <p style="font-size: 13px; color: var(--text-muted);">${expert.specialization || 'Professional'}</p>
-          </div>
-          ${expert.rating ? `
-            <div style="display: flex; align-items: center; gap: 4px;">
-              <span style="color: var(--yellow); font-size: 16px;">★</span>
-              <span style="font-size: 14px; font-weight: 600;">${expert.rating.toFixed(1)}</span>
-            </div>
-          ` : ''}
-        </div>
-
-        ${app.quote ? `
-          <div style="display:inline-flex; align-items:center; gap:6px; background:rgba(252,128,25,0.1);
-                      border-radius:20px; padding:6px 14px; margin-bottom:10px;">
-            <span style="font-size:20px; font-weight:800; color:var(--primary);">₹${app.quote.toLocaleString('en-IN')}</span>
-            <span style="font-size:12px; color:var(--text-muted); font-weight:600;">quoted</span>
-          </div>
-        ` : ''}
-
-        <p style="font-size: 14px; color: var(--text-light); margin-bottom: 12px; line-height:1.6;">${app.message}</p>
-
-        <div style="display: flex; gap: 8px;">
-          <button onclick="viewExpertProfile('${expert._id}', true)" 
-            style="flex: 1; padding: 10px; border: 1.5px solid var(--primary); border-radius: 8px; background: transparent; color: var(--primary); font-size: 13px; font-weight: 600; cursor: pointer;">
-            View Profile
-          </button>
-
-          ${!isCompleted ? `
-            <button onclick="contactExpert('${expert._id}', '${req._id}', '${state.user._id}')" 
-              style="flex: 1; padding: 10px; border: none; border-radius: 8px; background: var(--primary); color: #fff; font-size: 13px; font-weight: 700; cursor: pointer;">
-              Contact
-            </button>
-          ` : ''}
-        </div>
-
-        ${isCompleted ? `
-          <div style="width:100%; margin-top:10px; padding:10px; border-radius:8px; background:#f0fff4; color:#4CAF50; font-size:13px; font-weight:600; text-align:center;">
-            ✅ Service Completed
-          </div>
-        ` : `
-          <button onclick="confirmServiceReceived('${req._id}', '${expert._id}', '${expert.name}', '${app._id}')" 
-            style="width: 100%; padding: 10px; border: 1.5px solid #4CAF50; border-radius: 8px; background: transparent; color: #4CAF50; font-size: 13px; font-weight: 600; cursor: pointer; margin-top: 10px;">
-            ✓ Service Received?
-          </button>
-        `}
-      </div>
-    `;
-  }).join('') : `
-    <div class="empty-state" style="padding: 40px 20px;">
-      <div class="empty-icon">👨‍💼</div>
-      <h3 class="empty-title">No approaches yet</h3>
-      <p class="empty-text">Professionals will approach you soon</p>
-    </div>
-  `;
-  
-  modal.innerHTML = `
-    <div style="background: var(--bg); border-radius: 16px; max-width: 500px; width: 100%; max-height: 80vh; overflow-y: auto; padding: 24px;">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-        <h2 style="font-size: 20px; font-weight: 700; color: var(--text);">${req.title}</h2>
-        <button onclick="this.closest('div').parentElement.remove()" style="padding: 8px; border: none; background: transparent; font-size: 24px; cursor: pointer; color: var(--text-muted);">×</button>
-      </div>
-      
-      <div style="margin-bottom: 20px;">
-        <h3 style="font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 12px;">Professionals Interested (${approaches.length})</h3>
-        ${approachesHTML}
-      </div>
-      
-      ${req.status === 'pending' || req.status === 'active' ? `
-        <button onclick="cancelRequest('${req._id}')" 
-          style="width: 100%; padding: 14px; margin-top: 12px; border: 1.5px solid #dc3545; border-radius: 10px; background: transparent; color: #dc3545; font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.2s;"
-          onmouseover="this.style.background='#dc3545'; this.style.color='#fff'"
-          onmouseout="this.style.background='transparent'; this.style.color='#dc3545'">
-          ✕ Cancel Request
-        </button>
-      ` : ''}
-    </div>
-  `;
-  
-  document.body.appendChild(modal);
-}
 // ─── VIEW EXPERT PROFILE ───
 
 // ─── CONTACT EXPERT ───
@@ -3284,83 +2432,28 @@ function renderMyApproaches(interests = []) {
   const pagedApproaches = paginate(allApproaches, 'expertApproaches');
 
   container.innerHTML = interestHTML + `
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
-      <h3 style="font-size:18px;font-weight:800;color:var(--text);letter-spacing:-0.3px;">My Approaches</h3>
-      <span style="font-size:12px;font-weight:700;padding:4px 12px;border-radius:20px;background:var(--bg-gray);color:var(--text-muted);">${allApproaches.length} total</span>
-    </div>
+    <h3 style="font-size:16px; font-weight:700; color:var(--text); margin-bottom:12px;">
+      📨 My Approaches (${allApproaches.length})
+    </h3>
   ` + pagedApproaches.map(app => {
     const req = app.request;
     if (!req) return '';
-
-    // Time ago
-    const ago = (() => {
-      if (!app.createdAt) return '';
-      const diff = Date.now() - new Date(app.createdAt).getTime();
-      const hrs = Math.floor(diff / 3600000);
-      const days = Math.floor(diff / 86400000);
-      if (hrs < 1) return 'just now';
-      if (hrs < 24) return hrs + 'h ago';
-      if (days === 1) return 'Yesterday';
-      return days + 'd ago';
-    })();
-
-    // Service color
-    const svcColors = { itr:'#8b5cf6', gst:'#3b82f6', accounting:'#10b981', audit:'#f59e0b', photography:'#ec4899', development:'#06b6d4' };
-    const svcColor = svcColors[(req.service || '').toLowerCase()] || '#FC8019';
-
-    // Status config
-    const stConfig = {
-      pending:   { label: 'Pending',   color: '#f59e0b', bg: 'rgba(245,158,11,0.1)',  border: 'rgba(245,158,11,0.3)',  icon: '⏳' },
-      accepted:  { label: 'Accepted',  color: '#16a34a', bg: 'rgba(22,163,74,0.1)',   border: 'rgba(22,163,74,0.3)',   icon: '✅' },
-      rejected:  { label: 'Rejected',  color: '#dc2626', bg: 'rgba(220,38,38,0.1)',   border: 'rgba(220,38,38,0.3)',   icon: '❌' },
-      completed: { label: 'Completed', color: '#3b82f6', bg: 'rgba(59,130,246,0.1)',  border: 'rgba(59,130,246,0.3)',  icon: '🏆' },
-      withdrawn: { label: 'Withdrawn', color: '#6b7280', bg: 'rgba(107,114,128,0.1)', border: 'rgba(107,114,128,0.3)', icon: '↩️' }
-    };
-    const st = stConfig[app.status] || stConfig.pending;
-
     return `
-      <div style="background:var(--bg);border:1.5px solid var(--border);border-radius:16px;overflow:hidden;margin-bottom:12px;transition:all 0.2s;border-left:4px solid ${st.color};"
-        onmouseover="this.style.boxShadow='0 4px 16px rgba(0,0,0,0.08)';this.style.transform='translateY(-1px)'"
-        onmouseout="this.style.boxShadow='none';this.style.transform='translateY(0)'">
-
-        <!-- Top strip -->
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--bg-gray);border-bottom:1px solid var(--border);">
-          <div style="display:flex;align-items:center;gap:6px;">
-            <span style="font-size:11px;font-weight:700;padding:2px 9px;border-radius:20px;background:${svcColor}18;color:${svcColor};text-transform:uppercase;letter-spacing:.04em;">${req.service || 'Service'}</span>
-            <span style="font-size:11px;font-weight:700;padding:2px 9px;border-radius:20px;background:${st.bg};color:${st.color};border:1px solid ${st.border};">${st.icon} ${st.label}</span>
+      <div class="request-card" style="background:var(--bg); border:1px solid var(--border); border-radius:12px; padding:20px; margin-bottom:16px; cursor:pointer;" onclick="showMyApproachDetail('${app._id}')">
+        <div style="display:flex; justify-content:space-between; align-items:start; margin-bottom:12px;">
+          <div style="flex:1;">
+            <h3 style="font-size:18px; font-weight:700; color:var(--text); margin-bottom:4px;">${req.title || 'Request'}</h3>
+            <p style="font-size:14px; color:var(--text-muted);">${(req.service || '').toUpperCase()}</p>
           </div>
-          <div style="display:flex;align-items:center;gap:8px;">
-            <span style="font-size:11px;color:var(--text-muted);">🕐 ${ago}</span>
-            <span style="font-size:11px;font-weight:700;padding:2px 9px;border-radius:20px;background:rgba(252,128,25,0.1);color:var(--primary);">🔥 ${app.creditsSpent || 0} cr</span>
-          </div>
+          <span class="badge ${statusColors[app.status] || 'badge-warning'}">${(app.status || 'pending').toUpperCase()}</span>
         </div>
-
-        <!-- Body -->
-        <div style="padding:14px;">
-          <div style="margin-bottom:10px;">
-            <h4 style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:5px;line-height:1.3;">${req.title || 'Service Request'}</h4>
-            <div style="display:flex;align-items:center;gap:6px;">
-              <div style="width:20px;height:20px;border-radius:50%;background:${svcColor};color:#fff;font-size:9px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;">${(req.client?.name || 'C').charAt(0).toUpperCase()}</div>
-              <span style="font-size:12px;font-weight:600;color:var(--text-muted);">${req.client?.name || 'Client'}</span>
-              ${req.budget ? `<span style="font-size:11px;color:var(--text-muted);">· ₹${Number(req.budget).toLocaleString('en-IN')}</span>` : ''}
-            </div>
-          </div>
-
-          <p style="font-size:13px;color:var(--text-light);line-height:1.6;margin-bottom:12px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">${app.message || req.description || ''}</p>
-
-          ${app.status === 'pending'   ? `<div style="font-size:12px;color:#f59e0b;background:rgba(245,158,11,0.06);border-radius:8px;padding:8px 10px;margin-bottom:12px;">⏳ Waiting for client to review your proposal</div>` : ''}
-          ${app.status === 'accepted'  ? `<div style="font-size:12px;color:#16a34a;background:rgba(22,163,74,0.06);border-radius:8px;padding:8px 10px;margin-bottom:12px;">✅ Client accepted! Check your chat for messages.</div>` : ''}
-          ${app.status === 'rejected'  ? `<div style="font-size:12px;color:#dc2626;background:rgba(220,38,38,0.06);border-radius:8px;padding:8px 10px;margin-bottom:12px;">❌ Client chose another professional this time.</div>` : ''}
-          ${app.status === 'completed' ? `<div style="font-size:12px;color:#3b82f6;background:rgba(59,130,246,0.06);border-radius:8px;padding:8px 10px;margin-bottom:12px;">🏆 Service completed successfully!</div>` : ''}
-
-          <button onclick="showMyApproachDetail('${app._id}')"
-            style="width:100%;padding:10px;border:1.5px solid var(--border);border-radius:10px;background:transparent;color:var(--text);font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s;"
-            onmouseover="this.style.borderColor='var(--primary)';this.style.color='var(--primary)'"
-            onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text)'">
-            View Details →
-          </button>
+        <p style="font-size:14px; color:var(--text-light); margin-bottom:12px;">${req.description || ''}</p>
+        <div style="display:flex; gap:20px; font-size:13px; color:var(--text-muted);">
+          <span>💰 ${app.creditsSpent || 0} credits spent</span>
+          <span>📅 ${new Date(app.createdAt).toLocaleDateString()}</span>
         </div>
-      </div>`;
+      </div>
+    `;
   }).join('') + paginationControlsHTML(allApproaches, 'expertApproaches');
 }
 // ─── SHOW APPROACH DETAIL WITH CONTACT INFO ───
@@ -3616,34 +2709,12 @@ function loadSettings() {
   if (darkModeToggle) {
     darkModeToggle.checked = localStorage.getItem('darkMode') === 'true';
   }
-  // Populate user info
-  if (state.user) {
-    const u = state.user;
-    const av = document.getElementById('settingsAvatar');
-    const nm = document.getElementById('settingsName');
-    const em = document.getElementById('settingsEmail');
-    const rl = document.getElementById('settingsRole');
-    if (av) av.textContent = (u.name || '?').charAt(0).toUpperCase();
-    if (nm) nm.textContent = u.name || 'My Account';
-    if (em) em.textContent = u.email || '';
-    if (rl) rl.textContent = u.role === 'expert' ? 'Professional' : 'Customer';
-    // Sync profile photo
-    if (u.profilePhoto && av) {
-      av.innerHTML = `<img src="${u.profilePhoto}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
-    }
-  }
 }
 
 // ─── INIT ON PAGE LOAD ─── 
 document.addEventListener('DOMContentLoaded', () => {
-  // ── Public routes — bypass auth entirely ──
-  if (window.location.pathname.startsWith('/expert/')) {
-    loadPublicExpertPage();
-    return;
-  }
-
   initDarkMode();
-   
+
   // ── Handle back/forward browser buttons ──
   window.addEventListener('popstate', (e) => {
     if (e.state?.pageId) {
@@ -3970,42 +3041,25 @@ function renderExpertProfile() {
   ).join('');
 
   profileTab.innerHTML = `
-    <!-- ── PROFILE HERO ── -->
-    <div style="background:linear-gradient(135deg,rgba(252,128,25,0.08),rgba(252,128,25,0.02));border-bottom:1px solid var(--border);padding:28px 20px 20px;text-align:center;">
-      <!-- Avatar -->
-      <div style="position:relative;display:inline-block;margin-bottom:14px;">
-        <div id="expertProfileAvatar" style="width:88px;height:88px;border-radius:50%;background:var(--primary);color:#fff;font-size:28px;font-weight:800;display:flex;align-items:center;justify-content:center;border:3px solid #fff;box-shadow:0 4px 16px rgba(252,128,25,0.25);overflow:hidden;margin:0 auto;">
-          ${user.profilePhoto ? `<img src="${user.profilePhoto}" alt="${user.name}" style="width:100%;height:100%;object-fit:cover;">` : (user.name || 'E').substring(0,2).toUpperCase()}
+    <!-- ── AVATAR SECTION ── -->
+    <div style="text-align:center;padding:24px 20px 0;">
+      <div class="avatar-upload" style="display:inline-block;position:relative;margin-bottom:12px;">
+        <div class="avatar avatar-xl" id="expertProfileAvatar" style="width:88px;height:88px;font-size:32px;">
+          ${user.profilePhoto ? `<img src="${user.profilePhoto}" alt="${user.name}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">` : (user.name || 'E').substring(0,2).toUpperCase()}
         </div>
-        <button onclick="document.getElementById('expertPhotoInput').click()"
-          style="position:absolute;bottom:2px;right:2px;width:26px;height:26px;border-radius:50%;background:var(--primary);color:#fff;border:2px solid var(--bg);font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,0.2);">📷</button>
+        <button class="avatar-upload-btn" onclick="document.getElementById('expertPhotoInput').click()" style="position:absolute;bottom:0;right:0;width:28px;height:28px;border-radius:50%;background:var(--primary);color:#fff;border:2px solid var(--bg);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;">📷</button>
         <input type="file" id="expertPhotoInput" style="display:none;" accept="image/*" onchange="uploadProfilePhoto(event)">
-        <!-- Online indicator -->
-        <span style="position:absolute;top:4px;right:4px;width:14px;height:14px;border-radius:50%;background:#22c55e;border:2px solid var(--bg);"></span>
       </div>
-
-      <!-- Name + role -->
-      <h2 style="font-size:22px;font-weight:800;color:var(--text);margin:0 0 3px;" id="expertProfileName">${user.name || 'Expert'}</h2>
-      ${profile.specialization ? `<p style="font-size:14px;font-weight:600;color:var(--primary);margin:0 0 3px;">${profile.specialization}</p>` : ''}
-      <p style="font-size:13px;color:var(--text-muted);margin:0 0 14px;" id="expertProfileEmail">${user.email || ''}</p>
-
-      <!-- Stat pills row -->
-      <div style="display:inline-flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-bottom:16px;">
-        ${user.rating ? `<span style="font-size:12px;font-weight:700;padding:4px 12px;border-radius:20px;background:rgba(245,158,11,0.1);color:#b45309;">⭐ ${Number(user.rating).toFixed(1)} (${user.reviewCount || 0})</span>` : ''}
-        <span style="font-size:12px;font-weight:700;padding:4px 12px;border-radius:20px;background:rgba(252,128,25,0.1);color:var(--primary);">💎 ${user.credits || 0} credits</span>
-        ${profile.city ? `<span style="font-size:12px;font-weight:600;padding:4px 12px;border-radius:20px;background:var(--bg-gray);color:var(--text-muted);">📍 ${profile.city}</span>` : ''}
-        ${(user.kyc && user.kyc.status === 'approved') ? `<span style="font-size:12px;font-weight:700;padding:4px 12px;border-radius:20px;background:rgba(22,163,74,0.1);color:#16a34a;">✅ KYC Verified</span>` : ''}
+      <h2 style="font-size:22px;font-weight:800;color:var(--text);margin-bottom:4px;" id="expertProfileName">${user.name || 'Expert'}</h2>
+      <p style="color:var(--text-muted);font-size:14px;margin-bottom:4px;" id="expertProfileEmail">${user.email || ''}</p>
+      ${profile.specialization ? `<p style="color:var(--primary);font-size:14px;font-weight:600;">${profile.specialization}</p>` : ''}
+      <div style="display:flex;align-items:center;justify-content:center;gap:16px;margin-top:12px;margin-bottom:20px;flex-wrap:wrap;">
+        <span style="font-size:14px;color:var(--text-muted);">⭐ ${user.rating || '0.0'} (${user.reviewCount || 0} reviews)</span>
+        <span style="font-size:14px;color:var(--text-muted);">💎 ${user.credits || 0} credits</span>
+        ${profile.city ? `<span style="font-size:14px;color:var(--text-muted);">📍 ${profile.city}</span>` : ''}
       </div>
-
-      <!-- Share button -->
-      <button onclick="openPublicProfile('${user._id}')"
-        style="display:flex;align-items:center;justify-content:center;gap:6px;width:100%;padding:11px;border:1.5px solid var(--primary);border-radius:10px;background:transparent;color:var(--primary);font-size:14px;font-weight:700;cursor:pointer;transition:all 0.2s;"
-        onmouseover="this.style.background='rgba(252,128,25,0.06)'"
-        onmouseout="this.style.background='transparent'">
-        🔗 Share My Profile
-      </button>
     </div>
-    
+
     <div style="padding:0 20px 40px;">
 <!-- ── BASIC INFO (EDITABLE) ── -->
       <div class="settings-section" style="margin-bottom:20px;">
@@ -4062,27 +3116,17 @@ function renderExpertProfile() {
           </div>
         ` : `
           <p style="font-size:13px;color:var(--text-muted);margin-bottom:14px;">Upload one government ID to get a verified badge on your profile. Verified experts get 3× more client trust.</p>
-          <!-- Step 1: Pick doc type -->
-          <!-- Submit KYC button — shown first, hides on click -->
-          <button id="kycStartBtn" onclick="showKycOptions()"
-            style="width:100%;padding:12px;border:none;border-radius:10px;background:var(--primary);color:#fff;font-size:14px;font-weight:700;cursor:pointer;margin-bottom:4px;">
-            📋 Submit KYC Documents
-          </button>
-
-          <div id="kycStep1" style="display:none;">
-            <p style="font-size:12px;color:var(--text-muted);margin-bottom:10px;">Select document type to upload:</p>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px;">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
             ${['Aadhaar Card','PAN Card','Voter ID','Driving License'].map(doc => `
-                <label id="kyc_label_${doc.replace(/\s/g,'_')}"
-                  style="display:flex;align-items:center;gap:8px;padding:10px 12px;border:1.5px solid var(--border);border-radius:10px;cursor:pointer;font-size:13px;font-weight:500;transition:all 0.2s;"
-                  onmouseover="this.style.borderColor='var(--primary)'"
-                  onmouseout="if(window._kycSelected!=='${doc}')this.style.borderColor='var(--border)'">
-                  <input type="radio" name="kycDocType" value="${doc}" onchange="selectKycDocType('${doc}')" style="accent-color:var(--primary);">
-                  ${doc}
-                </label>`).join('')}
-            </div>
+              <label style="display:flex;align-items:center;gap:8px;padding:10px 12px;border:1.5px solid var(--border);border-radius:10px;cursor:pointer;font-size:13px;font-weight:500;transition:all 0.2s;"
+                id="kyc_label_${doc.replace(/\s/g,'_')}"
+                onmouseover="this.style.borderColor='var(--primary)'"
+                onmouseout="if(window._kycSelected!==this.querySelector('input').value)this.style.borderColor='var(--border)'">
+                <input type="radio" name="kycDocType" value="${doc}" onchange="selectKycDocType('${doc}')" style="accent-color:var(--primary);">
+                ${doc}
+              </label>`).join('')}
           </div>
-          <div id="kycUploadArea" style="display:none;margin-top:12px;">
+          <div id="kycUploadArea" style="display:none;">
             <div id="kycPreview" style="display:none;margin-bottom:10px;"></div>
             <label style="display:flex;flex-direction:column;align-items:center;gap:8px;padding:20px;border:2px dashed var(--border);border-radius:12px;cursor:pointer;background:var(--bg-gray);" onclick="document.getElementById('kycFileInput').click()">
               <span style="font-size:32px;">📄</span>
@@ -4132,45 +3176,28 @@ function renderExpertProfile() {
 
       <!-- ── AVAILABILITY STATUS ── -->
       <div class="settings-section" style="margin-bottom:20px;">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
-          <div>
-            <h3 class="settings-section-title" style="margin:0;">Availability Status</h3>
-            <p style="font-size:12px;color:var(--text-muted);margin:3px 0 0;">Shown on your public profile</p>
-          </div>
-          <!-- Current status pill -->
-          ${(() => {
-            const cur = user.availability || 'available';
-            const pillMap = {
-              available: { label: "Available",  color: '#16a34a', bg: 'rgba(22,163,74,0.1)',  dot: '#22c55e' },
-              busy:      { label: "Busy",       color: '#dc2626', bg: 'rgba(220,38,38,0.1)',  dot: '#ef4444' },
-              away:      { label: "Away",       color: '#d97706', bg: 'rgba(217,119,6,0.1)',  dot: '#f59e0b' }
-            };
-            const p = pillMap[cur];
-            return `<span style="display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:20px;background:${p.bg};color:${p.color};font-size:12px;font-weight:700;">
-              <span style="width:7px;height:7px;border-radius:50%;background:${p.dot};display:inline-block;"></span>
-              ${p.label}
-            </span>`;
-          })()}
-        </div>
-        <!-- Compact 3-button selector -->
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
+        <h3 class="settings-section-title">Availability Status</h3>
+        <p style="font-size:13px;color:var(--text-muted);margin-bottom:12px;">Clients see this on your profile — keep it updated</p>
+        <div style="display:flex;flex-direction:column;gap:8px;">
           ${['available','busy','away'].map(status => {
             const map = {
-              available: { icon: '🟢', label: "Available" },
-              busy:      { icon: '🔴', label: "Busy"      },
-              away:      { icon: '🟡', label: "Away"      }
+              available: { icon: '🟢', label: "I'm Available",     sub: 'Open to new clients' },
+              busy:      { icon: '🔴', label: 'Busy This Week',    sub: 'Limited availability' },
+              away:      { icon: '🟡', label: 'Away',              sub: 'Temporarily unavailable' }
             };
             const s = map[status];
             const isActive = (user.availability || 'available') === status;
-            return `<label style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 8px;border:2px solid ${isActive ? 'var(--primary)' : 'var(--border)'};border-radius:10px;cursor:pointer;background:${isActive ? 'rgba(252,128,25,0.06)' : 'var(--bg)'};text-align:center;">
-              <input type="radio" name="availabilityRadio" value="${status}" ${isActive ? 'checked' : ''} style="display:none;" onchange="updateAvailability('${status}')">
-              <span style="font-size:20px;">${s.icon}</span>
-              <span style="font-size:12px;font-weight:700;color:${isActive ? 'var(--primary)' : 'var(--text)'};">${s.label}</span>
+            return `<label style="display:flex;align-items:center;gap:12px;padding:12px 14px;border:2px solid ${isActive ? 'var(--primary)' : 'var(--border)'};border-radius:10px;cursor:pointer;background:${isActive ? 'rgba(252,128,25,0.05)' : 'var(--bg)'};">
+              <input type="radio" name="availabilityRadio" value="${status}" ${isActive ? 'checked' : ''} style="accent-color:var(--primary);" onchange="updateAvailability('${status}')">
+              <div>
+                <div style="font-size:14px;font-weight:700;color:var(--text);">${s.icon} ${s.label}</div>
+                <div style="font-size:12px;color:var(--text-muted);">${s.sub}</div>
+              </div>
             </label>`;
           }).join('')}
         </div>
       </div>
-      
+
       <!-- ── WHY CHOOSE ME ── -->
       <div class="settings-section" style="margin-bottom:20px;">
         <h3 class="settings-section-title">Why Choose Me</h3>
@@ -4270,31 +3297,9 @@ async function saveProfileEdits() {
     if (el) updatedProfile[key] = el.value.trim();
   });
 
-  // ─── BIO MODERATION ───
-  const bioText = updatedProfile.bio || '';
-  const phonePattern = /(\+?\d[\s\-.]?){9,13}\d/;
-  const contactPatterns = [
-    /\b\d{10}\b/,
-    /\+91[\s\-]?\d{10}/,
-    /\b[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}\b/,
-    /wa\.me\//i,
-    /whatsapp/i,
-    /telegram/i,
-    /instagram\.com/i,
-    /t\.me\//i,
-    /call me/i,
-    /contact me at/i,
-    /reach me/i,
-    /dm me/i
-  ];
-  const hasContact = phonePattern.test(bioText) || contactPatterns.some(p => p.test(bioText));
-  if (hasContact) {
-    showToast('Bio cannot contain phone numbers, emails, or external contact info. Please remove them and try again.', 'error');
-    return;
-  }
-
   const btn = document.querySelector('#editSaveRow button');
   if (btn) { btn.disabled = true; btn.textContent = 'Saving...'; }
+
   try {
     const res = await fetch(`${API_URL}/users/profile`, {
       method: 'PUT',
@@ -4463,13 +3468,6 @@ function selectKycDocType(docType) {
   if (area) area.style.display = 'block';
 }
 
-function showKycOptions() {
-  const step1 = document.getElementById('kycStep1');
-  const btn = document.getElementById('kycStartBtn');
-  if (step1) step1.style.display = 'block';
-  if (btn) btn.style.display = 'none';
-}
-
 // ─── KYC DOC PREVIEW ───
 function previewKycDoc(event) {
   const file = event.target.files[0];
@@ -4566,14 +3564,9 @@ async function submitKycDocument() {
     if (btn) { btn.disabled = false; btn.textContent = '🛡️ Submit for Verification'; }
   }
 }
-// ─── ABORT CONTROLLERS ───
-let browseAbortController = null;
-let expertsAbortController = null;
-
 // ─── CHAT STATE ───
 let currentChatId = null;
 let chatPollingInterval = null;
-let notificationInterval = null;
 
 // ─── HELPER: get correct element ID based on role ───
 function chatEl(clientId, expertId) {
@@ -4721,7 +3714,6 @@ async function loadMessages(chatId) {
 
 // ─── SEND MESSAGE ───
 async function sendMessage() {
-  if (isUserRestricted()) { showRestrictedToast(); return; }
   const inputEl = chatEl('chatInput', 'expertChatInput');
   const text = inputEl?.value.trim();
   if (!text || !currentChatId) return;
@@ -4744,7 +3736,6 @@ async function sendMessage() {
 
 // ─── START CHAT (from Contact button) ───
 async function startChat(requestId, expertId, clientId) {
-  if (isUserRestricted()) { showRestrictedToast(); return; }
   try {
     const res = await fetch(`${API_URL}/chats/start`, {
       method: 'POST',
@@ -4769,7 +3760,6 @@ async function startChat(requestId, expertId, clientId) {
 }
 // ─── EXPERT STARTS CHAT FROM APPROACH DETAIL ───
 async function expertStartChat(requestId, expertId, clientId) {
-  if (isUserRestricted()) { showRestrictedToast(); return; }
   try {
     const res = await fetch(`${API_URL}/chats/start`, {
       method: 'POST',
@@ -4963,16 +3953,11 @@ let searchTimeout = null;
 
 function handleExpertSearch(value) {
   clearTimeout(searchTimeout);
-  hideSearchSuggestions();
-
-  if (!value) {
-    // User cleared the box — debounce the reload too
-    searchTimeout = setTimeout(() => loadExperts(), 300);
+  if (!value || value.length < 2) {
+    hideSearchSuggestions();
+    if (!value) loadExperts();
     return;
   }
-
-  if (value.length < 2) return; // wait for at least 2 chars
-
   showSearchSuggestions(value);
   searchTimeout = setTimeout(() => {
     loadExperts({ location: value });
@@ -5172,52 +4157,6 @@ async function submitUserTicket() {
     showToast('Network error. Please try again.', 'error');
   }
 }
-function renderFollowUpButton(ticket) {
-  if (ticket.status === 'resolved' || ticket.status === 'closed') return '';
-
-  var createdMs = ticket.createdAt ? new Date(ticket.createdAt).getTime() : 0;
-  var hoursSinceCreated = (Date.now() - createdMs) / (1000 * 60 * 60);
-  if (hoursSinceCreated < 48) {
-    var hoursLeft = Math.ceil(48 - hoursSinceCreated);
-    return '<div style="margin-top:10px; padding:8px 12px; background:var(--bg-gray); border-radius:8px; font-size:12px; color:var(--text-muted); text-align:center;">⏳ Follow Up available in ' + hoursLeft + ' hour(s)</div>';
-  }
-
-  // Check 24hr cooldown since last follow up
-  if (ticket.lastFollowUp) {
-    var hoursSinceFollowUp = (Date.now() - new Date(ticket.lastFollowUp).getTime()) / (1000 * 60 * 60);
-    if (hoursSinceFollowUp < 24) {
-      var hoursLeft2 = Math.ceil(24 - hoursSinceFollowUp);
-      return '<div style="margin-top:10px; padding:8px 12px; background:var(--bg-gray); border-radius:8px; font-size:12px; color:var(--text-muted); text-align:center;">⏳ Next Follow Up in ' + hoursLeft2 + ' hour(s)</div>';
-    }
-  }
-
-  return '<button onclick="sendTicketFollowUp(\'' + ticket._id + '\', this)" style="width:100%; margin-top:10px; padding:10px; border:1.5px solid #f59e0b; border-radius:8px; background:rgba(245,158,11,0.08); color:#f59e0b; font-size:13px; font-weight:700; cursor:pointer;">🔔 Follow Up</button>';
-}
-
-async function sendTicketFollowUp(ticketId, btn) {
-  if (!confirm('Send a follow up to admin? This will escalate your ticket.')) return;
-  btn.disabled = true;
-  btn.textContent = 'Sending...';
-  try {
-    var res = await fetch(API_URL + '/users/tickets/' + ticketId + '/followup', {
-      method: 'POST',
-      headers: { 'Authorization': 'Bearer ' + state.token }
-    });
-    var data = await res.json();
-    if (data.success) {
-      showToast('Follow up sent! Admin has been notified.', 'success');
-      loadMyTickets();
-    } else {
-      showToast(data.message || 'Could not send follow up', 'error');
-      btn.disabled = false;
-      btn.textContent = '🔔 Follow Up';
-    }
-  } catch (err) {
-    showToast('Network error', 'error');
-    btn.disabled = false;
-    btn.textContent = '🔔 Follow Up';
-  }
-}
 
 async function loadMyTickets() {
   var container = document.getElementById('myTicketsList');
@@ -5252,7 +4191,6 @@ async function loadMyTickets() {
           (t.adminNote ? '<span style="font-size:12px; color:#22c55e;">💬 Admin replied</span>' : '') +
         '</div>' +
         (t.adminNote ? '<div style="margin-top:10px; padding:10px; background:var(--bg-gray); border-radius:8px; font-size:13px; color:var(--text);"><strong>Admin:</strong> ' + t.adminNote + '</div>' : '') +
-        renderFollowUpButton(t) +
       '</div>';
     }).join('');
   } catch (err) {
@@ -5261,15 +4199,12 @@ async function loadMyTickets() {
 }
 
 // Close modal when clicking backdrop
-document.addEventListener('DOMContentLoaded', function() {
-  var ticketModalEl = document.getElementById('ticketModal');
-  if (ticketModalEl) {
-    ticketModalEl.addEventListener('click', function(e) {
-      if (e.target === this) closeTicketModal();
-    });
-  }
-});
-
+var ticketModalEl = document.getElementById('ticketModal');
+if (ticketModalEl) {
+  ticketModalEl.addEventListener('click', function(e) {
+    if (e.target === this) closeTicketModal();
+  });
+}
 // ═══════════════════════════════════════════════════════════
 //  CLIENT EXPLORE TAB — HIRE / SHORTLIST / BLOCK
 // ═══════════════════════════════════════════════════════════
@@ -5424,7 +4359,6 @@ function filterClientExplore(filter) {
     if (grid) grid.style.display = 'block';
     if (invPanel) invPanel.style.display = 'none';
 
-    PAGINATION.clientExplore.page = 1;
     if (filter === 'shortlisted') {
       const shortlisted = _clientExploreAll.filter(e => _clientShortlisted.includes(e._id));
       renderClientExploreGrid(shortlisted);
@@ -5463,20 +4397,8 @@ function renderClientExploreGrid(experts) {
     return;
   }
   if (empty) empty.style.display = 'none';
-
-  // Store full list for pagination
-  renderClientExploreGrid._currentList = experts;
-  const items = paginate(experts, 'clientExplore');
-
-  const svcColors = { itr:'#8b5cf6', gst:'#3b82f6', accounting:'#10b981', audit:'#f59e0b', photography:'#ec4899', development:'#06b6d4' };
-  const serviceLabels = { itr:'ITR Filing', gst:'GST', accounting:'Accounting', audit:'Audit', photography:'Photography', development:'Development' };
-  const availMap = {
-    available: { dot: '#22c55e', label: 'Available' },
-    busy:      { dot: '#ef4444', label: 'Busy' },
-    away:      { dot: '#f59e0b', label: 'Away' }
-  };
-
-  grid.innerHTML = '<div class="client-expert-grid">' + items.map(expert => {
+  
+  grid.innerHTML = experts.map(expert => {
     const profile = expert.profile || {};
     const name = expert.name || 'Expert';
     const spec = profile.specialization || expert.specialization || 'Professional';
@@ -5486,84 +4408,66 @@ function renderClientExploreGrid(experts) {
     const photo = expert.profilePhoto;
     const isShortlisted = _clientShortlisted.includes(expert._id);
     const bio = profile.bio || expert.bio || '';
-    const services = expert.servicesOffered || profile.servicesOffered || [];
-    const exp = expert.yearsOfExperience || profile.yearsOfExperience || profile.experience || '';
-    const kycVerified = expert.kyc?.status === 'approved';
-    const avail = availMap[expert.availability || 'available'];
-    const primarySvc = services[0];
-    const svcColor = svcColors[primarySvc] || '#FC8019';
-    const initials = name.substring(0, 2).toUpperCase();
-
+    
     return `
-      <div style="background:var(--bg);border:1.5px solid var(--border);border-radius:16px;overflow:hidden;transition:all 0.2s;display:flex;flex-direction:column;"
-        onmouseover="this.style.borderColor='rgba(252,128,25,0.4)';this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 24px rgba(0,0,0,0.08)'"
-        onmouseout="this.style.borderColor='var(--border)';this.style.transform='translateY(0)';this.style.boxShadow='none'">
-
-        <!-- Colored top bar -->
-        <div style="height:5px;background:linear-gradient(90deg,${svcColor},${svcColor}88);"></div>
-
-        <!-- Body -->
-        <div style="padding:16px;flex:1;display:flex;flex-direction:column;">
-
-          <!-- Avatar + info row -->
-          <div style="display:flex;gap:12px;align-items:flex-start;margin-bottom:10px;">
-            <div style="width:52px;height:52px;border-radius:50%;background:${svcColor};color:#fff;font-size:17px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;position:relative;">
-              ${photo ? `<img src="${photo}" style="width:100%;height:100%;object-fit:cover;">` : initials}
-              <span style="position:absolute;bottom:1px;right:1px;width:12px;height:12px;border-radius:50%;background:${avail.dot};border:2px solid var(--bg);"></span>
-            </div>
-            <div style="flex:1;min-width:0;">
-              <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-bottom:2px;">
-                <span style="font-size:15px;font-weight:700;color:var(--text);">${name}</span>
-                ${kycVerified ? `<span style="font-size:10px;font-weight:700;padding:1px 6px;border-radius:20px;background:rgba(34,197,94,0.1);color:#16a34a;flex-shrink:0;">✓ KYC</span>` : ''}
-              </div>
-              <div style="font-size:12px;font-weight:600;color:${svcColor};margin-bottom:3px;">${spec}</div>
-              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-                ${rating ? `<span style="font-size:12px;font-weight:700;color:#f59e0b;">⭐ ${parseFloat(rating).toFixed(1)} <span style="color:var(--text-muted);font-weight:400;">(${reviews})</span></span>` : `<span style="font-size:12px;color:var(--text-muted);">No reviews</span>`}
-                ${city ? `<span style="font-size:11px;color:var(--text-muted);">📍 ${city}</span>` : ''}
-                ${exp ? `<span style="font-size:11px;color:var(--text-muted);">${exp}yr exp</span>` : ''}
-              </div>
-            </div>
+      <div style="background:var(--bg); border:1.5px solid var(--border); border-radius:14px; padding:18px; margin-bottom:14px;">
+        
+        <!-- Header -->
+        <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px;">
+          <div style="width:52px; height:52px; border-radius:50%; background:var(--primary); color:#fff; font-size:20px; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0; overflow:hidden;">
+            ${photo ? `<img src="${photo}" style="width:100%;height:100%;object-fit:cover;">` : name.charAt(0).toUpperCase()}
           </div>
-
-          <!-- Bio -->
-          ${bio ? `<p style="font-size:12.5px;color:var(--text-light);line-height:1.55;margin-bottom:10px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">${bio}</p>` : ''}
-
-          <!-- Service tags -->
-          ${services.length ? `
-          <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:12px;">
-            ${services.slice(0, 3).map(s => `<span style="font-size:11px;font-weight:600;padding:2px 8px;border-radius:6px;background:${(svcColors[s]||'#FC8019')}14;color:${svcColors[s]||'#FC8019'};">${serviceLabels[s]||s}</span>`).join('')}
-          </div>` : '<div style="flex:1;"></div>'}
-
-          <!-- Action buttons -->
-          <div style="display:grid;grid-template-columns:1fr auto auto;gap:8px;margin-top:auto;">
-            <button onclick="viewExpertProfile('${expert._id}', true)"
-              style="padding:10px;background:var(--primary);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;">
-              View Profile
-            </button>
-            <button onclick="hireExpert('${expert._id}', '${name.replace(/'/g, '')}')"
-              title="Hire this expert"
-              style="width:40px;padding:10px 0;border:1.5px solid rgba(34,197,94,0.3);border-radius:10px;background:rgba(34,197,94,0.08);color:#16a34a;font-size:16px;cursor:pointer;transition:all 0.2s;"
-              onmouseover="this.style.background='rgba(34,197,94,0.15)'"
-              onmouseout="this.style.background='rgba(34,197,94,0.08)'">
-              ✅
-            </button>
-            <button id="sl_${expert._id}" onclick="shortlistExpert('${expert._id}', '${name.replace(/'/g, '')}')"
-              title="${isShortlisted ? 'Remove from shortlist' : 'Save expert'}"
-              style="width:40px;padding:10px 0;border:1.5px solid ${isShortlisted ? 'rgba(239,68,68,0.3)' : 'var(--border)'};border-radius:10px;background:${isShortlisted ? 'rgba(239,68,68,0.08)' : 'transparent'};color:${isShortlisted ? '#ef4444' : 'var(--text-muted)'};font-size:16px;cursor:pointer;transition:all 0.2s;"
-              onmouseover="this.style.borderColor='rgba(239,68,68,0.4)';this.style.color='#ef4444'"
-              onmouseout="this.style.borderColor='${isShortlisted ? 'rgba(239,68,68,0.3)' : 'var(--border)'}';this.style.color='${isShortlisted ? '#ef4444' : 'var(--text-muted)'}'">
-              ${isShortlisted ? '❤️' : '🤍'}
-            </button>
+          <div style="flex:1; min-width:0;">
+            <div style="font-size:16px; font-weight:700; color:var(--text);">${name}</div>
+            <div style="font-size:13px; color:var(--primary); font-weight:600;">${spec}</div>
+            ${city ? `<div style="font-size:12px; color:var(--text-muted);">📍 ${city}</div>` : ''}
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:14px; font-weight:700; color:var(--text);">⭐ ${rating ? parseFloat(rating).toFixed(1) : '—'}</div>
+            <div style="font-size:11px; color:var(--text-muted);">${reviews} reviews</div>
           </div>
         </div>
-      </div>`;
-  }).join('') + '</div>' + paginationControlsHTML(experts, 'clientExplore');
+        
+        <!-- Bio -->
+        ${bio ? `<p style="font-size:13px; color:var(--text-light); line-height:1.5; margin-bottom:12px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">${bio}</p>` : ''}
+        
+        <!-- Action Buttons -->
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          
+          <!-- View Profile -->
+          <button onclick="viewExpertProfile('${expert._id}')"
+            style="width:100%; padding:10px; border:1.5px solid var(--border); border-radius:10px; background:transparent; color:var(--text); font-size:13px; font-weight:600; cursor:pointer;">
+            👤 View Profile
+          </button>
+          
+          <!-- 3 action buttons -->
+          <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px;">
+            
+            <button onclick="hireExpert('${expert._id}', '${name.replace(/'/g, '')}')"
+              style="padding:10px 6px; border:none; border-radius:10px; background:#22c55e; color:#fff; font-size:12px; font-weight:700; cursor:pointer; text-align:center; line-height:1.3;">
+              ✅ Hire
+            </button>
+            
+            <button id="sl_${expert._id}" onclick="shortlistExpert('${expert._id}', '${name.replace(/'/g, '')}')"
+              style="padding:10px 6px; border:1.5px solid ${isShortlisted ? '#e74c3c' : 'var(--border)'}; border-radius:10px; background:${isShortlisted ? 'rgba(231,76,60,0.1)' : 'transparent'}; color:${isShortlisted ? '#e74c3c' : 'var(--text)'}; font-size:12px; font-weight:700; cursor:pointer; text-align:center; line-height:1.3;">
+              ${isShortlisted ? '❤️ Saved' : '🤍 Save'}
+            </button>
+            
+            <button onclick="openBlockModal('${expert._id}', '${name.replace(/'/g, '')}')"
+              style="padding:10px 6px; border:1.5px solid var(--border); border-radius:10px; background:transparent; color:var(--text-muted); font-size:12px; font-weight:600; cursor:pointer; text-align:center; line-height:1.3;">
+              ❌ Block
+            </button>
+            
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
 }
-   
+
 // ─── HIRE EXPERT ───
 async function hireExpert(expertId, expertName) {
-  if (isUserRestricted()) { showRestrictedToast(); return; } // ← ADD THIS
-  
+  // Show confirmation
   const modal = document.createElement('div');
   modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:1002;padding:20px;';
   modal.onclick = e => { if (e.target === modal) modal.remove(); };
@@ -5596,8 +4500,6 @@ async function hireExpert(expertId, expertName) {
 }
 
 async function confirmHireExpert(expertId) {
-  if (isUserRestricted()) { showRestrictedToast(); return; } // ← ADD THIS
-  
   try {
     const res = await fetch(`${API_URL}/users/${expertId}/interest`, {
       method: 'POST',
@@ -5942,7 +4844,6 @@ var PAGINATION = {
   expertBrowse:     { page: 1, perPage: 8 },
   expertApproaches: { page: 1, perPage: 8 },
   findExperts:      { page: 1, perPage: 8 },
-  clientExplore:    { page: 1, perPage: 8 },
 };
 
 function paginate(items, section) {
@@ -6029,9 +4930,7 @@ function changePage(section, newPage) {
     expertBrowse:     renderAvailableRequests,
     expertApproaches: () => renderMyApproaches([]),
     findExperts:      renderExperts,
-    clientExplore:    () => renderClientExploreGrid(renderClientExploreGrid._currentList || []),
   };
-   
   if (renderers[section]) renderers[section]();
 
   const scrollTargets = {
@@ -6039,7 +4938,6 @@ function changePage(section, newPage) {
     expertBrowse:     'browseTab',
     expertApproaches: 'approachesList',
     findExperts:      'expertGrid',
-    clientExplore:    'clientExploreGrid',
   };
   const el = document.getElementById(scrollTargets[section]);
   if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -6051,7 +4949,6 @@ function getItemsForSection(section) {
     expertBrowse:     () => state.availableRequests || [],
     expertApproaches: () => state.myApproaches || [],
     findExperts:      () => state.experts || [],
-    clientExplore:    () => renderClientExploreGrid._currentList || [],
   };
   return (map[section] || (() => []))();
 }
@@ -6192,37 +5089,26 @@ function updateBrowseFilterChips(selected) {
 // ─── BROWSE TAB SERVICE FILTER ───
 function setBrowseFilter(service) {
   let activeFilter = state.browseServiceFilter || [];
+
   if (service === 'all') {
+    // Clear all filters — show everything
     activeFilter = [];
   } else {
-    activeFilter = activeFilter.includes(service)
-      ? activeFilter.filter(s => s !== service)
-      : [...activeFilter, service];
+    if (activeFilter.includes(service)) {
+      // Deselect it
+      activeFilter = activeFilter.filter(s => s !== service);
+    } else {
+      // Add it
+      activeFilter = [...activeFilter, service];
+    }
   }
+
   state.browseServiceFilter = activeFilter;
-  applyBrowseFilters();
-}
+  PAGINATION.expertBrowse.page = 1;
 
-function clearAuthForms() {
-  // All auth field IDs
-  ['loginEmail', 'loginPassword',
-   'signupName', 'signupEmail', 'signupPhone', 'signupPassword', 'signupOTP',
-   'fpEmail', 'fpOTP', 'fpNewPassword', 'fpConfirmPassword'
-  ].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.value = '';
-  });
-
-  // Reset signup to step 1
-  const step1 = document.getElementById('signupStep1');
-  const step2 = document.getElementById('signupStep2');
-  if (step1) step1.style.display = 'block';
-  if (step2) step2.style.display = 'none';
-
-  // Reset terms checkbox and send OTP button
-  const terms = document.getElementById('termsCheckbox');
-  const signupBtn = document.getElementById('signupSubmitBtn');
-  if (terms) terms.checked = false;
-  if (signupBtn) { signupBtn.disabled = true; signupBtn.style.opacity = '0.5'; }
+  // Re-render chips and requests
+  const filterBar = document.getElementById('browseFilterBar');
+  if (filterBar) filterBar.innerHTML = renderBrowseFilterChips();
+  renderAvailableRequests();
 }
 // ═══ END OF JAVASCRIPT ═══
