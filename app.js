@@ -5086,8 +5086,16 @@ function renderClientExploreGrid(experts) {
   renderClientExploreGrid._currentList = experts;
   const items = paginate(experts, 'clientExplore');
 
-  grid.innerHTML = items.map(expert => {
-     const profile = expert.profile || {};
+  const svcColors = { itr:'#8b5cf6', gst:'#3b82f6', accounting:'#10b981', audit:'#f59e0b', photography:'#ec4899', development:'#06b6d4' };
+  const serviceLabels = { itr:'ITR Filing', gst:'GST', accounting:'Accounting', audit:'Audit', photography:'Photography', development:'Development' };
+  const availMap = {
+    available: { dot: '#22c55e', label: 'Available' },
+    busy:      { dot: '#ef4444', label: 'Busy' },
+    away:      { dot: '#f59e0b', label: 'Away' }
+  };
+
+  grid.innerHTML = '<div class="client-expert-grid">' + items.map(expert => {
+    const profile = expert.profile || {};
     const name = expert.name || 'Expert';
     const spec = profile.specialization || expert.specialization || 'Professional';
     const city = profile.city || expert.location?.city || '';
@@ -5096,62 +5104,78 @@ function renderClientExploreGrid(experts) {
     const photo = expert.profilePhoto;
     const isShortlisted = _clientShortlisted.includes(expert._id);
     const bio = profile.bio || expert.bio || '';
-    
+    const services = expert.servicesOffered || profile.servicesOffered || [];
+    const exp = expert.yearsOfExperience || profile.yearsOfExperience || profile.experience || '';
+    const kycVerified = expert.kyc?.status === 'approved';
+    const avail = availMap[expert.availability || 'available'];
+    const primarySvc = services[0];
+    const svcColor = svcColors[primarySvc] || '#FC8019';
+    const initials = name.substring(0, 2).toUpperCase();
+
     return `
-      <div style="background:var(--bg); border:1.5px solid var(--border); border-radius:14px; padding:18px; margin-bottom:14px;">
-        
-        <!-- Header -->
-        <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px;">
-          <div style="width:52px; height:52px; border-radius:50%; background:var(--primary); color:#fff; font-size:20px; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0; overflow:hidden;">
-            ${photo ? `<img src="${photo}" style="width:100%;height:100%;object-fit:cover;">` : name.charAt(0).toUpperCase()}
+      <div style="background:var(--bg);border:1.5px solid var(--border);border-radius:16px;overflow:hidden;transition:all 0.2s;display:flex;flex-direction:column;"
+        onmouseover="this.style.borderColor='rgba(252,128,25,0.4)';this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 24px rgba(0,0,0,0.08)'"
+        onmouseout="this.style.borderColor='var(--border)';this.style.transform='translateY(0)';this.style.boxShadow='none'">
+
+        <!-- Colored top bar -->
+        <div style="height:5px;background:linear-gradient(90deg,${svcColor},${svcColor}88);"></div>
+
+        <!-- Body -->
+        <div style="padding:16px;flex:1;display:flex;flex-direction:column;">
+
+          <!-- Avatar + info row -->
+          <div style="display:flex;gap:12px;align-items:flex-start;margin-bottom:10px;">
+            <div style="width:52px;height:52px;border-radius:50%;background:${svcColor};color:#fff;font-size:17px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;position:relative;">
+              ${photo ? `<img src="${photo}" style="width:100%;height:100%;object-fit:cover;">` : initials}
+              <span style="position:absolute;bottom:1px;right:1px;width:12px;height:12px;border-radius:50%;background:${avail.dot};border:2px solid var(--bg);"></span>
+            </div>
+            <div style="flex:1;min-width:0;">
+              <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-bottom:2px;">
+                <span style="font-size:15px;font-weight:700;color:var(--text);">${name}</span>
+                ${kycVerified ? `<span style="font-size:10px;font-weight:700;padding:1px 6px;border-radius:20px;background:rgba(34,197,94,0.1);color:#16a34a;flex-shrink:0;">✓ KYC</span>` : ''}
+              </div>
+              <div style="font-size:12px;font-weight:600;color:${svcColor};margin-bottom:3px;">${spec}</div>
+              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                ${rating ? `<span style="font-size:12px;font-weight:700;color:#f59e0b;">⭐ ${parseFloat(rating).toFixed(1)} <span style="color:var(--text-muted);font-weight:400;">(${reviews})</span></span>` : `<span style="font-size:12px;color:var(--text-muted);">No reviews</span>`}
+                ${city ? `<span style="font-size:11px;color:var(--text-muted);">📍 ${city}</span>` : ''}
+                ${exp ? `<span style="font-size:11px;color:var(--text-muted);">${exp}yr exp</span>` : ''}
+              </div>
+            </div>
           </div>
-          <div style="flex:1; min-width:0;">
-            <div style="font-size:16px; font-weight:700; color:var(--text);">${name}</div>
-            <div style="font-size:13px; color:var(--primary); font-weight:600;">${spec}</div>
-            ${city ? `<div style="font-size:12px; color:var(--text-muted);">📍 ${city}</div>` : ''}
-          </div>
-          <div style="text-align:right;">
-            <div style="font-size:14px; font-weight:700; color:var(--text);">⭐ ${rating ? parseFloat(rating).toFixed(1) : '—'}</div>
-            <div style="font-size:11px; color:var(--text-muted);">${reviews} reviews</div>
-          </div>
-        </div>
-        
-        <!-- Bio -->
-        ${bio ? `<p style="font-size:13px; color:var(--text-light); line-height:1.5; margin-bottom:12px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">${bio}</p>` : ''}
-        
-        <!-- Action Buttons -->
-        <div style="display:flex; flex-direction:column; gap:8px;">
-          
-          <!-- View Profile -->
-          <button onclick="viewExpertProfile('${expert._id}')"
-            style="width:100%; padding:10px; border:1.5px solid var(--border); border-radius:10px; background:transparent; color:var(--text); font-size:13px; font-weight:600; cursor:pointer;">
-            👤 View Profile
-          </button>
-          
-          <!-- 3 action buttons -->
-          <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px;">
-            
+
+          <!-- Bio -->
+          ${bio ? `<p style="font-size:12.5px;color:var(--text-light);line-height:1.55;margin-bottom:10px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">${bio}</p>` : ''}
+
+          <!-- Service tags -->
+          ${services.length ? `
+          <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:12px;">
+            ${services.slice(0, 3).map(s => `<span style="font-size:11px;font-weight:600;padding:2px 8px;border-radius:6px;background:${(svcColors[s]||'#FC8019')}14;color:${svcColors[s]||'#FC8019'};">${serviceLabels[s]||s}</span>`).join('')}
+          </div>` : '<div style="flex:1;"></div>'}
+
+          <!-- Action buttons -->
+          <div style="display:grid;grid-template-columns:1fr auto auto;gap:8px;margin-top:auto;">
+            <button onclick="viewExpertProfile('${expert._id}', true)"
+              style="padding:10px;background:var(--primary);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;">
+              View Profile
+            </button>
             <button onclick="hireExpert('${expert._id}', '${name.replace(/'/g, '')}')"
-              style="padding:10px 6px; border:none; border-radius:10px; background:#22c55e; color:#fff; font-size:12px; font-weight:700; cursor:pointer; text-align:center; line-height:1.3;">
-              ✅ Hire
+              title="Hire this expert"
+              style="width:40px;padding:10px 0;border:1.5px solid rgba(34,197,94,0.3);border-radius:10px;background:rgba(34,197,94,0.08);color:#16a34a;font-size:16px;cursor:pointer;transition:all 0.2s;"
+              onmouseover="this.style.background='rgba(34,197,94,0.15)'"
+              onmouseout="this.style.background='rgba(34,197,94,0.08)'">
+              ✅
             </button>
-            
             <button id="sl_${expert._id}" onclick="shortlistExpert('${expert._id}', '${name.replace(/'/g, '')}')"
-              style="padding:10px 6px; border:1.5px solid ${isShortlisted ? '#e74c3c' : 'var(--border)'}; border-radius:10px; background:${isShortlisted ? 'rgba(231,76,60,0.1)' : 'transparent'}; color:${isShortlisted ? '#e74c3c' : 'var(--text)'}; font-size:12px; font-weight:700; cursor:pointer; text-align:center; line-height:1.3;">
-              ${isShortlisted ? '❤️ Saved' : '🤍 Save'}
+              title="${isShortlisted ? 'Remove from shortlist' : 'Save expert'}"
+              style="width:40px;padding:10px 0;border:1.5px solid ${isShortlisted ? 'rgba(239,68,68,0.3)' : 'var(--border)'};border-radius:10px;background:${isShortlisted ? 'rgba(239,68,68,0.08)' : 'transparent'};color:${isShortlisted ? '#ef4444' : 'var(--text-muted)'};font-size:16px;cursor:pointer;transition:all 0.2s;"
+              onmouseover="this.style.borderColor='rgba(239,68,68,0.4)';this.style.color='#ef4444'"
+              onmouseout="this.style.borderColor='${isShortlisted ? 'rgba(239,68,68,0.3)' : 'var(--border)'}';this.style.color='${isShortlisted ? '#ef4444' : 'var(--text-muted)'}'">
+              ${isShortlisted ? '❤️' : '🤍'}
             </button>
-            
-            <button onclick="openBlockModal('${expert._id}', '${name.replace(/'/g, '')}')"
-              style="padding:10px 6px; border:1.5px solid var(--border); border-radius:10px; background:transparent; color:var(--text-muted); font-size:12px; font-weight:600; cursor:pointer; text-align:center; line-height:1.3;">
-              ❌ Block
-            </button>
-            
           </div>
         </div>
-      </div>
-    `;
-  }).join('') + paginationControlsHTML(experts, 'clientExplore');
-}
+      </div>`;
+  }).join('') + '</div>' + paginationControlsHTML(experts, 'clientExplore');
 
 // ─── HIRE EXPERT ───
 async function hireExpert(expertId, expertName) {
