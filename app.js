@@ -1878,54 +1878,122 @@ function renderClientRequests() {
 
   const allRequests = state.requests || [];
 
+  // ── Stat hero ──
+  const active    = allRequests.filter(r => r.status === 'active' || r.status === 'pending').length;
+  const totalAppr = allRequests.reduce(function(sum, r) { return sum + (r.approachCount || r.currentApproaches || 0); }, 0);
+  const completed = allRequests.filter(r => r.status === 'completed').length;
+
+  var existingHero = document.getElementById('clientStatHero');
+  if (!existingHero) {
+    var hero = document.createElement('div');
+    hero.id = 'clientStatHero';
+    hero.style.cssText = 'display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px;';
+    var stats = [
+      { label: 'Active',    value: active,    color: '#FC8019', icon: '📋' },
+      { label: 'Proposals', value: totalAppr, color: '#3b82f6', icon: '📨' },
+      { label: 'Completed', value: completed, color: '#22c55e', icon: '✅' }
+    ];
+    hero.innerHTML = stats.map(function(s) {
+      return '<div style="background:var(--bg);border:1.5px solid var(--border);border-radius:14px;padding:14px 12px;text-align:center;cursor:pointer;transition:all 0.2s;"' +
+        ' onmouseover="this.style.borderColor=\'' + s.color + '\';this.style.transform=\'translateY(-2px)\'"' +
+        ' onmouseout="this.style.borderColor=\'var(--border)\';this.style.transform=\'translateY(0)\'">' +
+        '<div style="font-size:20px;margin-bottom:4px;">' + s.icon + '</div>' +
+        '<div style="font-size:22px;font-weight:800;color:' + s.color + ';line-height:1;">' + s.value + '</div>' +
+        '<div style="font-size:11px;color:var(--text-muted);margin-top:4px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;">' + s.label + '</div>' +
+        '</div>';
+    }).join('');
+    container.parentNode.insertBefore(hero, container);
+  } else {
+    var vals = existingHero.querySelectorAll('[style*="font-size:22px"]');
+    if (vals[0]) vals[0].textContent = active;
+    if (vals[1]) vals[1].textContent = totalAppr;
+    if (vals[2]) vals[2].textContent = completed;
+  }
+
   if (!allRequests.length) {
-    const isFiltered = (state.browseServiceFilter || []).length > 0 || state.browseSearch;
-    container.innerHTML = `
-      <h2 style="margin-bottom:16px;">Available Requests</h2>
-      ${renderBrowseToolbar()}
-      <div class="empty-state">
-        <div class="empty-icon">🔍</div>
-        <h3 class="empty-title">${isFiltered ? 'No requests match your filters' : 'No requests available'}</h3>
-        <p class="empty-text">${isFiltered ? 'Try a different search or category' : 'New requests will appear here'}</p>
-        ${isFiltered ? `<button onclick="state.browseSearch='';state.browseServiceFilter=[];state.browseSort='newest';applyBrowseFilters();"
-          style="margin-top:16px;padding:10px 24px;background:var(--primary);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;">
-          ✕ Clear Filters
-        </button>` : ''}
-      </div>`;
+    container.innerHTML = '<div style="text-align:center;padding:48px 20px;">' +
+      '<svg width="80" height="80" viewBox="0 0 80 80" fill="none" style="margin-bottom:16px;opacity:0.5;">' +
+      '<rect x="12" y="16" width="56" height="48" rx="8" stroke="#FC8019" stroke-width="2.5" fill="none"/>' +
+      '<line x1="24" y1="32" x2="56" y2="32" stroke="#FC8019" stroke-width="2" stroke-linecap="round"/>' +
+      '<line x1="24" y1="42" x2="48" y2="42" stroke="#FC8019" stroke-width="2" stroke-linecap="round"/>' +
+      '<line x1="24" y1="52" x2="40" y2="52" stroke="#FC8019" stroke-width="2" stroke-linecap="round"/>' +
+      '</svg>' +
+      '<h3 style="font-size:18px;font-weight:700;color:var(--text);margin-bottom:8px;">No requests yet</h3>' +
+      '<p style="font-size:14px;color:var(--text-muted);line-height:1.6;max-width:240px;margin:0 auto 20px;">Post your first request and get proposals from verified professionals within hours.</p>' +
+      '<button onclick="document.getElementById(\'newRequestBtn\')?.click()" style="padding:12px 28px;background:var(--primary);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;">+ Post a Request</button>' +
+      '</div>';
     return;
   }
-   
-  const items = paginate(allRequests, 'clientRequests');
-  const statusColors = { pending: 'badge-warning', active: 'badge-primary', completed: 'badge-success', cancelled: 'badge-danger' };
-  const statusLabels = { pending: 'Pending', active: 'Active', completed: 'Completed', cancelled: 'Cancelled' };
-  const clientName = state.user?.name || 'You';
 
-  container.innerHTML = items.map(req => `
-    <div class="request-card" style="background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:16px;cursor:pointer;"
-      onclick="showRequestDetail('${req._id}')">
-      <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:12px;">
-        <div style="flex:1;">
-          <h3 style="font-size:18px;font-weight:700;color:var(--text);margin-bottom:4px;">${req.title}</h3>
-          <p style="font-size:14px;color:var(--text-muted);">${req.service.toUpperCase()}</p>
-          <p style="font-size:13px;color:var(--text-muted);margin-top:4px;">Posted by: <strong>${clientName}</strong></p>
-        </div>
-        <span class="badge ${statusColors[req.status] || 'badge-warning'}">${statusLabels[req.status] || 'Pending'}</span>
-      </div>
-      <p style="font-size:14px;color:var(--text-light);margin-bottom:16px;line-height:1.5;">${req.description || 'No description'}</p>
-      <div style="display:flex;gap:20px;font-size:13px;color:var(--text-muted);">
-        <span>📍 ${req.location || 'Not specified'}</span>
-        <span>💰 ₹${req.budget ? req.budget.toLocaleString('en-IN') : 'Not set'}</span>
-        <span>👁️ ${req.viewCount || 0} views</span>
-      </div>
-      ${(req.approachCount > 0) ? `
-        <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);">
-          <span style="font-size:13px;font-weight:600;color:var(--primary);">
-            ${req.approachCount} professional${req.approachCount > 1 ? 's' : ''} approached
-          </span>
-        </div>` : ''}
-    </div>
-  `).join('') + paginationControlsHTML(allRequests, 'clientRequests');
+  var svcColors = { itr:'#8b5cf6', gst:'#3b82f6', accounting:'#10b981', audit:'#f59e0b', photography:'#ec4899', development:'#06b6d4' };
+  var stMap = {
+    pending:   { label:'Pending',   color:'#f59e0b', bg:'rgba(245,158,11,0.1)',  icon:'⏳' },
+    active:    { label:'Active',    color:'#FC8019', bg:'rgba(252,128,25,0.1)',  icon:'🟢' },
+    completed: { label:'Completed', color:'#22c55e', bg:'rgba(34,197,94,0.1)',   icon:'✅' },
+    cancelled: { label:'Cancelled', color:'#ef4444', bg:'rgba(239,68,68,0.1)',   icon:'❌' }
+  };
+
+  var items = paginate(allRequests, 'clientRequests');
+
+  container.innerHTML = items.map(function(req) {
+    var st = stMap[req.status] || stMap.pending;
+    var svcColor = svcColors[req.service] || '#FC8019';
+    var apprCount = req.approachCount || req.currentApproaches || 0;
+    var ago = '';
+    if (req.createdAt) {
+      var diff = Date.now() - new Date(req.createdAt).getTime();
+      var hrs  = Math.floor(diff / 3600000);
+      var days = Math.floor(diff / 86400000);
+      if (hrs < 1)       ago = 'just now';
+      else if (hrs < 24) ago = hrs + 'h ago';
+      else if (days ===1)ago = 'Yesterday';
+      else               ago = days + 'd ago';
+    }
+
+    return '<div style="background:var(--bg);border:1.5px solid var(--border);border-left:4px solid ' + st.color + ';border-radius:16px;overflow:hidden;margin-bottom:12px;transition:all 0.2s;cursor:pointer;"' +
+      ' onclick="showRequestDetail(\'' + req._id + '\')"' +
+      ' onmouseover="this.style.boxShadow=\'0 8px 24px rgba(0,0,0,0.08)\';this.style.transform=\'translateY(-2px)\'"' +
+      ' onmouseout="this.style.boxShadow=\'none\';this.style.transform=\'translateY(0)\'">' +
+
+      '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:var(--bg-gray);border-bottom:1px solid var(--border);flex-wrap:wrap;gap:6px;">' +
+        '<div style="display:flex;align-items:center;gap:6px;">' +
+          '<span style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;background:' + svcColor + '18;color:' + svcColor + ';text-transform:uppercase;letter-spacing:.04em;">' + req.service + '</span>' +
+          '<span style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;background:' + st.bg + ';color:' + st.color + ';">' + st.icon + ' ' + st.label + '</span>' +
+        '</div>' +
+        (ago ? '<span style="font-size:11px;color:var(--text-muted);">🕐 ' + ago + '</span>' : '') +
+      '</div>' +
+
+      '<div style="padding:16px;">' +
+        '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:10px;">' +
+          '<div style="flex:1;">' +
+            '<h3 style="font-size:17px;font-weight:800;color:var(--text);margin-bottom:6px;line-height:1.25;">' + req.title + '</h3>' +
+            '<div style="display:flex;flex-wrap:wrap;gap:8px;">' +
+              (req.location ? '<span style="font-size:12px;color:var(--text-muted);">📍 ' + req.location + '</span>' : '') +
+              (req.timeline ? '<span style="font-size:12px;color:var(--text-muted);">⏱ ' + req.timeline + '</span>' : '') +
+              '<span style="font-size:12px;color:var(--text-muted);">👁 ' + (req.viewCount || 0) + ' views</span>' +
+            '</div>' +
+          '</div>' +
+          '<div style="text-align:right;flex-shrink:0;background:rgba(252,128,25,0.06);border:1.5px solid rgba(252,128,25,0.2);border-radius:12px;padding:8px 12px;">' +
+            '<div style="font-size:18px;font-weight:800;color:var(--primary);line-height:1;">₹' + (req.budget ? Number(req.budget).toLocaleString('en-IN') : '—') + '</div>' +
+            '<div style="font-size:10px;color:var(--text-muted);margin-top:2px;font-weight:600;text-transform:uppercase;">Budget</div>' +
+          '</div>' +
+        '</div>' +
+
+        '<p style="font-size:13px;color:var(--text-light);line-height:1.6;margin-bottom:14px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">' + (req.description || '') + '</p>' +
+
+        (apprCount > 0
+          ? '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:rgba(252,128,25,0.06);border-radius:10px;border:1px solid rgba(252,128,25,0.15);">' +
+              '<span style="font-size:13px;font-weight:600;color:var(--primary);">📨 ' + apprCount + ' proposal' + (apprCount > 1 ? 's' : '') + ' received</span>' +
+              '<span style="font-size:12px;color:var(--primary);font-weight:700;">Review →</span>' +
+            '</div>'
+          : '<div style="padding:10px 12px;background:var(--bg-gray);border-radius:10px;">' +
+              '<span style="font-size:13px;color:var(--text-muted);">⏳ Waiting for professionals to respond</span>' +
+            '</div>') +
+      '</div>' +
+    '</div>';
+  }).join('') + paginationControlsHTML(allRequests, 'clientRequests');
 }
+
 // ─── UPDATE CLIENT PROFILE ───
 function updateClientProfile() {
   const user = state.user;
