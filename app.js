@@ -2723,12 +2723,298 @@ async function cancelRequest(requestId) {
 }
 
 // ─── SHOW REQUEST APPROACHES MODAL ───
+// ── Compare state ──
+let _compareSelected = [];
+
 function showRequestApproaches(req, approaches) {
+  _compareSelected = [];
   const modal = document.createElement('div');
-  modal.style.cssText = 'position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 20px;';
+  modal.id = 'approachesModal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:1000;padding:20px;';
   modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
-  
+
   const isCompleted = req.status === 'completed';
+
+  const approachesHTML = approaches.length > 0 ? approaches.map(app => {
+    const expert = app.expert;
+    const kycVerified = expert.kyc?.status === 'approved';
+    const svcColors = { itr:'#8b5cf6', gst:'#3b82f6', accounting:'#10b981', audit:'#f59e0b', photography:'#ec4899', development:'#06b6d4' };
+    const primarySvc = (expert.servicesOffered || expert.profile?.servicesOffered || [])[0];
+    const svcColor = svcColors[primarySvc] || '#FC8019';
+
+    return `
+      <div id="apCard_${app._id}" style="background:var(--bg);border:1.5px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:12px;transition:border-color 0.2s;">
+
+        <!-- Card header -->
+        <div style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid var(--border);">
+          <!-- Compare checkbox -->
+          <label style="display:flex;align-items:center;cursor:pointer;flex-shrink:0;">
+            <input type="checkbox" id="cmp_${app._id}"
+              onchange="toggleCompare('${app._id}', '${expert._id}', this)"
+              style="width:18px;height:18px;accent-color:var(--primary);cursor:pointer;">
+          </label>
+
+          <!-- Avatar -->
+          <div style="width:48px;height:48px;border-radius:50%;background:${svcColor};color:#fff;font-size:18px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;">
+            ${expert.profilePhoto ? `<img src="${expert.profilePhoto}" style="width:100%;height:100%;object-fit:cover;">` : expert.name.substring(0,1).toUpperCase()}
+          </div>
+
+          <!-- Name + spec -->
+          <div style="flex:1;min-width:0;">
+            <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+              <span style="font-size:15px;font-weight:700;color:var(--text);">${expert.name}</span>
+              ${kycVerified ? `<span style="font-size:10px;font-weight:700;padding:1px 6px;border-radius:20px;background:rgba(34,197,94,0.1);color:#16a34a;">✓ KYC</span>` : ''}
+            </div>
+            <div style="font-size:12px;color:${svcColor};font-weight:600;">${expert.specialization || expert.profile?.specialization || 'Professional'}</div>
+            ${expert.rating ? `<div style="font-size:12px;color:#f59e0b;font-weight:700;">⭐ ${Number(expert.rating).toFixed(1)} <span style="color:var(--text-muted);font-weight:400;">(${expert.reviewCount || 0})</span></div>` : '<div style="font-size:12px;color:var(--text-muted);">No reviews yet</div>'}
+          </div>
+
+          <!-- Quote -->
+          ${app.quote ? `
+          <div style="text-align:right;flex-shrink:0;background:rgba(252,128,25,0.08);border-radius:10px;padding:8px 12px;">
+            <div style="font-size:18px;font-weight:800;color:var(--primary);">₹${app.quote.toLocaleString('en-IN')}</div>
+            <div style="font-size:10px;color:var(--text-muted);font-weight:600;">QUOTED</div>
+          </div>` : ''}
+        </div>
+
+        <!-- Message -->
+        <div style="padding:12px 16px;border-bottom:1px solid var(--border);">
+          <p style="font-size:13px;color:var(--text-light);line-height:1.6;margin:0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">${app.message}</p>
+        </div>
+
+        <!-- Actions -->
+        <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:8px;padding:12px 16px;">
+          <button onclick="viewExpertProfile('${expert._id}', true)"
+            style="padding:10px;border:1.5px solid var(--border);border-radius:10px;background:transparent;color:var(--text);font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s;"
+            onmouseover="this.style.borderColor='var(--primary)';this.style.color='var(--primary)'"
+            onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text)'">
+            View Profile
+          </button>
+          ${!isCompleted ? `
+          <button onclick="contactExpert('${expert._id}', '${req._id}', '${state.user._id}')"
+            style="padding:10px;border:none;border-radius:10px;background:var(--primary);color:#fff;font-size:13px;font-weight:700;cursor:pointer;">
+            💬 Contact
+          </button>` : `
+          <div style="padding:10px;border-radius:10px;background:rgba(34,197,94,0.08);color:#16a34a;font-size:13px;font-weight:600;text-align:center;">✅ Completed</div>`}
+          <button onclick="showBlockFromApproaches('${expert._id}', '${expert.name.replace(/'/g,'')}')"
+            title="Block or report"
+            style="width:40px;padding:10px 0;border:1.5px solid var(--border);border-radius:10px;background:transparent;color:var(--text-muted);font-size:14px;cursor:pointer;transition:all 0.2s;"
+            onmouseover="this.style.borderColor='#ef4444';this.style.color='#ef4444'"
+            onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-muted)'">
+            🚩
+          </button>
+        </div>
+
+        ${!isCompleted ? `
+        <div style="padding:0 16px 12px;">
+          <button onclick="confirmServiceReceived('${req._id}', '${expert._id}', '${expert.name.replace(/'/g,'')}', '${app._id}')"
+            style="width:100%;padding:10px;border:1.5px solid #22c55e;border-radius:10px;background:transparent;color:#22c55e;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s;"
+            onmouseover="this.style.background='rgba(34,197,94,0.08)'"
+            onmouseout="this.style.background='transparent'">
+            ✓ Service Received?
+          </button>
+        </div>` : ''}
+      </div>`;
+  }).join('') : `
+    <div style="text-align:center;padding:40px 20px;">
+      <div style="font-size:48px;margin-bottom:12px;">👨‍💼</div>
+      <h3 style="font-size:17px;font-weight:700;color:var(--text);margin-bottom:6px;">No proposals yet</h3>
+      <p style="font-size:14px;color:var(--text-muted);">Professionals will respond to your request soon</p>
+    </div>`;
+
+  modal.innerHTML = `
+    <div style="background:var(--bg);border-radius:18px;max-width:520px;width:100%;max-height:88vh;overflow-y:auto;display:flex;flex-direction:column;">
+
+      <!-- Header -->
+      <div style="padding:18px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--bg);z-index:2;border-radius:18px 18px 0 0;">
+        <div>
+          <h2 style="font-size:17px;font-weight:800;color:var(--text);margin:0 0 2px;">${req.title}</h2>
+          <p style="font-size:12px;color:var(--text-muted);margin:0;">Professionals Interested (${approaches.length})</p>
+        </div>
+        <button onclick="document.getElementById('approachesModal').remove()"
+          style="width:32px;height:32px;border:none;background:var(--bg-gray);border-radius:50%;font-size:18px;cursor:pointer;color:var(--text-muted);display:flex;align-items:center;justify-content:center;">×</button>
+      </div>
+
+      ${approaches.length >= 2 ? `
+      <!-- Compare hint -->
+      <div style="padding:10px 20px;background:rgba(59,130,246,0.06);border-bottom:1px solid var(--border);">
+        <p style="font-size:12px;color:#3b82f6;margin:0;font-weight:600;">☑️ Check boxes to compare up to 5 experts side by side</p>
+      </div>` : ''}
+
+      <!-- Cards -->
+      <div style="padding:16px 20px;flex:1;">
+        ${approachesHTML}
+      </div>
+
+      <!-- Compare bar (hidden until 2+ selected) -->
+      <div id="compareBar" style="display:none;position:sticky;bottom:0;background:var(--bg);border-top:1px solid var(--border);padding:14px 20px;border-radius:0 0 18px 18px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+          <span id="compareCount" style="font-size:13px;font-weight:600;color:var(--text-muted);">0 selected</span>
+          <button onclick="openCompareModal()"
+            style="flex:1;padding:12px;background:linear-gradient(135deg,#3b82f6,#2563eb);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 4px 12px rgba(59,130,246,0.3);">
+            ⚖️ Compare Selected Experts
+          </button>
+        </div>
+      </div>
+
+      ${req.status === 'pending' || req.status === 'active' ? `
+      <div style="padding:0 20px 16px;">
+        <button onclick="cancelRequest('${req._id}')"
+          style="width:100%;padding:13px;border:1.5px solid #ef4444;border-radius:10px;background:transparent;color:#ef4444;font-size:14px;font-weight:600;cursor:pointer;transition:all 0.2s;"
+          onmouseover="this.style.background='rgba(239,68,68,0.06)'"
+          onmouseout="this.style.background='transparent'">
+          ✕ Cancel Request
+        </button>
+      </div>` : ''}
+    </div>`;
+
+  // Store approaches data on window for compare modal
+  window._approachesForCompare = approaches;
+  window._reqForCompare = req;
+
+  document.body.appendChild(modal);
+}
+
+function toggleCompare(appId, expertId, checkbox) {
+  const card = document.getElementById('apCard_' + appId);
+  if (checkbox.checked) {
+    if (_compareSelected.length >= 5) {
+      checkbox.checked = false;
+      showToast('Maximum 5 experts can be compared', 'error');
+      return;
+    }
+    _compareSelected.push(appId);
+    if (card) card.style.borderColor = '#3b82f6';
+  } else {
+    _compareSelected = _compareSelected.filter(id => id !== appId);
+    if (card) card.style.borderColor = 'var(--border)';
+  }
+
+  const bar = document.getElementById('compareBar');
+  const count = document.getElementById('compareCount');
+  if (bar) bar.style.display = _compareSelected.length >= 2 ? 'block' : 'none';
+  if (count) count.textContent = _compareSelected.length + ' selected';
+}
+
+function showBlockFromApproaches(expertId, expertName) {
+  _blockTargetId = expertId;
+  _blockTargetName = expertName;
+  const modal = document.getElementById('blockReportModal');
+  if (modal) {
+    document.getElementById('blockModalName').textContent = expertName;
+    document.querySelectorAll('input[name="blockType"]').forEach(radio => {
+      radio.addEventListener('change', function() {
+        const reasonBox = document.getElementById('blockReasonBox');
+        if (reasonBox) reasonBox.style.display = this.value === 'report' ? 'block' : 'none';
+      });
+    });
+    modal.style.display = 'flex';
+  }
+}
+
+function openCompareModal() {
+  const approaches = (window._approachesForCompare || []).filter(a => _compareSelected.includes(a._id));
+  if (!approaches.length) return;
+
+  const req = window._reqForCompare || {};
+  const existing = document.getElementById('compareModal');
+  if (existing) existing.remove();
+
+  const svcColors = { itr:'#8b5cf6', gst:'#3b82f6', accounting:'#10b981', audit:'#f59e0b', photography:'#ec4899', development:'#06b6d4' };
+
+  // Rows to compare
+  const rows = [
+    { key: 'quote',        label: '💰 Quote',          fn: a => a.quote ? `<strong style="color:var(--primary);font-size:16px;">₹${Number(a.quote).toLocaleString('en-IN')}</strong>` : '<span style="color:var(--text-muted);">—</span>' },
+    { key: 'rating',       label: '⭐ Rating',          fn: a => a.expert.rating ? `<strong>${Number(a.expert.rating).toFixed(1)}</strong> <span style="color:var(--text-muted);font-size:11px;">(${a.expert.reviewCount || 0} reviews)</span>` : '<span style="color:var(--text-muted);">No reviews</span>' },
+    { key: 'kyc',          label: '🛡️ KYC',             fn: a => a.expert.kyc?.status === 'approved' ? '<span style="color:#16a34a;font-weight:700;">✅ Verified</span>' : '<span style="color:var(--text-muted);">Not verified</span>' },
+    { key: 'availability', label: '🟢 Availability',    fn: a => { const m = {available:'🟢 Available',busy:'🔴 Busy',away:'🟡 Away'}; return m[a.expert.availability||'available'] || '🟢 Available'; } },
+    { key: 'experience',   label: '📅 Experience',      fn: a => { const exp = a.expert.yearsOfExperience || a.expert.profile?.experience || a.expert.profile?.yearsOfExperience; return exp ? exp + ' yrs' : '<span style="color:var(--text-muted);">—</span>'; } },
+    { key: 'message',      label: '💬 Their Message',   fn: a => `<span style="font-size:12px;line-height:1.5;">${(a.message || '').substring(0,120)}${a.message?.length > 120 ? '…' : ''}</span>` },
+    { key: 'why',          label: '💡 Why Choose Me',   fn: a => { const w = a.expert.whyChooseMe; return w ? `<span style="font-size:12px;line-height:1.5;">${w.substring(0,120)}${w.length>120?'…':''}</span>` : '<span style="color:var(--text-muted);">Not set</span>'; } },
+    { key: 'bio',          label: '📋 About',           fn: a => { const b = a.expert.bio || a.expert.profile?.bio; return b ? `<span style="font-size:12px;line-height:1.5;">${b.substring(0,120)}${b.length>120?'…':''}</span>` : '<span style="color:var(--text-muted);">—</span>'; } },
+    { key: 'education',    label: '🎓 Education',       fn: a => a.expert.profile?.education || '<span style="color:var(--text-muted);">—</span>' },
+    { key: 'portfolio',    label: '🗂️ Portfolio',        fn: a => { const p = a.expert.profile?.portfolio; return p ? `<span style="font-size:12px;line-height:1.5;">${p.substring(0,100)}${p.length>100?'…':''}</span>` : '<span style="color:var(--text-muted);">—</span>'; } },
+    { key: 'city',         label: '📍 Location',        fn: a => a.expert.profile?.city || a.expert.location?.city || '<span style="color:var(--text-muted);">—</span>' },
+  ];
+
+  const colWidth = Math.max(160, Math.floor(Math.min(window.innerWidth - 80, 900) / approaches.length));
+
+  // Header row: expert avatars + names
+  const headerCols = approaches.map(a => {
+    const primarySvc = (a.expert.servicesOffered || a.expert.profile?.servicesOffered || [])[0];
+    const svcColor = svcColors[primarySvc] || '#FC8019';
+    return `
+      <th style="width:${colWidth}px;min-width:${colWidth}px;padding:14px 12px;text-align:center;border-left:1px solid var(--border);vertical-align:top;">
+        <div style="width:44px;height:44px;border-radius:50%;background:${svcColor};color:#fff;font-size:16px;font-weight:800;display:flex;align-items:center;justify-content:center;margin:0 auto 8px;overflow:hidden;">
+          ${a.expert.profilePhoto ? `<img src="${a.expert.profilePhoto}" style="width:100%;height:100%;object-fit:cover;">` : a.expert.name.substring(0,1).toUpperCase()}
+        </div>
+        <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:2px;">${a.expert.name}</div>
+        <div style="font-size:11px;color:${svcColor};font-weight:600;">${a.expert.specialization || a.expert.profile?.specialization || 'Professional'}</div>
+      </th>`;
+  }).join('');
+
+  // Data rows
+  const dataRows = rows.map(row => {
+    const cells = approaches.map(a => `
+      <td style="padding:12px;text-align:center;border-left:1px solid var(--border);vertical-align:middle;font-size:13px;color:var(--text);">
+        ${row.fn(a)}
+      </td>`).join('');
+    return `
+      <tr style="border-top:1px solid var(--border);">
+        <td style="padding:12px 14px;font-size:12px;font-weight:700;color:var(--text-muted);white-space:nowrap;background:var(--bg-gray);position:sticky;left:0;z-index:1;min-width:110px;">${row.label}</td>
+        ${cells}
+      </tr>`;
+  }).join('');
+
+  // Contact buttons row
+  const contactCells = approaches.map(a => `
+    <td style="padding:12px;border-left:1px solid var(--border);text-align:center;">
+      <button onclick="contactExpert('${a.expert._id}', '${req._id}', '${state.user._id}');document.getElementById('compareModal').remove();"
+        style="width:100%;padding:10px;background:var(--primary);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;">
+        💬 Contact
+      </button>
+    </td>`).join('');
+
+  const modal = document.createElement('div');
+  modal.id = 'compareModal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;z-index:1001;padding:16px;';
+  modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
+
+  modal.innerHTML = `
+    <div style="background:var(--bg);border-radius:18px;width:100%;max-width:960px;max-height:90vh;overflow:hidden;display:flex;flex-direction:column;">
+
+      <!-- Header -->
+      <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+        <div>
+          <h2 style="font-size:17px;font-weight:800;color:var(--text);margin:0 0 2px;">⚖️ Compare Experts</h2>
+          <p style="font-size:12px;color:var(--text-muted);margin:0;">${approaches.length} experts · ${req.title}</p>
+        </div>
+        <button onclick="document.getElementById('compareModal').remove()"
+          style="width:32px;height:32px;border:none;background:var(--bg-gray);border-radius:50%;font-size:18px;cursor:pointer;color:var(--text-muted);">×</button>
+      </div>
+
+      <!-- Scrollable table -->
+      <div style="overflow:auto;flex:1;">
+        <table style="border-collapse:collapse;width:100%;min-width:${110 + colWidth * approaches.length}px;">
+          <thead style="position:sticky;top:0;z-index:2;background:var(--bg);">
+            <tr>
+              <th style="width:110px;min-width:110px;padding:14px;background:var(--bg-gray);position:sticky;left:0;z-index:3;"></th>
+              ${headerCols}
+            </tr>
+          </thead>
+          <tbody>
+            ${dataRows}
+            <tr style="border-top:2px solid var(--border);background:var(--bg);">
+              <td style="padding:12px 14px;font-size:12px;font-weight:700;color:var(--text-muted);background:var(--bg-gray);position:sticky;left:0;">🎯 Contact</td>
+              ${contactCells}
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>`;
+
+  document.body.appendChild(modal);
+}
 
   const approachesHTML = approaches.length > 0 ? approaches.map(app => {
     const expert = app.expert;
