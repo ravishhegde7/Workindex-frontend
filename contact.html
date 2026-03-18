@@ -464,7 +464,6 @@
 <footer>
   <p>© 2026 WorkIndex. All rights reserved. &nbsp;|&nbsp; <a href="/terms.html">Terms</a> &nbsp;|&nbsp; <a href="/refund-policy.html">Refund Policy</a></p>
 </footer>
-
 <script>
 function showToast(msg, type = 'info') {
   const t = document.createElement('div');
@@ -474,25 +473,7 @@ function showToast(msg, type = 'info') {
   setTimeout(() => t.remove(), 3500);
 }
 
-function submitContactForm() {
-  const name    = document.getElementById('cName').value.trim();
-  const email   = document.getElementById('cEmail').value.trim();
-  const role    = document.getElementById('cRole').value;
-  const subject = document.getElementById('cSubject').value;
-  const message = document.getElementById('cMessage').value.trim();
-
-  if (!name) { showToast('Please enter your name', 'error'); return; }
-  if (!email || !/\S+@\S+\.\S+/.test(email)) { showToast('Please enter a valid email address', 'error'); return; }
-  if (!role)  { showToast('Please select who you are', 'error'); return; }
-  if (!subject) { showToast('Please select a subject', 'error'); return; }
-  if (!message || message.length < 20) { showToast('Please write at least 20 characters in your message', 'error'); return; }
-
-  // Build mailto link as fallback (no server needed for now)
-  const body = encodeURIComponent(
-    `Name: ${name}\nEmail: ${email}\nRole: ${role}\nSubject: ${subject}\n\nMessage:\n${message}`
-  );
-
- async function submitContactForm() {
+async function submitContactForm() {
   const name    = document.getElementById('cName').value.trim();
   const email   = document.getElementById('cEmail').value.trim();
   const role    = document.getElementById('cRole').value;
@@ -510,7 +491,7 @@ function submitContactForm() {
   btn.disabled = true;
 
   try {
-    const res = await fetch('https://formspree.io/f/xaqpaekv', {  // ← paste your URL here
+    const res = await fetch('https://formspree.io/f/xaqpaekv', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
       body: JSON.stringify({ name, email, role, subject, message })
@@ -530,12 +511,6 @@ function submitContactForm() {
     btn.textContent = '📨 Send Message';
     btn.disabled = false;
   }
-}
-
-  // Show success UI
-  document.getElementById('contactForm').style.display = 'none';
-  document.getElementById('successMsg').style.display = 'block';
-  showToast('Opening your email app...', 'success');
 }
 </script>
 </body>
