@@ -491,8 +491,46 @@ function submitContactForm() {
   const body = encodeURIComponent(
     `Name: ${name}\nEmail: ${email}\nRole: ${role}\nSubject: ${subject}\n\nMessage:\n${message}`
   );
-  const mailto = `mailto:support@workindex.in?subject=${encodeURIComponent('[WorkIndex] ' + subject)}&body=${body}`;
-  window.location.href = mailto;
+
+ async function submitContactForm() {
+  const name    = document.getElementById('cName').value.trim();
+  const email   = document.getElementById('cEmail').value.trim();
+  const role    = document.getElementById('cRole').value;
+  const subject = document.getElementById('cSubject').value;
+  const message = document.getElementById('cMessage').value.trim();
+
+  if (!name) { showToast('Please enter your name', 'error'); return; }
+  if (!email || !/\S+@\S+\.\S+/.test(email)) { showToast('Please enter a valid email', 'error'); return; }
+  if (!role)  { showToast('Please select who you are', 'error'); return; }
+  if (!subject) { showToast('Please select a subject', 'error'); return; }
+  if (!message || message.length < 20) { showToast('Please write at least 20 characters', 'error'); return; }
+
+  const btn = document.querySelector('.submit-btn');
+  btn.textContent = '⏳ Sending...';
+  btn.disabled = true;
+
+  try {
+    const res = await fetch('https://formspree.io/f/xaqpaekv', {  // ← paste your URL here
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({ name, email, role, subject, message })
+    });
+
+    if (res.ok) {
+      document.getElementById('contactForm').style.display = 'none';
+      document.getElementById('successMsg').style.display = 'block';
+      showToast('Message sent!', 'success');
+    } else {
+      showToast('Failed to send. Please email us directly.', 'error');
+      btn.textContent = '📨 Send Message';
+      btn.disabled = false;
+    }
+  } catch (err) {
+    showToast('Network error. Please try again.', 'error');
+    btn.textContent = '📨 Send Message';
+    btn.disabled = false;
+  }
+}
 
   // Show success UI
   document.getElementById('contactForm').style.display = 'none';
