@@ -3934,6 +3934,23 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 })();
 </script>  
+
+<script>
+// Auto-open auth page if ?signup=true in URL
+(function() {
+  if (window.location.search.indexOf('signup=true') !== -1) {
+    // Wait for app.js to load then show auth
+    window.addEventListener('load', function() {
+      setTimeout(function() {
+        if (typeof showPage === 'function') {
+          showPage('auth');
+          if (typeof switchAuthMode === 'function') switchAuthMode('signup');
+        }
+      }, 100);
+    });
+  }
+})();
+</script>
   
 <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script src="/app.js"></script>
 <!-- BLOCK / REPORT MODAL -->
