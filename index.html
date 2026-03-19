@@ -3823,6 +3823,21 @@ document.addEventListener('DOMContentLoaded', function() {
   </div>
 </div>
 
+<script>
+(function() {
+  let sessionId = sessionStorage.getItem('wi_session');
+  if (!sessionId) {
+    sessionId = 'sess_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    sessionStorage.setItem('wi_session', sessionId);
+    fetch('https://workindex-production.up.railway.app/api/visits/track', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ page: window.location.pathname, sessionId: sessionId })
+    }).catch(() => {});
+  }
+})();
+</script>  
+  
 <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script src="/app.js"></script>
 <!-- BLOCK / REPORT MODAL -->
 <div id="blockReportModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1002; display:none; align-items:flex-end; justify-content:center;">
