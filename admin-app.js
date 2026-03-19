@@ -2832,23 +2832,27 @@ else html += '<a class="btn bgho" href="' + esc(doc.url) + '" target="_blank">Do
     }).catch(function() { g('settStats').innerHTML = '<p style="color:#606078;text-align:center">Could not load stats</p>'; });
   }
 window.loadVisitStats = function loadVisitStats() {
-    // Use the correct non-admin visits stats endpoint with admin token
+    var statesEl = g('visitStates');
+    if (statesEl) statesEl.innerHTML = '<div style="font-size:13px;color:#606078;">Loading...</div>';
+
     fetch('https://workindex-production.up.railway.app/api/visits/stats', {
       headers: { 'Authorization': 'Bearer ' + tok, 'Content-Type': 'application/json' }
-    }).then(function(r) { return r.json(); }).then(function(d) {
-      if (!d.success || !d.stats) return;
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      if (!d.success || !d.stats) throw new Error('bad response');
       var s = d.stats;
 
-      var total = g('visitTotal');   if (total)  total.textContent  = (s.total||0).toLocaleString('en-IN');
-      var today = g('visitToday');   if (today)  today.textContent  = (s.today||0).toLocaleString('en-IN');
-      var week  = g('visitWeek');    if (week)   week.textContent   = (s.week||0).toLocaleString('en-IN');
-      var month = g('visitMonth');   if (month)  month.textContent  = (s.month||0).toLocaleString('en-IN');
+      var el;
+      el = g('visitTotal');  if (el) el.textContent = (s.total  || 0).toLocaleString('en-IN');
+      el = g('visitToday');  if (el) el.textContent = (s.today  || 0).toLocaleString('en-IN');
+      el = g('visitWeek');   if (el) el.textContent = (s.week   || 0).toLocaleString('en-IN');
+      el = g('visitMonth');  if (el) el.textContent = (s.month  || 0).toLocaleString('en-IN');
 
-      var statesEl = g('visitStates');
-      if (!statesEl) return;
       var states = s.states || [];
+      if (!statesEl) return;
       if (!states.length) {
-        statesEl.innerHTML = '<div style="font-size:13px;color:#606078;">No visit data yet</div>';
+        statesEl.innerHTML = '<div style="font-size:13px;color:#606078;">No visit data yet — visits will appear as users land on workindex.co.in</div>';
         return;
       }
       var maxCount = states[0].count || 1;
@@ -2862,11 +2866,11 @@ window.loadVisitStats = function loadVisitStats() {
           '<div style="font-size:12px;font-weight:700;color:#f0f0f4;width:28px;text-align:right;">' + st.count + '</div>' +
         '</div>';
       }).join('');
-    }).catch(function() {
-      var statesEl = g('visitStates');
+    })
+    .catch(function() {
       if (statesEl) statesEl.innerHTML = '<div style="font-size:13px;color:#606078;">Could not load visit data</div>';
     });
-  }
+  };
    
 /* ═══ DOWNLOAD REPORTS ══════════════════════════════════════════════════ */
   function downloadReport(type) {
