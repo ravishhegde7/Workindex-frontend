@@ -351,11 +351,38 @@
               </div>
             </div>
           </div>
-          <!-- Platform Stats (visit count) -->
+          <!-- Website Visits Card -->
           <div class="card">
-            <div class="ch"><h3>&#128200; Platform Overview</h3></div>
-            <div style="padding:16px" id="settVisitStats"><div class="spin"></div></div>
+            <div class="ch">
+              <h3>🌐 Website Visits</h3>
+              <button class="abtn cbtn" onclick="loadVisitStats()" style="padding:5px 10px;font-size:11px">Refresh</button>
+            </div>
+            <div style="padding:16px">
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">
+                <div style="background:#18181d;border-radius:10px;padding:14px 16px;">
+                  <div style="font-size:10px;color:#606078;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">All Time</div>
+                  <div style="font-size:24px;font-weight:800;color:#FC8019;" id="visitTotal">—</div>
+                </div>
+                <div style="background:#18181d;border-radius:10px;padding:14px 16px;">
+                  <div style="font-size:10px;color:#606078;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">Today</div>
+                  <div style="font-size:24px;font-weight:800;color:#22c55e;" id="visitToday">—</div>
+                </div>
+                <div style="background:#18181d;border-radius:10px;padding:14px 16px;">
+                  <div style="font-size:10px;color:#606078;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">Last 7 Days</div>
+                  <div style="font-size:24px;font-weight:800;color:#3b82f6;" id="visitWeek">—</div>
+                </div>
+                <div style="background:#18181d;border-radius:10px;padding:14px 16px;">
+                  <div style="font-size:10px;color:#606078;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">Last 30 Days</div>
+                  <div style="font-size:24px;font-weight:800;color:#a855f7;" id="visitMonth">—</div>
+                </div>
+              </div>
+              <div style="font-size:11px;font-weight:700;color:#606078;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;">📍 Visits by State</div>
+              <div id="visitStates" style="display:flex;flex-direction:column;gap:6px;max-height:200px;overflow-y:auto;">
+                <div style="font-size:13px;color:#606078;">Loading...</div>
+              </div>
+            </div>
           </div>
+          
           <!-- Download Reports -->
           <div class="card">
             <div class="ch"><h3>&#128229; Download Reports</h3></div>
