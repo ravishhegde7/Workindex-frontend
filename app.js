@@ -3566,6 +3566,47 @@ function loadSettings() {
   if (darkModeToggle) {
     darkModeToggle.checked = localStorage.getItem('darkMode') === 'true';
   }
+// Load email notification preference
+  const emailToggle = document.getElementById('emailNotifToggle');
+  if (emailToggle && state.user) {
+    // Check from state.user.preferences first
+    const emailPref = state.user.preferences &&
+                      state.user.preferences.notifications &&
+                      state.user.preferences.notifications.email;
+    // Default to true if not set
+    emailToggle.checked = (emailPref !== false);
+
+    // Wire the toggle to save preference
+    emailToggle.onchange = async function() {
+      const enabled = this.checked;
+      try {
+        const res = await fetch(`${API_URL}/users/preferences`, {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${state.token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ notifications: { email: enabled } })
+        });
+        const data = await res.json();
+        if (data.success) {
+          // Update local state
+          if (!state.user.preferences) state.user.preferences = {};
+          if (!state.user.preferences.notifications) state.user.preferences.notifications = {};
+          state.user.preferences.notifications.email = enabled;
+          localStorage.setItem('user', JSON.stringify(state.user));
+          showToast(enabled ? 'Email notifications enabled' : 'Email notifications disabled', 'success');
+        } else {
+          showToast('Failed to save preference', 'error');
+          this.checked = !enabled; // revert toggle
+        }
+      } catch(err) {
+        showToast('Network error', 'error');
+        this.checked = !enabled; // revert toggle
+      }
+    };
+  }
+   
   // Populate user info
   if (state.user) {
     const u = state.user;
