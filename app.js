@@ -1690,8 +1690,16 @@ function updateProfilePhoto(photoUrl) {
 }
 
 // ─── CREDIT PURCHASE ─── 
-function openCreditModal() {
-  document.getElementById('creditModal').classList.add('open');
+async function openCreditModal() {
+  // Show credits overview screen instead of direct purchase modal
+  showPage('creditsHistory');
+  
+  // Update balance display
+  const balEl = document.getElementById('chBalanceDisplay');
+  if (balEl && state.user) balEl.textContent = state.user.credits || 0;
+
+  // Load last 3 purchases for quick view
+  loadCreditsHistory('purchase');
 }
 
 function closeCreditModal(event) {
