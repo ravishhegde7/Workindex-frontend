@@ -2513,7 +2513,13 @@ else html += '<a class="btn bgho" href="' + esc(doc.url) + '" target="_blank">Do
   ticket_followup: '#f59e0b', ticket_canned_response: '#06b6d4',
   expert_profile_viewed: '#3b82f6', service_received: '#22c55e',
   client_hired_expert: '#f59e0b', expert_accepted_hire: '#22c55e',
-  profile_updated: '#a0a0b8'
+  profile_updated: '#a0a0b8' ,admin_credit_adjusted: '#f59e0b',
+admin_password_reset:  '#a0a0b8',
+admin_user_action:     '#ef4444',
+admin_post_edited:     '#3b82f6',
+admin_post_deleted:    '#ef4444',
+admin_review_deleted:  '#ef4444',
+admin_approach_deleted:'#ef4444'
 };
        
       // Labels to show when the user is the TARGET (someone else did this TO them)
