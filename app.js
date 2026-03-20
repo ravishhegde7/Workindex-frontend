@@ -1181,7 +1181,9 @@ async function openNotifications() {
     refund: '💰',
     approach: '👋',
     chat: '💬',
-    system: 'ℹ️'
+    system: 'ℹ️',
+     admin_action: '🔔',      // ← ADD
+  customer_interest: '🎯'
   };
 
   const listHTML = notifications.length ? notifications.map(n => `
