@@ -2249,7 +2249,7 @@ if (dFilter) {
 }
    
   if (!allRequests.length) {
-    const isFiltered = (state.browseServiceFilter || []).length > 0 || state.browseSearch;
+    const isFiltered = (state.browseServiceFilter || []).length > 0 || state.browseSearch || state.browseResponse || state.browseDate;
     container.innerHTML = `
       <h2 style="margin-bottom:16px;">Available Requests</h2>
       ${renderBrowseToolbar()}
