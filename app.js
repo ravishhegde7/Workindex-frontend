@@ -3141,8 +3141,11 @@ function showRequestApproaches(req, approaches) {
       '</div>' +
 
       ((req.status === 'pending' || req.status === 'active')
-        ? '<div style="padding:0 20px 16px;"><button onclick="cancelRequest(\'' + req._id + '\')" style="width:100%;padding:13px;border:1.5px solid #ef4444;border-radius:10px;background:transparent;color:#ef4444;font-size:14px;font-weight:600;cursor:pointer;" onmouseover="this.style.background=\'rgba(239,68,68,0.06)\'" onmouseout="this.style.background=\'transparent\'">✕ Cancel Request</button></div>'
-        : '') +
+  ? '<div style="padding:0 20px 16px;display:grid;grid-template-columns:1fr 1fr;gap:10px;">' +
+      '<button onclick="openEditRequestModal(\'' + req._id + '\')" style="padding:13px;border:1.5px solid var(--primary);border-radius:10px;background:transparent;color:var(--primary);font-size:14px;font-weight:600;cursor:pointer;" onmouseover="this.style.background=\'rgba(252,128,25,0.06)\'" onmouseout="this.style.background=\'transparent\'">✏️ Edit Request</button>' +
+      '<button onclick="cancelRequest(\'' + req._id + '\')" style="padding:13px;border:1.5px solid #ef4444;border-radius:10px;background:transparent;color:#ef4444;font-size:14px;font-weight:600;cursor:pointer;" onmouseover="this.style.background=\'rgba(239,68,68,0.06)\'" onmouseout="this.style.background=\'transparent\'">✕ Cancel Request</button>' +
+    '</div>'
+  : '') +
     '</div>';
 
   window._approachesForCompare = approaches;
