@@ -4481,20 +4481,33 @@ async function saveProfileEdits() {
   const bioText = updatedProfile.bio || '';
   const phonePattern = /(\+?\d[\s\-.]?){9,13}\d/;
   const contactPatterns = [
-    /\b\d{10}\b/,
-    /\+91[\s\-]?\d{10}/,
-    /\b[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}\b/,
-    /wa\.me\//i,
-    /whatsapp/i,
-    /telegram/i,
-    /instagram\.com/i,
-    /t\.me\//i,
-    /call me/i,
-    /contact me at/i,
-    /reach me/i,
-    /dm me/i
-  ];
-  const hasContact = phonePattern.test(bioText) || contactPatterns.some(p => p.test(bioText));
+  /\b\d{10}\b/,
+  /\+91[\s\-]?\d{10}/,
+  /\b[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}\b/,
+  /wa\.me\//i,
+  /whatsapp/i,
+  /telegram/i,
+  /instagram\.com/i,
+  /t\.me\//i,
+  /call me/i,
+  /contact me at/i,
+  /reach me/i,
+  /dm me/i
+];
+
+// Word-based phone number pattern (5+ consecutive word digits)
+const wordDigits = ['zero','one','two','three','four','five','six','seven','eight','nine'];
+const wordPhonePattern = new RegExp(
+  '\\b(' + wordDigits.join('|') + ')' +
+  '([\\s\\-,]*(' + wordDigits.join('|') + ')){4,}\\b',
+  'gi'
+);
+const contactWordPattern = /\b(call|contact|reach|ring|ping|text|msg|message)\s+(me\s+)?(at\s+|on\s+)?([a-z\s]+\b(zero|one|two|three|four|five|six|seven|eight|nine)\b)/gi;
+
+const hasContact = phonePattern.test(bioText) 
+  || contactPatterns.some(p => p.test(bioText))
+  || wordPhonePattern.test(bioText)
+  || contactWordPattern.test(bioText);
   if (hasContact) {
     showToast('Bio cannot contain phone numbers, emails, or external contact info. Please remove them and try again.', 'error');
     return;
