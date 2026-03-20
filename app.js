@@ -104,6 +104,7 @@ function showPage(pageId, pushState = true) {
       expertDash:        '/dashboard',
       settings:          '/settings',
       myTickets:         '/my-tickets',
+         creditsHistory:    '/credits-history',
     };
 
     const path = pageToPath[pageId] || '/';
