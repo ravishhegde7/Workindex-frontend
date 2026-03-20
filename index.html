@@ -2907,19 +2907,39 @@ function sanitizeAndUpdateTextInput(key, textarea) {
   const raw = textarea.value;
   const warning = document.getElementById('qTextareaWarning');
 
+  // ─── Digit phone numbers ───
   const phonePattern = /(\+?[\d][\d\s\-().]{7,}[\d])/g;
+
+  // ─── Social / contact handles ───
   const socialPattern = /@[a-zA-Z0-9._]{2,}|(?:wa\.me|whatsapp|instagram|insta|facebook|fb\.com|twitter|linkedin|telegram|t\.me|snapchat|youtube|tiktok)[\s:/.]*/gi;
 
-  const hasPhone = phonePattern.test(raw);
-  phonePattern.lastIndex = 0;
-  const hasSocial = socialPattern.test(raw);
-  socialPattern.lastIndex = 0;
+  // ─── Word-based phone numbers ───
+  // Catches: "eight eight eight eight eight eight eight eight eight eight"
+  // "call me at nine eight seven six five four three two one zero"
+  // "nine eight seven six five" (5+ consecutive word digits)
+  const wordDigits = ['zero','one','two','three','four','five','six','seven','eight','nine'];
+  const wordDigitPattern = new RegExp(
+    '\\b(' + wordDigits.join('|') + ')' +
+    '([\\s\\-,]*(' + wordDigits.join('|') + ')){4,}\\b',
+    'gi'
+  );
 
-  if (warning) warning.style.display = (hasPhone || hasSocial) ? 'block' : 'none';
+  // ─── Explicit contact phrases with word numbers ───
+  const contactWordPattern = /\b(call|contact|reach|ring|ping|text|msg|message)\s+(me\s+)?(at\s+|on\s+)?([a-z\s]+\b(zero|one|two|three|four|five|six|seven|eight|nine)\b)/gi;
+
+  const hasPhone      = phonePattern.test(raw);    phonePattern.lastIndex = 0;
+  const hasSocial     = socialPattern.test(raw);   socialPattern.lastIndex = 0;
+  const hasWordPhone  = wordDigitPattern.test(raw); wordDigitPattern.lastIndex = 0;
+  const hasContactWord = contactWordPattern.test(raw); contactWordPattern.lastIndex = 0;
+
+  const hasViolation = hasPhone || hasSocial || hasWordPhone || hasContactWord;
+  if (warning) warning.style.display = hasViolation ? 'block' : 'none';
 
   let cleaned = raw
     .replace(phonePattern, '***')
-    .replace(socialPattern, '***');
+    .replace(socialPattern, '***')
+    .replace(wordDigitPattern, '***')
+    .replace(contactWordPattern, '***');
 
   if (cleaned !== raw) {
     const pos = textarea.selectionStart;
