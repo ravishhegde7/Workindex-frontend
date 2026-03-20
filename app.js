@@ -2928,6 +2928,124 @@ async function cancelRequest(requestId) {
   }
 }
 
+// ─── EDIT REQUEST MODAL ───
+function openEditRequestModal(requestId) {
+  const req = state.requests.find(r => r._id === requestId);
+  if (!req) return;
+
+  const existing = document.getElementById('editRequestModal');
+  if (existing) existing.remove();
+
+  const urgencyOpts = [
+    { value: 'immediate', label: 'Immediately (within 24 hours)' },
+    { value: '2-3days',   label: 'Within 2–3 days' },
+    { value: 'week',      label: 'Within a week' },
+    { value: 'month',     label: 'Within a month' },
+    { value: 'flexible',  label: 'Flexible / Just exploring' }
+  ];
+
+  const modal = document.createElement('div');
+  modal.id = 'editRequestModal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.55);display:flex;align-items:center;justify-content:center;z-index:1005;padding:20px;';
+  modal.onclick = e => { if (e.target === modal) modal.remove(); };
+
+  modal.innerHTML = `
+    <div style="background:var(--bg);border-radius:18px;max-width:500px;width:100%;max-height:90vh;overflow-y:auto;padding:28px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+        <div>
+          <h2 style="font-size:19px;font-weight:800;color:var(--text);margin:0 0 2px;">✏️ Edit Request</h2>
+          <p style="font-size:12px;color:var(--text-muted);margin:0;">${req.title}</p>
+        </div>
+        <button onclick="document.getElementById('editRequestModal').remove()"
+          style="width:32px;height:32px;border:none;background:var(--bg-gray);border-radius:50%;font-size:18px;cursor:pointer;color:var(--text-muted);">×</button>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:16px;">
+
+        <div>
+          <label style="font-size:13px;font-weight:600;color:var(--text-muted);display:block;margin-bottom:6px;">Title</label>
+          <input id="editReqTitle" type="text" value="${(req.title || '').replace(/"/g, '&quot;')}"
+            style="width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:15px;background:var(--bg);color:var(--text);box-sizing:border-box;">
+        </div>
+
+        <div>
+          <label style="font-size:13px;font-weight:600;color:var(--text-muted);display:block;margin-bottom:6px;">Description</label>
+          <textarea id="editReqDescription" rows="5"
+            style="width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-family:inherit;resize:vertical;background:var(--bg);color:var(--text);box-sizing:border-box;">${req.description || ''}</textarea>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div>
+            <label style="font-size:13px;font-weight:600;color:var(--text-muted);display:block;margin-bottom:6px;">Budget (₹)</label>
+            <input id="editReqBudget" type="number" value="${req.budget || ''}"
+              style="width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:15px;background:var(--bg);color:var(--text);box-sizing:border-box;">
+          </div>
+          <div>
+            <label style="font-size:13px;font-weight:600;color:var(--text-muted);display:block;margin-bottom:6px;">Urgency</label>
+            <select id="editReqTimeline"
+              style="width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;background:var(--bg);color:var(--text);box-sizing:border-box;">
+              ${urgencyOpts.map(o => `<option value="${o.value}" ${req.timeline === o.value ? 'selected' : ''}>${o.label}</option>`).join('')}
+            </select>
+          </div>
+        </div>
+
+      </div>
+
+      <div style="display:flex;gap:10px;margin-top:24px;">
+        <button onclick="document.getElementById('editRequestModal').remove()"
+          style="flex:1;padding:13px;border:1.5px solid var(--border);border-radius:12px;background:transparent;color:var(--text);font-size:14px;font-weight:600;cursor:pointer;">
+          Cancel
+        </button>
+        <button onclick="saveEditedRequest('${requestId}')"
+          style="flex:2;padding:13px;border:none;border-radius:12px;background:var(--primary);color:#fff;font-size:15px;font-weight:700;cursor:pointer;">
+          💾 Save Changes
+        </button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+}
+
+async function saveEditedRequest(requestId) {
+  const title       = document.getElementById('editReqTitle')?.value.trim();
+  const description = document.getElementById('editReqDescription')?.value.trim();
+  const budget      = document.getElementById('editReqBudget')?.value;
+  const timeline    = document.getElementById('editReqTimeline')?.value;
+
+  if (!title)       { showToast('Title cannot be empty', 'error'); return; }
+  if (!description) { showToast('Description cannot be empty', 'error'); return; }
+
+  const btn = document.querySelector('#editRequestModal button[onclick*="saveEditedRequest"]');
+  if (btn) { btn.disabled = true; btn.textContent = 'Saving...'; }
+
+  try {
+    const res = await fetch(`${API_URL}/requests/${requestId}`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${state.token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ title, description, budget: Number(budget), timeline })
+    });
+    const data = await res.json();
+
+    if (data.success) {
+      showToast('Request updated successfully!', 'success');
+      document.getElementById('editRequestModal')?.remove();
+      // Close approachesModal too
+      document.getElementById('approachesModal')?.remove();
+      loadClientData();
+    } else {
+      showToast(data.message || 'Failed to update', 'error');
+      if (btn) { btn.disabled = false; btn.textContent = '💾 Save Changes'; }
+    }
+  } catch (err) {
+    showToast('Network error', 'error');
+    if (btn) { btn.disabled = false; btn.textContent = '💾 Save Changes'; }
+  }
+}
+
 // ─── SHOW REQUEST APPROACHES MODAL ───
 // ── Compare state ──
 var _compareSelected = [];
