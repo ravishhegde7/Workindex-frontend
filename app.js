@@ -3884,6 +3884,7 @@ function navigateToPath(path, pushState = true) {
     '/dashboard':          state.user?.role === 'client' ? 'clientDash' : 'expertDash',
     '/settings':           'settings',
     '/my-tickets':         'myTickets',
+       '/credits-history':    'creditsHistory',
   };
 
   const pageId = pathToPage[path] || 'landing';
