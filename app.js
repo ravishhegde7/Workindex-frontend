@@ -4557,6 +4557,22 @@ async function saveBasicInfo() {
 
   if (!nameVal) { showToast('Name cannot be empty', 'error'); return; }
 
+// ─── NAME VALIDATION ───
+const namePhonePattern = /(\+?\d[\s\-.]?){9,13}\d|\b\d{10}\b/;
+const nameWordPattern = /\b(zero|one|two|three|four|five|six|seven|eight|nine|call|contact|reach|whatsapp|telegram|dm)\b/gi;
+const nameWordMatches = nameVal.match(nameWordPattern) || [];
+if (namePhonePattern.test(nameVal) || nameWordMatches.length >= 4) {
+  showToast('Name cannot contain phone numbers or contact information', 'error');
+  return;
+}
+if (nameVal.length < 2 || nameVal.length > 60) {
+  showToast('Name must be between 2 and 60 characters', 'error');
+  return;
+}
+if (/[^a-zA-Z\s\.\-']/.test(nameVal)) {
+  showToast('Name can only contain letters, spaces, dots and hyphens', 'error');
+  return;
+}
   const btn = document.querySelector('#basicSaveRow button');
   if (btn) { btn.disabled = true; btn.textContent = 'Saving...'; }
 
