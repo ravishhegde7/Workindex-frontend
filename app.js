@@ -129,10 +129,11 @@ function showPage(pageId, pushState = true) {
           if (input) input.value = pending.location;
         }, 100);
       }
-      loadExperts({
-        service: pending.service || undefined,
-        location: pending.location || undefined
-      });
+      const expertFilters = {};
+if (pending.service) expertFilters.service = pending.service;
+if (pending.location) expertFilters.location = pending.location;
+loadExperts(expertFilters);
+       
     } else if (pageId === 'clientDash' && state.user?.role === 'client') {
       loadClientData();
     } else if (pageId === 'expertDash' && state.user?.role === 'expert') {
