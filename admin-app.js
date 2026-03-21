@@ -1302,7 +1302,18 @@ function showMsgModal(msg) {
       var html = '<div class="uhero" style="margin-bottom:12px"><div class="ttav">' + esc((u.name||'U').charAt(0).toUpperCase()) + '</div><div><strong>' + esc(u.name||'-') + '</strong><div style="font-size:12px;color:#a0a0b8">' + esc(u.email||'') + '</div></div></div>';
       html += '<div class="igrid" style="margin-bottom:12px"><div class="ic"><label>Status</label>' + bdg(t.status) + '</div><div class="ic"><label>Credits Req</label><span style="color:#f59e0b">' + (t.eligibleCredits||0) + '</span></div><div class="ic"><label>Created</label><span>' + fmt(t.createdAt) + '</span></div><div class="ic"><label>Decision</label><span>' + (t.decision||'Pending') + '</span></div></div>';
       if (t.description) html += '<div class="tk-body" style="background:#18181d;padding:12px;border-radius:8px;margin-bottom:12px">' + esc(t.description) + '</div>';
-      if ((t.transactionBreakdown||[]).length) {
+      // ── Expert refund: show linked approach ──
+if (t.isExpertRefund && t.relatedApproachId) {
+  html += '<div style="background:#18181d;border:1px solid rgba(252,128,25,.25);border-radius:10px;padding:14px 16px;margin-bottom:12px;">' +
+    '<div style="font-size:10px;font-weight:700;color:#FC8019;text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px;">💳 Expert Credit Refund Request</div>' +
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">' +
+      '<span style="font-size:13px;color:#a0a0b8;">Credits Requested</span>' +
+      '<span style="font-size:18px;font-weight:800;color:#FC8019;">' + (t.eligibleCredits||0) + ' credits</span>' +
+    '</div>' +
+    '<button onclick="loadApproachDetail(\'' + (t.relatedApproachId._id || t.relatedApproachId) + '\')" style="padding:8px 14px;border-radius:7px;border:1px solid rgba(252,128,25,.3);background:rgba(252,128,25,.1);color:#FC8019;font-size:12px;font-weight:600;cursor:pointer;width:100%;">🔍 View Linked Approach Details</button>' +
+  '</div>';
+}
+       if ((t.transactionBreakdown||[]).length) {
         html += '<div class="slbl">Breakdown</div>';
         t.transactionBreakdown.forEach(function(b) {
           html += '<div class="trow"><span>' + esc(b.clientName||'Client') + '</span><span>' + esc(b.reason||'') + '</span><span style="color:' + (b.eligible?'#22c55e':'#606078') + '">' + (b.creditsSpent||0) + ' cr</span></div>';
