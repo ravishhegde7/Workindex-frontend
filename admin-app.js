@@ -3555,5 +3555,29 @@ function buildEmailNotificationsUI(settings, logs, total) {
 
   return '<div style="max-width:860px;">' + togglesHTML + logsHTML + '</div>';
 }
+/* ═══ EXPERT INVITE ADMIN ACTIONS ═══════════════════════════════════════ */
+window.adminMarkInviteComplete = function(invId, el) {
+  if (!confirm('Mark this invite as completed?')) return;
+  api('interests/' + invId + '/complete', 'POST', {}).then(function(d) {
+    if (d.success) { toast('Marked as completed'); loadApproaches(); }
+    else toast(d.message || 'Failed', 'e');
+  }).catch(function() { toast('Error', 'e'); });
+};
+
+window.adminResetInvite = function(invId, el) {
+  if (!confirm('Reset this invite back to pending?')) return;
+  api('interests/' + invId + '/reset', 'POST', {}).then(function(d) {
+    if (d.success) { toast('Reset to pending'); loadApproaches(); }
+    else toast(d.message || 'Failed', 'e');
+  }).catch(function() { toast('Error', 'e'); });
+};
+
+window.adminDeleteInvite = function(invId, el) {
+  if (!confirm('Permanently delete this invite?')) return;
+  api('interests/' + invId, 'DELETE').then(function(d) {
+    if (d.success) { toast('Invite deleted'); loadApproaches(); }
+    else toast(d.message || 'Failed', 'e');
+  }).catch(function() { toast('Error', 'e'); });
+};
    
 })();
