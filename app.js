@@ -1250,7 +1250,10 @@ async function loadExperts(filters = {}) {
   expertsAbortController = new AbortController();
 
   try {
-    const params = new URLSearchParams(filters);
+    const params = new URLSearchParams();
+Object.entries(filters).forEach(([k, v]) => {
+  if (v !== undefined && v !== null && v !== '') params.append(k, v);
+});
     const res = await fetch(`${API_URL}/users/experts?${params}`, {
       signal: expertsAbortController.signal
     });
