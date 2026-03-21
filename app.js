@@ -5443,22 +5443,148 @@ var _tkUserSelectedIssue = null;
 
 var USER_TICKET_CATEGORIES = {
   expert: [
-    { group: '🔐 Account & Login Issues', items: ['Unable to login', 'Forgot password / OTP not received', 'Account locked / suspended', 'Change phone/email', 'Delete account request', 'Profile update issue'] },
-    { group: '💬 Expert Interaction Issues', items: ['Expert not responding', 'Received too many responses', 'Harassment / inappropriate behavior', 'Expert asking payment outside platform', 'Expert details incorrect', 'Fake expert suspected'] },
-    { group: '💰 Payment & Refund Issues', items: ['Payment failed but amount deducted', 'Refund not received', 'Wrong charge applied', 'Payment confirmation not received', 'Need invoice / receipt', 'Payment method issue'] },
-    { group: '⭐ Review & Rating Issues', items: ['Want to edit/remove review', 'Fake review posted about me', 'Rating incorrect'] },
-    { group: '⚙️ Technical Issues', items: ['App/website not working', 'Page loading error', 'Feature not functioning', 'Bug report', 'Mobile app issue'] },
-    { group: '❓ General Support', items: ['Need help using platform', 'Feature request', 'Feedback / suggestions', 'Other issue'] }
+    { group: '🔐 Account & Login Issues', items: [
+      'Unable to login',
+      'Forgot password / OTP not received',
+      'Account locked or suspended',
+      'Change my phone number or email',
+      'Delete my account',
+      'Profile update not saving'
+    ]},
+    { group: '💳 Credits & Refunds', items: [
+      'Spent credits on fake or spam request',
+      'Spent credits but client never responded',
+      'I was charged credits incorrectly',
+      'Credits deducted but approach was not submitted',
+      'Credits purchased but not added to my account',
+      'Payment failed but amount deducted from bank',
+      'I want a refund for unused credits',
+      'I need a receipt or invoice for my credit purchase'
+    ]},
+    { group: '📋 My Profile & Visibility', items: [
+      'My profile is not showing in search results',
+      'My services are not listed correctly',
+      'Profile photo or documents not uploading',
+      'My KYC verification is stuck or rejected',
+      'My approval status has not been updated',
+      'My rating or review count is showing wrong'
+    ]},
+    { group: '💬 Client Interaction Issues', items: [
+      'Client is not responding after I submitted an approach',
+      'Client behaviour was rude or unprofessional',
+      'Client asked me to work outside the platform',
+      'Client posted fake or misleading requirements',
+      'I want to report a client',
+      'Client threatened or harassed me'
+    ]},
+    { group: '⚖️ Dispute & Resolution', items: [
+      'Client is disputing work that was completed',
+      'Client left a false or unfair review',
+      'I want to dispute a decision made by admin',
+      'Client filed a complaint against me unfairly'
+    ]},
+    { group: '⭐ Reviews & Ratings', items: [
+      'A fake or unfair review was posted on my profile',
+      'My overall rating seems incorrect',
+      'Want to respond to a review'
+    ]},
+    { group: '🛡️ Privacy & Safety', items: [
+      'A client shared my contact details without consent',
+      'I am receiving unwanted contact from a client',
+      'Report harassment or threatening behaviour',
+      'Request to delete all my data (DPDP Act)'
+    ]},
+    { group: '⚙️ Technical Issues', items: [
+      'App or website not loading',
+      'Page showing an error',
+      'Chat messages not sending or receiving',
+      'Documents or files not uploading',
+      'Notifications not working',
+      'A feature is not working correctly',
+      'Bug report'
+    ]},
+    { group: '❓ General Support', items: [
+      'I need help understanding how credits work',
+      'I have a question about how approaches work',
+      'I want to give feedback or a suggestion',
+      'Other issue not listed above'
+    ]}
   ],
   client: [
-    { group: '🔐 Account & Login Issues', items: ['Unable to login', 'Forgot password / OTP not received', 'Account locked / suspended', 'Change phone/email', 'Delete account request', 'Profile update issue'] },
-    { group: '📋 Request / Job Issues', items: ['Unable to post request', 'Edit request issue', 'Request not visible to experts', 'Wrong category selected', 'Duplicate request created', 'Want to cancel request', 'Request marked completed incorrectly', 'Spam responses received'] },
-    { group: '💬 Expert Interaction Issues', items: ['Expert not responding', 'Received too many responses', 'Harassment / inappropriate behavior', 'Expert asking payment outside platform', 'Expert details incorrect', 'Fake expert suspected'] },
-    { group: '💰 Payment & Refund Issues', items: ['Payment failed but amount deducted', 'Refund not received', 'Wrong charge applied', 'Payment confirmation not received', 'Need invoice / receipt', 'Payment method issue'] },
-    { group: '⭐ Review & Rating Issues', items: ['Unable to submit review', 'Want to edit/remove review', 'Fake review posted about me', 'Rating incorrect'] },
-    { group: '🛡️ Safety & Abuse', items: ['Report fraud/scam', 'Threatening behavior', 'Privacy concern', 'Unauthorized use of my data'] },
-    { group: '⚙️ Technical Issues', items: ['App/website not working', 'Page loading error', 'Feature not functioning', 'Bug report', 'Mobile app issue'] },
-    { group: '❓ General Support', items: ['Need help using platform', 'Feature request', 'Feedback / suggestions', 'Other issue'] }
+    { group: '🔐 Account & Login Issues', items: [
+      'Unable to login',
+      'Forgot password / OTP not received',
+      'Account locked or suspended',
+      'Change my phone number or email',
+      'Delete my account',
+      'Profile update not saving'
+    ]},
+    { group: '📋 My Requests & Posts', items: [
+      'Unable to post a request',
+      'My request is not visible to experts',
+      'Want to edit or cancel my request',
+      'Request was closed without my approval',
+      'Request expired without a response',
+      'I want to reopen a closed request',
+      'Wrong service category selected',
+      'Duplicate request created by mistake',
+      'Request marked completed incorrectly',
+      'Too many spam responses on my request'
+    ]},
+    { group: '💬 Expert Interaction Issues', items: [
+      'Expert is not responding after I accepted',
+      'Expert behaviour was rude or unprofessional',
+      'Expert asked for payment outside the platform',
+      'Expert provided wrong or misleading information',
+      'Expert approach was misleading',
+      'Fake or fraudulent expert profile',
+      'Expert did not deliver what was promised',
+      'I want to report an expert'
+    ]},
+    { group: '💰 Payment & Billing Issues', items: [
+      'Payment failed but amount was deducted from bank',
+      'Payment went through but credits not added',
+      'I was charged the wrong amount',
+      'I need a receipt or invoice for my payment',
+      'Payment method not working',
+      'I want a refund for a failed transaction'
+    ]},
+    { group: '⚖️ Dispute & Resolution', items: [
+      'Work quality was not as agreed',
+      'Expert did not complete the service',
+      'I want to dispute a completed service',
+      'Expert is blackmailing or threatening me',
+      'Fraudulent activity by expert'
+    ]},
+    { group: '⭐ Reviews & Ratings', items: [
+      'Unable to submit a review',
+      'I want to edit or remove my review',
+      'Fake review was posted about me by an expert',
+      'Rating shown is incorrect'
+    ]},
+    { group: '🛡️ Privacy & Safety', items: [
+      'My personal data was shared without consent',
+      'I am receiving unwanted contact from an expert',
+      'Expert shared my contact details without consent',
+      'Report harassment or threatening behaviour',
+      'Request to delete all my data (DPDP Act)'
+    ]},
+    { group: '⚙️ Technical Issues', items: [
+      'App or website not loading',
+      'Page showing an error',
+      'Chat messages not sending or receiving',
+      'Documents or files not uploading',
+      'Notifications not working',
+      'A feature is not working correctly',
+      'Bug report',
+      'Mobile app issue'
+    ]},
+    { group: '❓ General Support', items: [
+      'I need help understanding how WorkIndex works',
+      'I have a question about pricing or credits',
+      'I want to give feedback or a suggestion',
+      'Other issue not listed above'
+    ]}
   ]
 };
 
