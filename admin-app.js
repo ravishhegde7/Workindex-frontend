@@ -590,7 +590,50 @@ emailNotifications: loadEmailNotifications,
     }).catch(function() { g('drB').innerHTML = '<div class="empty"><h3>Error</h3></div>'; });
   }
 
-  function buildDr(u, d) {
+   /* ═══ PROFILE STRENGTH ═══════════════════════════════════════════════════ */
+function calculateAdminProfileStrength(u) {
+  var pr = u.profile || {};
+  var items = [
+    { label: 'Profile photo',        done: !!u.profilePhoto,                                              pts: 10 },
+    { label: 'Bio (30+ chars)',       done: !!(pr.bio && pr.bio.length >= 30),                            pts: 10 },
+    { label: 'Specialization',       done: !!(pr.specialization || u.specialization),                    pts: 10 },
+    { label: 'City + Pincode',       done: !!(pr.city && pr.pincode),                                    pts: 10 },
+    { label: 'GST / License / Cert', done: !!(pr.gstNumber || pr.licenseNumber || pr.certificationNumber), pts: 8  },
+    { label: 'Education',            done: !!(pr.education && pr.education.trim()),                      pts: 8  },
+    { label: 'Portfolio / Proof',    done: !!(pr.portfolio && pr.portfolio.trim()),                      pts: 8  },
+    { label: 'Experience',           done: !!(pr.experience || u.yearsOfExperience),                     pts: 8  },
+    { label: 'Professional address', done: !!(pr.professionalAddress && pr.professionalAddress.trim()),  pts: 8  },
+    { label: 'At least 1 review',   done: (u.reviewCount || 0) >= 1,                                    pts: 5  },
+    { label: 'At least 1 approach', done: (u.totalApproaches || 0) >= 1,                                pts: 5  },
+    { label: 'KYC verified',         done: !!(u.kyc && u.kyc.status === 'approved'),                     pts: 10 },
+  ];
+  var score = 0;
+  items.forEach(function(c) { if (c.done) score += c.pts; });
+  return { score: Math.min(score, 100), items: items };
+}
+
+function renderAdminStrengthMeter(u) {
+  var result  = calculateAdminProfileStrength(u);
+  var score   = result.score;
+  var items   = result.items;
+  var missing = items.filter(function(i) { return !i.done; });
+  var done    = items.filter(function(i) { return i.done; });
+
+  var label, color, bg;
+  if      (score >= 90) { label = 'Elite';   color = '#10b981'; bg = 'rgba(16,185,129,0.12)'; }
+  else if (score >= 70) { label = 'Strong';  color = '#3b82f6'; bg = 'rgba(59,130,246,0.12)'; }
+  else if (score >= 50) { label = 'Good';    color = '#f59e0b'; bg = 'rgba(245,158,11,0.12)'; }
+  else if (score >= 30) { label = 'Fair';    color = '#f97316'; bg = 'rgba(249,115,22,0.12)'; }
+  else                  { label = 'Starter'; color = '#ef4444'; bg = 'rgba(239,68,68,0.12)'; }
+
+  var radius = 28, circ = +(2 * Math.PI * radius).toFixed(1);
+  var dash   = +((score / 100) * circ).toFixed(1);
+
+  var missingRows = missing.length
+    ? missing.map(function(i) {
+        return '<div style="display:flex;align-items:center;gap:6px;padding:3px 0;">' +
+  
+           function buildDr(u, d) {
     var tabs = ['Profile', 'Transactions', u.role === 'expert' ? 'Approaches' : 'Requests', 'Tickets'];
     g('drTabs').innerHTML = tabs.map(function(t, i) {
       return '<div class="drt' + (i===0?' on':'') + '" data-panel="dp' + i + '">' + t + '</div>';
@@ -630,6 +673,11 @@ p0 += '<div style="background:#18181d;border-radius:10px;padding:14px 16px"><div
 p0 += '<div style="background:#18181d;border-radius:10px;padding:14px 16px"><div style="font-size:10px;color:#606078;text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px">Approaches</div><div style="font-size:24px;font-weight:800;color:#f0f0f4">' + (u.totalApproaches||0) + '</div></div>';
 p0 += '</div>';
 
+// ── Profile strength (experts only) ──
+if (u.role === 'expert') {
+  p0 += renderAdminStrengthMeter(u);
+}
+              
 // ── Account info card ──
 p0 += '<div style="background:#18181d;border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:0">';
 p0 += '<div style="font-size:10px;color:#606078;text-transform:uppercase;letter-spacing:.06em;font-weight:700;margin-bottom:10px">Account Info</div>';
