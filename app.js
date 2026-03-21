@@ -5734,27 +5734,31 @@ async function submitUserTicket() {
   btn.textContent = 'Submitting...';
 
   try {
+    var selectedApproachEl = document.querySelector('.tk-approach-option[data-selected="true"]');
+    var approachId = selectedApproachEl ? selectedApproachEl.dataset.approachId : null;
+    var approachCredits = selectedApproachEl ? parseInt(selectedApproachEl.dataset.credits) : 0;
+
+    var payload = {
+      subject: _tkUserSelectedIssue,
+      issueType: _tkUserSelectedIssue,
+      description: description || _tkUserSelectedIssue,
+      priority: priority
+    };
+    if (approachId) {
+      payload.relatedApproachId = approachId;
+      payload.eligibleCredits = approachCredits;
+      payload.isExpertRefund = true;
+    }
+
     var res = await fetch(API_URL + '/users/tickets', {
       method: 'POST',
       headers: {
         'Authorization': 'Bearer ' + state.token,
         'Content-Type': 'application/json'
       },
-      var selectedApproachEl = document.querySelector('.tk-approach-option[data-selected="true"]');
-    var approachId = selectedApproachEl ? selectedApproachEl.dataset.approachId : null;
-    var approachCredits = selectedApproachEl ? parseInt(selectedApproachEl.dataset.credits) : 0;
-
-    body: JSON.stringify({
-      subject: _tkUserSelectedIssue,
-      issueType: _tkUserSelectedIssue,
-      description: description || _tkUserSelectedIssue,
-      priority: priority,
-      relatedApproachId: approachId || undefined,
-      eligibleCredits: approachCredits || undefined,
-      isExpertRefund: approachId ? true : undefined
-    })
+      body: JSON.stringify(payload)
     });
-
+     
     var data = await res.json();
     btn.disabled = false;
     btn.textContent = '🎫 Submit Ticket';
