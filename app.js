@@ -5861,6 +5861,78 @@ async function loadMyTickets() {
   }
 }
 
+function openMyTicketDetail(ticket) {
+  var existing = document.getElementById('myTicketDetailOverlay');
+  if (existing) existing.remove();
+
+  var statusColor = { open: '#3b82f6', pending_review: '#f59e0b', resolved: '#22c55e', closed: '#6b7280', escalated: '#f97316' };
+  var statusLabel = { open: 'Open', pending_review: 'Under Review', resolved: 'Resolved', closed: 'Closed', escalated: 'Escalated' };
+  var sc = statusColor[ticket.status] || '#6b7280';
+  var sl = statusLabel[ticket.status] || ticket.status;
+  var date = ticket.createdAt ? new Date(ticket.createdAt).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' }) : '-';
+  var priorityMap = { low: '🟢 Low', medium: '🟡 Medium', high: '🔴 High' };
+
+  var overlay = document.createElement('div');
+  overlay.id = 'myTicketDetailOverlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:var(--bg);z-index:2000;overflow-y:auto;';
+
+  overlay.innerHTML =
+    '<div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:14px;position:sticky;top:0;background:var(--bg);z-index:1;">' +
+      '<button onclick="document.getElementById(\'myTicketDetailOverlay\').remove()" style="width:36px;height:36px;border:none;background:var(--bg-gray);border-radius:50%;font-size:18px;cursor:pointer;color:var(--text);">←</button>' +
+      '<div>' +
+        '<h2 style="font-size:17px;font-weight:800;color:var(--text);margin:0 0 2px;">Ticket Detail</h2>' +
+        '<p style="font-size:12px;color:var(--text-muted);margin:0;">' + date + '</p>' +
+      '</div>' +
+    '</div>' +
+
+    '<div style="padding:20px;max-width:600px;margin:0 auto;">' +
+
+      '<div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;">' +
+        '<span style="padding:5px 14px;border-radius:20px;font-size:13px;font-weight:700;background:' + sc + '20;color:' + sc + ';">' + sl + '</span>' +
+        '<span style="padding:5px 14px;border-radius:20px;font-size:13px;font-weight:600;background:var(--bg-gray);color:var(--text-muted);">' + (priorityMap[ticket.priority] || '🟡 Medium') + '</span>' +
+        (ticket.isExpertRefund ? '<span style="padding:5px 14px;border-radius:20px;font-size:13px;font-weight:600;background:rgba(252,128,25,0.1);color:var(--primary);">💳 Credit Refund</span>' : '') +
+      '</div>' +
+
+      '<div style="background:var(--bg-gray);border-radius:12px;padding:16px;margin-bottom:14px;">' +
+        '<div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;">Issue</div>' +
+        '<div style="font-size:16px;font-weight:700;color:var(--text);">' + (ticket.issueType || ticket.subject || '—') + '</div>' +
+      '</div>' +
+
+      (ticket.description && ticket.description !== ticket.subject ?
+        '<div style="background:var(--bg-gray);border-radius:12px;padding:16px;margin-bottom:14px;">' +
+          '<div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;">Your Description</div>' +
+          '<div style="font-size:14px;color:var(--text);line-height:1.7;">' + ticket.description + '</div>' +
+        '</div>' : '') +
+
+      (ticket.isExpertRefund && ticket.eligibleCredits ?
+        '<div style="background:rgba(252,128,25,0.06);border:1px solid rgba(252,128,25,0.2);border-radius:12px;padding:16px;margin-bottom:14px;">' +
+          '<div style="font-size:11px;font-weight:700;color:var(--primary);text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;">Credit Refund Requested</div>' +
+          '<div style="font-size:22px;font-weight:800;color:var(--primary);">' + ticket.eligibleCredits + ' credits</div>' +
+          (ticket.creditsRefunded ? '<div style="font-size:13px;color:#22c55e;margin-top:4px;">✅ ' + ticket.creditsRefunded + ' credits refunded</div>' : '') +
+        '</div>' : '') +
+
+      (ticket.adminNote ?
+        '<div style="background:rgba(34,197,94,0.06);border:1.5px solid rgba(34,197,94,0.2);border-radius:12px;padding:16px;margin-bottom:14px;">' +
+          '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">' +
+            '<span style="font-size:16px;">💬</span>' +
+            '<div style="font-size:11px;font-weight:700;color:#22c55e;text-transform:uppercase;letter-spacing:.07em;">Admin Response</div>' +
+          '</div>' +
+          '<div style="font-size:14px;color:var(--text);line-height:1.7;">' + ticket.adminNote + '</div>' +
+        '</div>' : '') +
+
+      (ticket.decision && ticket.decision !== 'Pending' ?
+        '<div style="background:var(--bg-gray);border-radius:12px;padding:12px 16px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;">' +
+          '<span style="font-size:13px;color:var(--text-muted);">Decision</span>' +
+          '<span style="font-size:13px;font-weight:700;color:var(--text);">' + ticket.decision.replace(/_/g,' ') + '</span>' +
+        '</div>' : '') +
+
+      renderFollowUpButton(ticket) +
+
+    '</div>';
+
+  document.body.appendChild(overlay);
+}
+
 // Close modal when clicking backdrop
 document.addEventListener('DOMContentLoaded', function() {
   var ticketModalEl = document.getElementById('ticketModal');
