@@ -5844,8 +5844,8 @@ async function loadMyTickets() {
       var sc = statusColor[t.status] || '#6b7280';
       var sl = statusLabel[t.status] || t.status;
       var date = t.createdAt ? new Date(t.createdAt).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' }) : '-';
-      return '<div onclick="openMyTicketDetail(' + JSON.stringify(t).replace(/'/g, "\\'") + ')" style="background:var(--bg); border:1.5px solid var(--border); border-radius:14px; padding:16px; margin-bottom:12px; cursor:pointer; transition:all 0.2s;" onmouseover="this.style.borderColor=\'var(--primary)\'" onmouseout="this.style.borderColor=\'var(--border)\'">' +
-        '<div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">' +
+      var tkIdx = data.tickets.indexOf(t);
+      return '<div onclick="openMyTicketDetail(_tkCache[' + tkIdx + '])" style="background:var(--bg); border:1.5px solid var(--border); border-radius:14px; padding:16px; margin-bottom:12px; cursor:pointer; transition:all 0.2s;" onmouseover="this.style.borderColor=\'var(--primary)\'" onmouseout="this.style.borderColor=\'var(--border)\'">' +        '<div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">' +
           '<div style="font-size:15px; font-weight:700; color:var(--text); flex:1; margin-right:12px;">' + (t.issueType || t.subject || 'Support Ticket') + '</div>' +
           '<span style="padding:4px 10px; border-radius:20px; font-size:12px; font-weight:700; background:' + sc + '20; color:' + sc + ';">' + sl + '</span>' +
         '</div>' +
