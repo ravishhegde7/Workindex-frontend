@@ -3771,7 +3771,8 @@ window.loadApproachDetail = function(approachId) {
       // Refund action
       '<div style="background:rgba(252,128,25,.06);border:1px solid rgba(252,128,25,.2);border-radius:10px;padding:14px 16px;">' +
         '<div style="font-size:12px;color:#a0a0b8;margin-bottom:10px;">This approach is linked to an expert refund ticket. If you approve the ticket, <strong style="color:#FC8019;">' + (a.creditsSpent||0) + ' credits</strong> will be returned to the expert.</div>' +
-        '<button onclick="var tid=_tkId; closeDr(); if(tid){ setTimeout(function(){ openTicketModal(tid); }, 250); }" style="padding:8px 16px;border-radius:7px;border:1px solid #2a2a38;background:#18181d;color:#a0a0b8;font-size:13px;cursor:pointer;">← Back to Ticket</button>'      '</div>';
+        '<button onclick="goBackToTicket()" style="padding:8px 16px;border-radius:7px;border:1px solid #2a2a38;background:#18181d;color:#a0a0b8;font-size:13px;cursor:pointer;">← Back to Ticket</button>' +
+      '</div>';
 
     g('drB').innerHTML = html;
   }).catch(function() {
