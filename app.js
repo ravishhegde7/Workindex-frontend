@@ -5673,17 +5673,25 @@ function tkUserSelectIssue(el, issue) {
       var usedApproachIds = {};
       (ticketData.tickets || []).forEach(function(t) {
         if (t.isExpertRefund && t.relatedApproachId) {
-          usedApproachIds[String(t.relatedApproachId)] = t.status;
+          usedApproachIds[String(t.relatedApproachId)] = {
+            status: t.status,
+            decision: t.decision || ''
+          };
         }
       });
 
       var approaches = (d.approaches || []).filter(function(a) {
         if (!a.creditsSpent || a.creditsSpent <= 0) return false;
         var existing = usedApproachIds[String(a._id)];
-        // Exclude if already has a ticket that is resolved, closed, or pending_review
-        if (existing && existing !== 'open') return false;
+        if (!existing) return true;
+        // Block if pending admin review — don't allow duplicate submission
+        if (existing.status === 'pending_review') return false;
+        // Block if approved — credits already returned
+        if (existing.decision === 'refund_approved' || existing.decision === 'Refund Approved') return false;
+        // Allow if rejected (not_eligible) or resolved without approval — let them retry
         return true;
       });
+       
       var listEl = document.getElementById('tkApproachList');
       if (!listEl) return;
       if (!approaches.length) {
