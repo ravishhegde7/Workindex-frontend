@@ -5840,6 +5840,7 @@ async function loadMyTickets() {
     var statusColor = { open: '#3b82f6', pending_review: '#f59e0b', resolved: '#22c55e', closed: '#6b7280' };
     var statusLabel = { open: 'Open', pending_review: 'Under Review', resolved: 'Resolved', closed: 'Closed' };
 
+window._tkCache = data.tickets;
     container.innerHTML = data.tickets.map(function(t) {
       var sc = statusColor[t.status] || '#6b7280';
       var sl = statusLabel[t.status] || t.status;
