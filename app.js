@@ -5650,14 +5650,29 @@ function tkUserSelectIssue(el, issue) {
       step2.insertBefore(selectorDiv, step2.firstChild);
     }
 
-    // Fetch approaches with credits spent
-    fetch(API_URL + '/approaches', {
-      headers: { 'Authorization': 'Bearer ' + state.token }
-    })
-    .then(function(r) { return r.json(); })
-    .then(function(d) {
+    // Fetch approaches AND existing tickets in parallel
+    Promise.all([
+      fetch(API_URL + '/approaches', { headers: { 'Authorization': 'Bearer ' + state.token } }).then(function(r) { return r.json(); }),
+      fetch(API_URL + '/users/tickets', { headers: { 'Authorization': 'Bearer ' + state.token } }).then(function(r) { return r.json(); })
+    ])
+    .then(function(results) {
+      var d = results[0];
+      var ticketData = results[1];
+
+      // Collect approachIds already submitted for refund (any status except open)
+      var usedApproachIds = {};
+      (ticketData.tickets || []).forEach(function(t) {
+        if (t.isExpertRefund && t.relatedApproachId) {
+          usedApproachIds[String(t.relatedApproachId)] = t.status;
+        }
+      });
+
       var approaches = (d.approaches || []).filter(function(a) {
-        return a.creditsSpent && a.creditsSpent > 0;
+        if (!a.creditsSpent || a.creditsSpent <= 0) return false;
+        var existing = usedApproachIds[String(a._id)];
+        // Exclude if already has a ticket that is resolved, closed, or pending_review
+        if (existing && existing !== 'open') return false;
+        return true;
       });
       var listEl = document.getElementById('tkApproachList');
       if (!listEl) return;
