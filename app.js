@@ -1902,31 +1902,26 @@ function renderClientRequests() {
   const completed = allRequests.filter(r => r.status === 'completed').length;
 
   var existingHero = document.getElementById('clientStatHero');
-  if (!existingHero) {
-    var hero = document.createElement('div');
-    hero.id = 'clientStatHero';
-    hero.style.cssText = 'display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px;';
-    var stats = [
-      { label: 'Active',    value: active,    color: '#FC8019', icon: '📋' },
-      { label: 'Proposals', value: totalAppr, color: '#3b82f6', icon: '📨' },
-      { label: 'Completed', value: completed, color: '#22c55e', icon: '✅' }
-    ];
-    hero.innerHTML = stats.map(function(s) {
-      return '<div style="background:var(--bg);border:1.5px solid var(--border);border-radius:14px;padding:14px 12px;text-align:center;cursor:pointer;transition:all 0.2s;"' +
-        ' onmouseover="this.style.borderColor=\'' + s.color + '\';this.style.transform=\'translateY(-2px)\'"' +
-        ' onmouseout="this.style.borderColor=\'var(--border)\';this.style.transform=\'translateY(0)\'">' +
-        '<div style="font-size:20px;margin-bottom:4px;">' + s.icon + '</div>' +
-        '<div style="font-size:22px;font-weight:800;color:' + s.color + ';line-height:1;">' + s.value + '</div>' +
-        '<div style="font-size:11px;color:var(--text-muted);margin-top:4px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;">' + s.label + '</div>' +
-        '</div>';
-    }).join('');
-    container.parentNode.insertBefore(hero, container);
-  } else {
-    var vals = existingHero.querySelectorAll('[style*="font-size:22px"]');
-    if (vals[0]) vals[0].textContent = active;
-    if (vals[1]) vals[1].textContent = totalAppr;
-    if (vals[2]) vals[2].textContent = completed;
-  }
+  if (existingHero) existingHero.remove();
+  
+  var hero = document.createElement('div');
+  hero.id = 'clientStatHero';
+  hero.style.cssText = 'display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px;';
+  var stats = [
+    { label: 'Active',    value: active,    color: '#FC8019', icon: '📋' },
+    { label: 'Proposals', value: totalAppr, color: '#3b82f6', icon: '📨' },
+    { label: 'Completed', value: completed, color: '#22c55e', icon: '✅' }
+  ];
+  hero.innerHTML = stats.map(function(s) {
+    return '<div style="background:var(--bg);border:1.5px solid var(--border);border-radius:14px;padding:14px 12px;text-align:center;cursor:pointer;transition:all 0.2s;"' +
+      ' onmouseover="this.style.borderColor=\'' + s.color + '\';this.style.transform=\'translateY(-2px)\'"' +
+      ' onmouseout="this.style.borderColor=\'var(--border)\';this.style.transform=\'translateY(0)\'">' +
+      '<div style="font-size:20px;margin-bottom:4px;">' + s.icon + '</div>' +
+      '<div style="font-size:22px;font-weight:800;color:' + s.color + ';line-height:1;">' + s.value + '</div>' +
+      '<div style="font-size:11px;color:var(--text-muted);margin-top:4px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;">' + s.label + '</div>' +
+      '</div>';
+  }).join('');
+  container.parentNode.insertBefore(hero, container);
 
   if (!allRequests.length) {
     container.innerHTML = '<div style="text-align:center;padding:48px 20px;">' +
