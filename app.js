@@ -1898,7 +1898,7 @@ function renderClientRequests() {
 
   // ── Stat hero ──
   const active    = allRequests.filter(r => r.status === 'active' || r.status === 'pending').length;
-  const totalAppr = allRequests.reduce(function(sum, r) { return sum + (r.approachCount || r.currentApproaches || 0); }, 0);
+  const totalAppr = allRequests.reduce(function(sum, r) { return sum + (r.currentApproaches || r.approachCount || 0); }, 0);
   const completed = allRequests.filter(r => r.status === 'completed').length;
 
   var existingHero = document.getElementById('clientStatHero');
