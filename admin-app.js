@@ -74,7 +74,8 @@
       registrations: function() { renderRegistrationsPage(); },
       kyc: function() { renderKycPage(); },
              audit: function() { renderAuditPage(); },
-             actions: function() { renderActTblPage(); }
+             actions: function() { renderActTblPage(); },
+             admins: function() { renderAdminsPage(); }
 
     };
     if (reloaders[key]) reloaders[key]();
@@ -3690,6 +3691,260 @@ window.adminDeleteInvite = function(invId, el) {
     if (d.success) { toast('Invite deleted'); loadApproaches(); }
     else toast(d.message || 'Failed', 'e');
   }).catch(function() { toast('Error', 'e'); });
+};
+
+/* ═══ ADMIN MANAGEMENT ══════════════════════════════════════════════════ */
+
+function isSuperAdmin() {
+  return adm && adm.role === 'super_admin';
+}
+
+var _adminsList = [];
+
+function loadAdmins() {
+  if (!isSuperAdmin()) {
+    var sec = g('sec-admins');
+    if (sec) sec.innerHTML = '<div class="empty"><h3>🔒 Super Admin Only</h3><p style="color:#606078;font-size:13px;margin-top:8px">Only super admins can manage other admins.</p></div>';
+    return;
+  }
+  var sec = g('sec-admins');
+  if (sec) sec.innerHTML = '<div style="text-align:center;padding:40px"><div class="spin"></div></div>';
+  api('admins').then(function(d) {
+    if (!d.success) { toast('Failed to load admins', 'e'); return; }
+    _adminsList = d.admins || [];
+    _pageData['admins'] = _adminsList;
+    renderAdminsPage();
+  }).catch(function() { toast('Error loading admins', 'e'); });
+}
+
+function renderAdminsPage() {
+  var sec = g('sec-admins');
+  if (!sec) return;
+  var page = pagSlice('admins', _pageData['admins'] || []);
+
+  var roleColor = { super_admin: '#22c55e', admin: '#FC8019', readonly: '#3b82f6' };
+  var roleLabel = { super_admin: '👑 Super Admin', admin: '🔧 Admin', readonly: '👁 Read Only' };
+
+  var rows = page.map(function(a) {
+    var rc = roleColor[a.role] || '#a0a0b8';
+    var rl = roleLabel[a.role] || a.role;
+    var isSelf = adm && adm.id === String(a._id);
+    var statusBadge = a.isActive
+      ? '<span class="badge bgr">Active</span>'
+      : '<span class="badge brd">Inactive</span>';
+    var actions = '';
+    if (!isSelf) {
+      actions += '<button class="btn bgho" style="font-size:12px;padding:5px 10px" onclick="openEditAdminModal(\'' + a._id + '\')">Edit</button> ';
+      actions += '<button class="btn bywn" style="font-size:12px;padding:5px 10px" onclick="toggleAdmin(\'' + a._id + '\',\'' + esc(a.name) + '\',' + a.isActive + ')">' + (a.isActive ? 'Deactivate' : 'Activate') + '</button> ';
+      actions += '<button class="btn brdn" style="font-size:12px;padding:5px 10px" onclick="deleteAdmin(\'' + a._id + '\',\'' + esc(a.name) + '\')">Delete</button>';
+    } else {
+      actions = '<span style="font-size:11px;color:#606078;font-style:italic">You</span>';
+    }
+    return '<tr>' +
+      '<td style="font-weight:600;color:#f0f0f4">' + esc(a.name) + (isSelf ? ' <span style="font-size:10px;color:#606078">(you)</span>' : '') + '</td>' +
+      '<td style="font-size:12px;color:#a0a0b8">' + esc(a.adminId) + '</td>' +
+      '<td style="font-size:12px;color:#606078">' + esc(a.email || '—') + '</td>' +
+      '<td><span style="padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700;background:' + rc + '20;color:' + rc + '">' + rl + '</span></td>' +
+      '<td>' + statusBadge + '</td>' +
+      '<td style="font-size:12px;color:#606078">' + (a.lastLogin ? fmtT(a.lastLogin) : 'Never') + '</td>' +
+      '<td style="font-size:12px;color:#606078">' + esc(a.createdBy || 'system') + '</td>' +
+      '<td><div style="display:flex;gap:4px;flex-wrap:wrap">' + actions + '</div></td>' +
+    '</tr>';
+  }).join('');
+
+  sec.innerHTML =
+    '<div class="card">' +
+      '<div class="ch" style="justify-content:space-between">' +
+        '<h3>👥 Admin Accounts <span style="font-size:13px;color:#606078;font-weight:400">(' + (_pageData['admins']||[]).length + ' total)</span></h3>' +
+        '<button class="btn bpri" onclick="openCreateAdminModal()" style="padding:8px 18px">+ Create Admin</button>' +
+      '</div>' +
+      '<div class="tw"><table><thead><tr>' +
+        '<th>Name</th><th>Admin ID</th><th>Email</th><th>Role</th><th>Status</th><th>Last Login</th><th>Created By</th><th>Actions</th>' +
+      '</tr></thead><tbody id="adminsTbl">' + rows + '</tbody></table></div>' +
+    '</div>';
+
+  pagHTML('admins', 'adminsTbl');
+}
+
+function openCreateAdminModal() {
+  var html =
+    '<div class="mfld"><label>Admin ID</label><input type="text" id="cAdminId" placeholder="e.g. support_raj"></div>' +
+    '<div class="mfld"><label>Name</label><input type="text" id="cAdminName" placeholder="Full name"></div>' +
+    '<div class="mfld"><label>Email (optional)</label><input type="email" id="cAdminEmail" placeholder="admin@workindex.co.in"></div>' +
+    '<div class="mfld"><label>Password</label><input type="password" id="cAdminPw" placeholder="Min 8 characters"></div>' +
+    '<div class="mfld"><label>Role</label>' +
+      '<select id="cAdminRole" onchange="onAdminRoleChange()">' +
+        '<option value="readonly">👁 Read Only</option>' +
+        '<option value="admin">🔧 Admin (custom permissions)</option>' +
+        '<option value="super_admin">👑 Super Admin (full access)</option>' +
+      '</select>' +
+    '</div>' +
+    '<div class="mfld"><label>Permission Template</label>' +
+      '<select id="cAdminTemplate">' +
+        '<option value="readonly">Readonly — view only</option>' +
+        '<option value="support">Support Agent — users + tickets + kyc</option>' +
+        '<option value="finance">Finance — credits + transactions</option>' +
+        '<option value="moderator">Moderator — posts + reports + kyc</option>' +
+      '</select>' +
+    '</div>' +
+    '<div id="cAdminPermBox" style="display:none;margin-top:10px;">' + buildPermissionCheckboxes({}) + '</div>';
+
+  showAdminModal('Create Admin', html, function() {
+    var payload = {
+      adminId:  g('cAdminId').value.trim(),
+      name:     g('cAdminName').value.trim(),
+      email:    g('cAdminEmail').value.trim(),
+      password: g('cAdminPw').value,
+      role:     g('cAdminRole').value,
+      template: g('cAdminTemplate').value,
+      permissions: g('cAdminRole').value === 'admin' ? collectPermissions() : undefined
+    };
+    if (!payload.adminId || !payload.name || !payload.password) { toast('adminId, name and password are required', 'e'); return; }
+    api('admins', 'POST', payload).then(function(d) {
+      if (d.success) { toast('Admin created!'); closeAdminModal(); loadAdmins(); }
+      else toast(d.message || 'Failed', 'e');
+    }).catch(function() { toast('Error', 'e'); });
+  });
+}
+
+window.onAdminRoleChange = function() {
+  var role = g('cAdminRole') ? g('cAdminRole').value : '';
+  var box = g('cAdminPermBox');
+  var tpl = g('cAdminTemplate');
+  if (!box || !tpl) return;
+  if (role === 'admin') {
+    box.style.display = 'block';
+    tpl.style.display = 'none';
+  } else if (role === 'super_admin') {
+    box.style.display = 'none';
+    tpl.style.display = 'none';
+  } else {
+    box.style.display = 'none';
+    tpl.style.display = 'block';
+  }
+};
+
+function openEditAdminModal(id) {
+  var a = (_adminsList || []).filter(function(x) { return x._id === id; })[0];
+  if (!a) { toast('Admin not found', 'e'); return; }
+
+  var perms = a.permissions || {};
+  var html =
+    '<div class="mfld"><label>Name</label><input type="text" id="eAdminName" value="' + esc(a.name) + '"></div>' +
+    '<div class="mfld"><label>Email</label><input type="email" id="eAdminEmail" value="' + esc(a.email || '') + '"></div>' +
+    '<div class="mfld"><label>Role</label>' +
+      '<select id="eAdminRole">' +
+        '<option value="readonly"' + (a.role==='readonly'?' selected':'') + '>👁 Read Only</option>' +
+        '<option value="admin"' + (a.role==='admin'?' selected':'') + '>🔧 Admin</option>' +
+        '<option value="super_admin"' + (a.role==='super_admin'?' selected':'') + '>👑 Super Admin</option>' +
+      '</select>' +
+    '</div>' +
+    '<div class="mfld"><label>Apply Template (overwrites permissions)</label>' +
+      '<select id="eAdminTemplate">' +
+        '<option value="">— keep current —</option>' +
+        '<option value="readonly">Readonly</option>' +
+        '<option value="support">Support Agent</option>' +
+        '<option value="finance">Finance</option>' +
+        '<option value="moderator">Moderator</option>' +
+      '</select>' +
+    '</div>' +
+    '<div style="margin-top:12px">' + buildPermissionCheckboxes(perms, 'e') + '</div>';
+
+  showAdminModal('Edit — ' + a.name, html, function() {
+    var template = g('eAdminTemplate').value;
+    var payload = {
+      name:     g('eAdminName').value.trim(),
+      email:    g('eAdminEmail').value.trim(),
+      role:     g('eAdminRole').value,
+      template: template || undefined,
+      permissions: template ? undefined : collectPermissions('e')
+    };
+    api('admins/' + id, 'PUT', payload).then(function(d) {
+      if (d.success) { toast('Admin updated'); closeAdminModal(); loadAdmins(); }
+      else toast(d.message || 'Failed', 'e');
+    }).catch(function() { toast('Error', 'e'); });
+  });
+}
+
+window.toggleAdmin = function(id, name, isActive) {
+  if (!confirm((isActive ? 'Deactivate ' : 'Activate ') + name + '?')) return;
+  api('admins/' + id + '/toggle', 'POST', {}).then(function(d) {
+    if (d.success) { toast(d.message); loadAdmins(); }
+    else toast(d.message || 'Failed', 'e');
+  }).catch(function() { toast('Error', 'e'); });
+};
+
+window.deleteAdmin = function(id, name) {
+  if (!confirm('Permanently delete admin "' + name + '"? This cannot be undone.')) return;
+  api('admins/' + id, 'DELETE').then(function(d) {
+    if (d.success) { toast('Admin deleted'); loadAdmins(); }
+    else toast(d.message || 'Failed', 'e');
+  }).catch(function() { toast('Error', 'e'); });
+};
+
+var MODULES = ['users','experts','requests','tickets','credits','chats','reports','kyc','settings','admins'];
+var MODULE_LABELS = { users:'Users', experts:'Experts', requests:'Posts/Requests', tickets:'Tickets', credits:'Credits', chats:'Chats', reports:'Reports', kyc:'KYC', settings:'Settings', admins:'Admins' };
+var ACTIONS = ['read','write','delete'];
+
+function buildPermissionCheckboxes(perms, prefix) {
+  prefix = prefix || 'c';
+  var html = '<div style="font-size:11px;font-weight:700;color:#606078;text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px">Custom Permissions</div>';
+  html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">';
+  MODULES.forEach(function(mod) {
+    var modPerms = (perms && perms[mod]) || {};
+    html += '<div style="background:#18181d;border-radius:8px;padding:10px 12px;">';
+    html += '<div style="font-size:12px;font-weight:700;color:#f0f0f4;margin-bottom:7px">' + MODULE_LABELS[mod] + '</div>';
+    html += '<div style="display:flex;gap:10px;">';
+    ACTIONS.forEach(function(act) {
+      var checked = modPerms[act] ? 'checked' : '';
+      html += '<label style="display:flex;align-items:center;gap:4px;font-size:11px;color:#a0a0b8;cursor:pointer;">' +
+        '<input type="checkbox" id="' + prefix + 'perm_' + mod + '_' + act + '" ' + checked + ' style="accent-color:#FC8019"> ' + act +
+        '</label>';
+    });
+    html += '</div></div>';
+  });
+  html += '</div>';
+  return html;
+}
+
+function collectPermissions(prefix) {
+  prefix = prefix || 'c';
+  var perms = {};
+  MODULES.forEach(function(mod) {
+    perms[mod] = {};
+    ACTIONS.forEach(function(act) {
+      var el = g(prefix + 'perm_' + mod + '_' + act);
+      perms[mod][act] = el ? el.checked : false;
+    });
+  });
+  return perms;
+}
+
+var _adminModalCallback = null;
+
+function showAdminModal(title, bodyHtml, onSave) {
+  _adminModalCallback = onSave;
+  var existing = g('adminMgmtModal');
+  if (existing) existing.remove();
+  var div = document.createElement('div');
+  div.id = 'adminMgmtModal';
+  div.className = 'modal-bg on';
+  div.innerHTML =
+    '<div class="modal" style="max-width:600px;max-height:85vh;overflow-y:auto">' +
+      '<div class="modal-h"><h3>' + title + '</h3><button class="modal-x" onclick="closeAdminModal()">&#215;</button></div>' +
+      '<div class="modal-b">' + bodyHtml + '</div>' +
+      '<div class="mfoot">' +
+        '<button class="btn bgho" onclick="closeAdminModal()">Cancel</button>' +
+        '<button class="btn bpri" onclick="if(window._adminModalCallback) window._adminModalCallback()">Save</button>' +
+      '</div>' +
+    '</div>';
+  document.body.appendChild(div);
+  window._adminModalCallback = onSave;
+}
+
+window.closeAdminModal = function() {
+  var m = g('adminMgmtModal');
+  if (m) m.remove();
 };
    
 window.goBackToTicket = function() {
