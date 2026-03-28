@@ -3880,7 +3880,8 @@ window.openEditAdminModal = function openEditAdminModal(id) {
       email:    g('eAdminEmail').value.trim(),
       role:     g('eAdminRole').value,
       template: template || undefined,
-      permissions: template ? undefined : collectPermissions('e')
+      permissions: template ? undefined : collectPermissions('e'),
+      allowedTabs: collectAllowedTabs('e')
     };
     api('admins/' + id, 'PUT', payload).then(function(d) {
       if (d.success) { toast('Admin updated'); closeAdminModal(); loadAdmins(); }
