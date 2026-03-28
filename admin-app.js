@@ -3927,6 +3927,56 @@ function buildPermissionCheckboxes(perms, prefix) {
   return html;
 }
 
+function buildTabCheckboxes(allowedTabs, prefix) {
+  prefix = prefix || 'c';
+  allowedTabs = allowedTabs || [];
+  var allTabs = [
+    { id:'dashboard',         label:'Dashboard' },
+    { id:'heatmap',           label:'Geo Heatmap' },
+    { id:'experts',           label:'Experts' },
+    { id:'clients',           label:'Clients' },
+    { id:'approaches',        label:'Approaches' },
+    { id:'chats',             label:'Chats' },
+    { id:'credits',           label:'Credits' },
+    { id:'refunds',           label:'Refunds' },
+    { id:'tickets',           label:'Tickets' },
+    { id:'actions',           label:'Actions' },
+    { id:'posts',             label:'Posts' },
+    { id:'reviews',           label:'Reviews' },
+    { id:'registrations',     label:'Registrations' },
+    { id:'kyc',               label:'KYC' },
+    { id:'payments',          label:'Payments' },
+    { id:'reports',           label:'Reports' },
+    { id:'suspReq',           label:'Suspended Requests' },
+    { id:'revenue',           label:'Revenue' },
+    { id:'communication',     label:'Communication' },
+    { id:'invoices',          label:'Invoices' },
+    { id:'emailNotifications',label:'Email Notifications' },
+    { id:'audit',             label:'Audit Log' },
+    { id:'settings',          label:'Settings' },
+    { id:'admins',            label:'Manage Admins' }
+  ];
+  var html = '<div style="font-size:11px;font-weight:700;color:#606078;text-transform:uppercase;letter-spacing:.07em;margin:14px 0 10px">Allowed Tabs</div>';
+  html += '<div style="display:flex;gap:4px;flex-wrap:wrap;">';
+  allTabs.forEach(function(t) {
+    var checked = allowedTabs.indexOf(t.id) >= 0 ? 'checked' : '';
+    html += '<label style="display:flex;align-items:center;gap:4px;font-size:12px;color:#a0a0b8;cursor:pointer;background:#18181d;padding:5px 10px;border-radius:6px;margin-bottom:4px;">' +
+      '<input type="checkbox" class="' + prefix + 'tab-check" data-tab="' + t.id + '" ' + checked + ' style="accent-color:#FC8019"> ' + t.label +
+      '</label>';
+  });
+  html += '</div>';
+  return html;
+}
+
+function collectAllowedTabs(prefix) {
+  prefix = prefix || 'c';
+  var tabs = [];
+  document.querySelectorAll('.' + prefix + 'tab-check:checked').forEach(function(el) {
+    tabs.push(el.dataset.tab);
+  });
+  return tabs;
+}
+   
 function collectPermissions(prefix) {
   prefix = prefix || 'c';
   var perms = {};
