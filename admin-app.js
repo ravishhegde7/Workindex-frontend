@@ -3766,7 +3766,7 @@ function renderAdminsPage() {
   pagHTML('admins', 'adminsTbl');
 }
 
-function openCreateAdminModal() {
+window.openCreateAdminModal = function openCreateAdminModal() {
   var html =
     '<div class="mfld"><label>Admin ID</label><input type="text" id="cAdminId" placeholder="e.g. support_raj"></div>' +
     '<div class="mfld"><label>Name</label><input type="text" id="cAdminName" placeholder="Full name"></div>' +
