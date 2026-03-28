@@ -3824,7 +3824,7 @@ window.onAdminRoleChange = function() {
   }
 };
 
-function openEditAdminModal(id) {
+window.openEditAdminModal = function openEditAdminModal(id) {
   var a = (_adminsList || []).filter(function(x) { return x._id === id; })[0];
   if (!a) { toast('Admin not found', 'e'); return; }
 
