@@ -3701,7 +3701,7 @@ function isSuperAdmin() {
 
 var _adminsList = [];
 
-function loadAdmins() {
+window.loadAdmins = function loadAdmins() {
   if (!isSuperAdmin()) {
     var sec = g('sec-admins');
     if (sec) sec.innerHTML = '<div class="empty"><h3>🔒 Super Admin Only</h3><p style="color:#606078;font-size:13px;margin-top:8px">Only super admins can manage other admins.</p></div>';
@@ -3717,7 +3717,7 @@ function loadAdmins() {
   }).catch(function() { toast('Error loading admins', 'e'); });
 }
 
-function renderAdminsPage() {
+window.renderAdminsPage = function renderAdminsPage() {
   var sec = g('sec-admins');
   if (!sec) return;
   var page = pagSlice('admins', _pageData['admins'] || []);
