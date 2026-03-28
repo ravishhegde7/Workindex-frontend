@@ -3807,7 +3807,8 @@ window.openCreateAdminModal = function openCreateAdminModal() {
         '<option value="moderator">Moderator — posts + reports + kyc</option>' +
       '</select>' +
     '</div>' +
-    '<div id="cAdminPermBox" style="display:none;margin-top:10px;">' + buildPermissionCheckboxes({}) + '</div>';
+    '<div id="cAdminPermBox" style="display:none;margin-top:10px;">' + buildPermissionCheckboxes({}) + '</div>' +
+    '<div id="cAdminTabBox">' + buildTabCheckboxes([]) + '</div>';
 
   showAdminModal('Create Admin', html, function() {
     var payload = {
