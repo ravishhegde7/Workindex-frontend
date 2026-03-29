@@ -4022,6 +4022,219 @@ window.closeAdminModal = function() {
   var m = g('adminMgmtModal');
   if (m) m.remove();
 };
+
+/* ═══ SEO PAGE MANAGER ══════════════════════════════════════════════════ */
+var _seoPages = [];
+
+window.loadSeoPages = function() {
+  var sec = g('sec-seo');
+  if (!sec) return;
+  sec.innerHTML = '<div style="text-align:center;padding:40px"><div class="spin"></div></div>';
+  api('seo/pages').then(function(d) {
+    _seoPages = d.pages || [];
+    renderSeoPages();
+  }).catch(function() { toast('Failed to load SEO pages', 'e'); });
+};
+
+function renderSeoPages() {
+  var sec = g('sec-seo');
+  if (!sec) return;
+  var rows = _seoPages.map(function(p) {
+    return '<tr>' +
+      '<td style="font-weight:600;color:#f0f0f4">' + esc(p.slug) + '.html</td>' +
+      '<td style="font-size:12px;color:#a0a0b8;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(p.title) + '</td>' +
+      '<td style="font-size:12px;color:#606078">' + esc(p.city || p.state || '—') + '</td>' +
+      '<td style="font-size:12px;color:#606078">' + esc(p.service || '—') + '</td>' +
+      '<td style="font-size:12px;color:#606078">' + fmt(p.createdAt) + '</td>' +
+      '<td>' +
+        '<a href="https://workindex.co.in/' + esc(p.slug) + '.html" target="_blank" class="btn bgho" style="font-size:12px;padding:5px 10px;margin-right:4px">View</a>' +
+        '<button class="btn brdn" style="font-size:12px;padding:5px 10px" onclick="deleteSeoPage(\'' + p._id + '\',\'' + esc(p.slug) + '\')">Delete</button>' +
+      '</td>' +
+    '</tr>';
+  }).join('');
+
+  sec.innerHTML =
+    '<div class="card">' +
+      '<div class="ch" style="justify-content:space-between">' +
+        '<h3>🌐 SEO Pages <span style="font-size:13px;color:#606078;font-weight:400">(' + _seoPages.length + ' pages)</span></h3>' +
+        '<button class="btn bpri" onclick="openSeoModal()" style="padding:8px 18px">+ Create SEO Page</button>' +
+      '</div>' +
+      '<div class="tw"><table><thead><tr>' +
+        '<th>Slug / File</th><th>Title</th><th>City / State</th><th>Service</th><th>Created</th><th>Actions</th>' +
+      '</tr></thead><tbody>' + (rows || '<tr><td colspan="6" style="text-align:center;padding:30px;color:#606078">No SEO pages created yet</td></tr>') + '</tbody></table></div>' +
+    '</div>';
+}
+
+window.deleteSeoPage = function(id, slug) {
+  if (!confirm('Delete record for ' + slug + '.html?\n\nNote: This only removes the DB record. Delete the file from GitHub manually if needed.')) return;
+  api('seo/pages/' + id, 'DELETE').then(function(d) {
+    if (d.success) { toast('Record deleted'); loadSeoPages(); }
+    else toast(d.message || 'Failed', 'e');
+  });
+};
+
+window.openSeoModal = function() {
+  var existing = g('seoCreateModal');
+  if (existing) existing.remove();
+
+  var div = document.createElement('div');
+  div.id = 'seoCreateModal';
+  div.className = 'modal-bg on';
+  div.style.cssText = 'overflow-y:auto;';
+  div.innerHTML = `
+  <div class="modal" style="max-width:700px;max-height:90vh;overflow-y:auto;">
+    <div class="modal-h"><h3>🌐 Create SEO Page</h3><button class="modal-x" onclick="g('seoCreateModal').remove()">&#215;</button></div>
+    <div class="modal-b">
+
+      <div style="font-size:11px;font-weight:700;color:#FC8019;text-transform:uppercase;letter-spacing:.07em;margin-bottom:12px">Page Identity</div>
+      <div class="mfld"><label>Slug (filename without .html)</label><input type="text" id="seoSlug" placeholder="e.g. itr-filing-belgaum" oninput="this.value=this.value.toLowerCase().replace(/[^a-z0-9-]/g,'-')"></div>
+      <div class="mfld"><label>Page Title (browser tab)</label><input type="text" id="seoTitle" placeholder="ITR Filing in Belgaum — WorkIndex | Verified CA Services"></div>
+      <div class="mfld"><label>Meta Description</label><textarea id="seoMetaDesc" rows="2" placeholder="Find verified CAs for ITR filing in Belgaum..."></textarea></div>
+      <div class="mfld"><label>Meta Keywords</label><input type="text" id="seoMetaKw" placeholder="ITR filing Belgaum, income tax Belgaum, CA Belgaum..."></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div class="mfld"><label>Service Type</label><input type="text" id="seoService" placeholder="Income Tax Return Filing"></div>
+        <div class="mfld"><label>City (leave blank for state page)</label><input type="text" id="seoCity" placeholder="Belgaum"></div>
+        <div class="mfld"><label>State</label><input type="text" id="seoState" placeholder="Karnataka"></div>
+        <div class="mfld"><label>Stats Label</label><input type="text" id="seoStatsLabel" placeholder="Verified Belgaum CAs"></div>
+        <div class="mfld"><label>Stats Starting Price</label><input type="text" id="seoStatsPrice" placeholder="₹999"></div>
+      </div>
+
+      <div style="font-size:11px;font-weight:700;color:#FC8019;text-transform:uppercase;letter-spacing:.07em;margin:16px 0 12px">Hero Section</div>
+      <div class="mfld"><label>Hero Eyebrow</label><input type="text" id="seoEyebrow" placeholder="📄 ITR Filing · Belgaum, Karnataka"></div>
+      <div class="mfld"><label>Hero H1 (line 1)</label><input type="text" id="seoH1" placeholder="ITR Filing in Belgaum"></div>
+      <div class="mfld"><label>Hero H1 Span (orange text line 2)</label><input type="text" id="seoH1Span" placeholder="Verified CA Services"></div>
+      <div class="mfld"><label>Hero Paragraph</label><textarea id="seoHeroP" rows="2" placeholder="Find verified CAs in Belgaum for income tax return filing..."></textarea></div>
+
+      <div style="font-size:11px;font-weight:700;color:#FC8019;text-transform:uppercase;letter-spacing:.07em;margin:16px 0 12px">Steps (How It Works)</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div class="mfld"><label>Step 1 Title</label><input type="text" id="seoS1T" placeholder="Post Your Requirement"></div>
+        <div class="mfld"><label>Step 1 Text</label><input type="text" id="seoS1P" placeholder="Tell us your taxpayer type..."></div>
+        <div class="mfld"><label>Step 2 Title</label><input type="text" id="seoS2T" placeholder="Receive Quotes"></div>
+        <div class="mfld"><label>Step 2 Text</label><input type="text" id="seoS2P" placeholder="Verified CAs send personalised quotes..."></div>
+        <div class="mfld"><label>Step 3 Title</label><input type="text" id="seoS3T" placeholder="Get Your Return Filed"></div>
+        <div class="mfld"><label>Step 3 Text</label><input type="text" id="seoS3P" placeholder="Share documents securely..."></div>
+        <div class="mfld"><label>Step 4 Title</label><input type="text" id="seoS4T" placeholder="Rate Your CA"></div>
+        <div class="mfld"><label>Step 4 Text</label><input type="text" id="seoS4P" placeholder="Leave an honest review..."></div>
+      </div>
+
+      <div style="font-size:11px;font-weight:700;color:#FC8019;text-transform:uppercase;letter-spacing:.07em;margin:16px 0 12px">Pricing Cards</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div class="mfld"><label>Price Card 1 Label</label><input type="text" id="seoP1L" placeholder="Salaried Employee"></div>
+        <div class="mfld"><label>Price Card 1 Range</label><input type="text" id="seoP1R" placeholder="₹999 – ₹1,500"></div>
+        <div class="mfld"><label>Price Card 1 Description</label><input type="text" id="seoP1D" placeholder="Form 16 based filing..."></div>
+        <div class="mfld"><label>Price Card 2 Label</label><input type="text" id="seoP2L" placeholder="Freelancer / Consultant"></div>
+        <div class="mfld"><label>Price Card 2 Range</label><input type="text" id="seoP2R" placeholder="₹2,000 – ₹5,000"></div>
+        <div class="mfld"><label>Price Card 2 Description</label><input type="text" id="seoP2D" placeholder="ITR-3 and ITR-4 filing..."></div>
+        <div class="mfld"><label>Price Card 3 Label</label><input type="text" id="seoP3L" placeholder="Business Owner"></div>
+        <div class="mfld"><label>Price Card 3 Range</label><input type="text" id="seoP3R" placeholder="₹3,000 – ₹10,000"></div>
+        <div class="mfld"><label>Price Card 3 Description</label><input type="text" id="seoP3D" placeholder="P&L, balance sheet..."></div>
+        <div class="mfld"><label>Price Card 4 Label</label><input type="text" id="seoP4L" placeholder="Capital Gains / NRI"></div>
+        <div class="mfld"><label>Price Card 4 Range</label><input type="text" id="seoP4R" placeholder="₹2,500 – ₹15,000"></div>
+        <div class="mfld"><label>Price Card 4 Description</label><input type="text" id="seoP4D" placeholder="DTAA, foreign income..."></div>
+      </div>
+
+      <div style="font-size:11px;font-weight:700;color:#FC8019;text-transform:uppercase;letter-spacing:.07em;margin:16px 0 12px">FAQ (5 Questions)</div>
+      <div class="mfld"><label>FAQ 1 Question</label><input type="text" id="seoF1Q" placeholder="How much does ITR filing cost in Belgaum?"></div>
+      <div class="mfld"><label>FAQ 1 Answer</label><textarea id="seoF1A" rows="2"></textarea></div>
+      <div class="mfld"><label>FAQ 2 Question</label><input type="text" id="seoF2Q"></div>
+      <div class="mfld"><label>FAQ 2 Answer</label><textarea id="seoF2A" rows="2"></textarea></div>
+      <div class="mfld"><label>FAQ 3 Question</label><input type="text" id="seoF3Q"></div>
+      <div class="mfld"><label>FAQ 3 Answer</label><textarea id="seoF3A" rows="2"></textarea></div>
+      <div class="mfld"><label>FAQ 4 Question</label><input type="text" id="seoF4Q"></div>
+      <div class="mfld"><label>FAQ 4 Answer</label><textarea id="seoF4A" rows="2"></textarea></div>
+      <div class="mfld"><label>FAQ 5 Question</label><input type="text" id="seoF5Q"></div>
+      <div class="mfld"><label>FAQ 5 Answer</label><textarea id="seoF5A" rows="2"></textarea></div>
+
+      <div style="font-size:11px;font-weight:700;color:#FC8019;text-transform:uppercase;letter-spacing:.07em;margin:16px 0 12px">CTA Banner</div>
+      <div class="mfld"><label>CTA Heading</label><input type="text" id="seoCtaH" placeholder="Find a CA for ITR Filing in Belgaum — Free"></div>
+      <div class="mfld"><label>CTA Paragraph</label><input type="text" id="seoCtaP" placeholder="Post your requirement free. Verified CAs will respond within 24 hours."></div>
+
+      <div style="font-size:11px;font-weight:700;color:#FC8019;text-transform:uppercase;letter-spacing:.07em;margin:16px 0 12px">Footer Links (one per line: url|Label)</div>
+      <div class="mfld"><textarea id="seoFooter" rows="4" placeholder="/itr-filing-india.html|ITR Filing India&#10;/itr-filing-karnataka.html|ITR Filing Karnataka&#10;/gst-services-india.html|GST Services"></textarea></div>
+
+    </div>
+    <div class="mfoot" style="justify-content:space-between">
+      <button class="btn bgho" onclick="g('seoCreateModal').remove()">Cancel</button>
+      <div style="display:flex;gap:8px">
+        <button class="btn bywn" onclick="previewSeoPage()">👁 Preview</button>
+        <button class="btn bpri" id="seoSubmitBtn" onclick="submitSeoPage()">🚀 Publish to Netlify</button>
+      </div>
+    </div>
+  </div>`;
+  document.body.appendChild(div);
+};
+
+function collectSeoData() {
+  var footerRaw = (g('seoFooter') && g('seoFooter').value) || '';
+  var footerLinks = footerRaw.split('\n').filter(Boolean).map(function(line) {
+    var parts = line.split('|');
+    return { href: (parts[0] || '').trim(), label: (parts[1] || '').trim() };
+  }).filter(function(l) { return l.href && l.label; });
+
+  return {
+    slug:            g('seoSlug').value.trim(),
+    title:           g('seoTitle').value.trim(),
+    metaDescription: g('seoMetaDesc').value.trim(),
+    metaKeywords:    g('seoMetaKw').value.trim(),
+    service:         g('seoService').value.trim(),
+    city:            g('seoCity').value.trim(),
+    state:           g('seoState').value.trim(),
+    statsLabel:      g('seoStatsLabel').value.trim(),
+    statsPrice:      g('seoStatsPrice').value.trim(),
+    heroEyebrow:     g('seoEyebrow').value.trim(),
+    heroH1:          g('seoH1').value.trim(),
+    heroH1Span:      g('seoH1Span').value.trim(),
+    heroP:           g('seoHeroP').value.trim(),
+    step1Title: g('seoS1T').value, step1P: g('seoS1P').value,
+    step2Title: g('seoS2T').value, step2P: g('seoS2P').value,
+    step3Title: g('seoS3T').value, step3P: g('seoS3P').value,
+    step4Title: g('seoS4T').value, step4P: g('seoS4P').value,
+    price1Label: g('seoP1L').value, price1Range: g('seoP1R').value, price1Desc: g('seoP1D').value,
+    price2Label: g('seoP2L').value, price2Range: g('seoP2R').value, price2Desc: g('seoP2D').value,
+    price3Label: g('seoP3L').value, price3Range: g('seoP3R').value, price3Desc: g('seoP3D').value,
+    price4Label: g('seoP4L').value, price4Range: g('seoP4R').value, price4Desc: g('seoP4D').value,
+    faq1Q: g('seoF1Q').value, faq1A: g('seoF1A').value,
+    faq2Q: g('seoF2Q').value, faq2A: g('seoF2A').value,
+    faq3Q: g('seoF3Q').value, faq3A: g('seoF3A').value,
+    faq4Q: g('seoF4Q').value, faq4A: g('seoF4A').value,
+    faq5Q: g('seoF5Q').value, faq5A: g('seoF5A').value,
+    ctaH2: g('seoCtaH').value,
+    ctaP:  g('seoCtaP').value,
+    footerLinks: footerLinks
+  };
+}
+
+window.previewSeoPage = function() {
+  var data = collectSeoData();
+  if (!data.slug) { toast('Enter a slug first', 'e'); return; }
+  api('seo/pages/preview', 'POST', data).then(function(d) {
+    if (d.success) {
+      var w = window.open('', '_blank');
+      w.document.write(d.html);
+      w.document.close();
+    } else toast(d.message || 'Preview failed', 'e');
+  });
+};
+
+window.submitSeoPage = function() {
+  var data = collectSeoData();
+  if (!data.slug || !data.title || !data.metaDescription) {
+    toast('Slug, title and meta description are required', 'e'); return;
+  }
+  var btn = g('seoSubmitBtn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Publishing...'; }
+  api('seo/pages', 'POST', data).then(function(d) {
+    if (btn) { btn.disabled = false; btn.textContent = '🚀 Publish to Netlify'; }
+    if (d.success) {
+      toast('✅ Page published! Live in ~30 seconds: ' + d.url);
+      g('seoCreateModal') && g('seoCreateModal').remove();
+      loadSeoPages();
+    } else toast(d.message || 'Failed', 'e');
+  }).catch(function() {
+    if (btn) { btn.disabled = false; btn.textContent = '🚀 Publish to Netlify'; }
+    toast('Error', 'e');
+  });
+};
    
 window.goBackToTicket = function() {
   var tid = _tkId;
