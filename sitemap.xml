@@ -2,41 +2,41 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 
   <!-- Core -->
-  <url><loc>https://workindex.co.in/</loc><priority>1.0</priority><changefreq>weekly</changefreq></url>
-  <url><loc>https://workindex.co.in/contact.html</loc><priority>0.6</priority><changefreq>yearly</changefreq></url>
-  <url><loc>https://workindex.co.in/terms.html</loc><priority>0.4</priority><changefreq>yearly</changefreq></url>
-  <url><loc>https://workindex.co.in/refund-policy.html</loc><priority>0.4</priority><changefreq>yearly</changefreq></url>
+  <url><loc>https://workindex.co.in/</loc><priority>1.0</priority><changefreq>weekly</changefreq><lastmod>2026-03-29</lastmod></url>
+  <url><loc>https://workindex.co.in/contact.html</loc><priority>0.6</priority><changefreq>yearly</changefreq><lastmod>2026-03-29</lastmod></url>
+  <url><loc>https://workindex.co.in/terms.html</loc><priority>0.4</priority><changefreq>yearly</changefreq><lastmod>2026-03-29</lastmod></url>
+  <url><loc>https://workindex.co.in/refund-policy.html</loc><priority>0.4</priority><changefreq>yearly</changefreq><lastmod>2026-03-29</lastmod></url>
 
   <!-- ITR Filing -->
-  <url><loc>https://workindex.co.in/itr-filing-india.html</loc><priority>0.9</priority><changefreq>monthly</changefreq></url>
-  <url><loc>https://workindex.co.in/itr-filing-karnataka.html</loc><priority>0.8</priority><changefreq>monthly</changefreq></url>
-  <url><loc>https://workindex.co.in/itr-filing-bangalore.html</loc><priority>0.8</priority><changefreq>monthly</changefreq></url>
-  <url><loc>https://workindex.co.in/itr-filing-mysore.html</loc><priority>0.7</priority><changefreq>monthly</changefreq></url>
-  <url><loc>https://workindex.co.in/itr-filing-mangalore.html</loc><priority>0.7</priority><changefreq>monthly</changefreq></url>
-  <url><loc>https://workindex.co.in/itr-filing-hubli.html</loc><priority>0.7</priority><changefreq>monthly</changefreq></url>
+  <url><loc>https://workindex.co.in/itr-filing-india.html</loc><priority>0.9</priority><changefreq>monthly</changefreq><lastmod>2026-03-29</lastmod></url>
+  <url><loc>https://workindex.co.in/itr-filing-karnataka.html</loc><priority>0.8</priority><changefreq>monthly</changefreq><lastmod>2026-03-29</lastmod></url>
+  <url><loc>https://workindex.co.in/itr-filing-bangalore.html</loc><priority>0.8</priority><changefreq>monthly</changefreq><lastmod>2026-03-29</lastmod></url>
+  <url><loc>https://workindex.co.in/itr-filing-mysore.html</loc><priority>0.7</priority><changefreq>monthly</changefreq><lastmod>2026-03-29</lastmod></url>
+  <url><loc>https://workindex.co.in/itr-filing-mangalore.html</loc><priority>0.7</priority><changefreq>monthly</changefreq><lastmod>2026-03-29</lastmod></url>
+  <url><loc>https://workindex.co.in/itr-filing-hubli.html</loc><priority>0.7</priority><changefreq>monthly</changefreq><lastmod>2026-03-29</lastmod></url>
 
   <!-- GST Services -->
-  <url><loc>https://workindex.co.in/gst-services-india.html</loc><priority>0.9</priority><changefreq>monthly</changefreq></url>
-  <url><loc>https://workindex.co.in/gst-services-karnataka.html</loc><priority>0.8</priority><changefreq>monthly</changefreq></url>
-  <url><loc>https://workindex.co.in/gst-services-bangalore.html</loc><priority>0.8</priority><changefreq>monthly</changefreq></url>
-  <url><loc>https://workindex.co.in/gst-services-mysore.html</loc><priority>0.7</priority><changefreq>monthly</changefreq></url>
-  <url><loc>https://workindex.co.in/gst-services-mangalore.html</loc><priority>0.7</priority><changefreq>monthly</changefreq></url>
+  <url><loc>https://workindex.co.in/gst-services-india.html</loc><priority>0.9</priority><changefreq>monthly</changefreq><lastmod>2026-03-29</lastmod></url>
+  <url><loc>https://workindex.co.in/gst-services-karnataka.html</loc><priority>0.8</priority><changefreq>monthly</changefreq><lastmod>2026-03-29</lastmod></url>
+  <url><loc>https://workindex.co.in/gst-services-bangalore.html</loc><priority>0.8</priority><changefreq>monthly</changefreq><lastmod>2026-03-29</lastmod></url>
+  <url><loc>https://workindex.co.in/gst-services-mysore.html</loc><priority>0.7</priority><changefreq>monthly</changefreq><lastmod>2026-03-29</lastmod></url>
+  <url><loc>https://workindex.co.in/gst-services-mangalore.html</loc><priority>0.7</priority><changefreq>monthly</changefreq><lastmod>2026-03-29</lastmod></url>
 
   <!-- Accounting Services -->
-  <url><loc>https://workindex.co.in/accounting-services-india.html</loc><priority>0.9</priority><changefreq>monthly</changefreq></url>
-  <url><loc>https://workindex.co.in/accounting-services-karnataka.html</loc><priority>0.8</priority><changefreq>monthly</changefreq></url>
-  <url><loc>https://workindex.co.in/accounting-services-bangalore.html</loc><priority>0.8</priority><changefreq>monthly</changefreq></url>
-  <url><loc>https://workindex.co.in/accounting-services-mysore.html</loc><priority>0.7</priority><changefreq>monthly</changefreq></url>
-  <url><loc>https://workindex.co.in/accounting-services-mangalore.html</loc><priority>0.7</priority><changefreq>monthly</changefreq></url>
+  <url><loc>https://workindex.co.in/accounting-services-india.html</loc><priority>0.9</priority><changefreq>monthly</changefreq><lastmod>2026-03-29</lastmod></url>
+  <url><loc>https://workindex.co.in/accounting-services-karnataka.html</loc><priority>0.8</priority><changefreq>monthly</changefreq><lastmod>2026-03-29</lastmod></url>
+  <url><loc>https://workindex.co.in/accounting-services-bangalore.html</loc><priority>0.8</priority><changefreq>monthly</changefreq><lastmod>2026-03-29</lastmod></url>
+  <url><loc>https://workindex.co.in/accounting-services-mysore.html</loc><priority>0.7</priority><changefreq>monthly</changefreq><lastmod>2026-03-29</lastmod></url>
+  <url><loc>https://workindex.co.in/accounting-services-mangalore.html</loc><priority>0.7</priority><changefreq>monthly</changefreq><lastmod>2026-03-29</lastmod></url>
 
   <!-- Photography -->
-  <url><loc>https://workindex.co.in/photographer-india.html</loc><priority>0.9</priority><changefreq>monthly</changefreq></url>
+  <url><loc>https://workindex.co.in/photographer-india.html</loc><priority>0.9</priority><changefreq>monthly</changefreq><lastmod>2026-03-29</lastmod></url>
 
   <!-- Web Developer -->
-  <url><loc>https://workindex.co.in/web-developer-india.html</loc><priority>0.9</priority><changefreq>monthly</changefreq></url>
-  <url><loc>https://workindex.co.in/web-developer-karnataka.html</loc><priority>0.8</priority><changefreq>monthly</changefreq></url>
-  <url><loc>https://workindex.co.in/web-developer-bangalore.html</loc><priority>0.8</priority><changefreq>monthly</changefreq></url>
-  <url><loc>https://workindex.co.in/web-developer-mysore.html</loc><priority>0.7</priority><changefreq>monthly</changefreq></url>
-  <url><loc>https://workindex.co.in/web-developer-mangalore.html</loc><priority>0.7</priority><changefreq>monthly</changefreq></url>
+  <url><loc>https://workindex.co.in/web-developer-india.html</loc><priority>0.9</priority><changefreq>monthly</changefreq><lastmod>2026-03-29</lastmod></url>
+  <url><loc>https://workindex.co.in/web-developer-karnataka.html</loc><priority>0.8</priority><changefreq>monthly</changefreq><lastmod>2026-03-29</lastmod></url>
+  <url><loc>https://workindex.co.in/web-developer-bangalore.html</loc><priority>0.8</priority><changefreq>monthly</changefreq><lastmod>2026-03-29</lastmod></url>
+  <url><loc>https://workindex.co.in/web-developer-mysore.html</loc><priority>0.7</priority><changefreq>monthly</changefreq><lastmod>2026-03-29</lastmod></url>
+  <url><loc>https://workindex.co.in/web-developer-mangalore.html</loc><priority>0.7</priority><changefreq>monthly</changefreq><lastmod>2026-03-29</lastmod></url>
 
 </urlset>
