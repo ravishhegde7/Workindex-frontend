@@ -4048,8 +4048,8 @@ function renderSeoPages() {
       '<td style="font-size:12px;color:#606078">' + fmt(p.createdAt) + '</td>' +
       '<td>' +
         '<a href="https://workindex.co.in/' + esc(p.slug) + '.html" target="_blank" class="btn bgho" style="font-size:12px;padding:5px 10px;margin-right:4px">View</a>' +
-        '<button class="btn brdn" style="font-size:12px;padding:5px 10px" onclick="deleteSeoPage(\'' + p._id + '\',\'' + esc(p.slug) + '\')">Delete</button>' +
-      '</td>' +
+        '<button class="btn bywn" style="font-size:12px;padding:5px 10px;margin-right:4px" onclick="copySeoPage(\'' + p._id + '\')">Copy</button>' +
+        '<button class="btn brdn" style="font-size:12px;padding:5px 10px" onclick="deleteSeoPage(\'' + p._id + '\',\'' + esc(p.slug) + '\')">Delete</button>' +      '</td>' +
     '</tr>';
   }).join('');
 
