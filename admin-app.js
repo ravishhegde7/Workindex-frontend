@@ -4154,7 +4154,7 @@ window.openSeoModal = function() {
 
     </div>
     <div class="mfoot" style="justify-content:space-between">
-      <button class="btn bgho" onclick="g('seoCreateModal').remove()">Cancel</button>
+      <button class="btn bgho" onclick="closeSeoModal()">Cancel</button>
       <div style="display:flex;gap:8px">
         <button class="btn bywn" onclick="previewSeoPage()">👁 Preview</button>
         <button class="btn bpri" id="seoSubmitBtn" onclick="submitSeoPage()">🚀 Publish to Netlify</button>
