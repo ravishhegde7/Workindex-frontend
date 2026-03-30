@@ -4162,6 +4162,7 @@ window.openSeoModal = function(prefill) {
       </div>
     </div>
   </div>`;
+   window._seoModalPrefill = prefill || null;
   document.body.appendChild(div);
 };
 
