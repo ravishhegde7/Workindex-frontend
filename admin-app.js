@@ -4291,7 +4291,49 @@ window.openSeoModal = function(prefill) {
   </div>`;
    window._seoModalPrefill = prefill || null;
   document.body.appendChild(div);
-};
+   window._seoModalPrefill = prefill || null;
+  document.body.appendChild(div);
+  // Prefill fields if copying an existing page
+  (function() {
+    var p = window._seoModalPrefill || {};
+    if (!p || !p.slug) return;
+    var fields = {
+      seoSlug: p.slug ? p.slug + '-copy' : '',
+      seoTitle: p.title || '',
+      seoMetaDesc: p.metaDescription || '',
+      seoMetaKw: p.metaKeywords || '',
+      seoService: p.service || '',
+      seoCity: p.city || '',
+      seoState: p.state || '',
+      seoStatsLabel: p.statsLabel || '',
+      seoStatsPrice: p.statsPrice || '',
+      seoEyebrow: p.heroEyebrow || '',
+      seoH1: p.heroH1 || '',
+      seoH1Span: p.heroH1Span || '',
+      seoHeroP: p.heroP || '',
+      seoS1T: p.step1Title || '', seoS1P: p.step1P || '',
+      seoS2T: p.step2Title || '', seoS2P: p.step2P || '',
+      seoS3T: p.step3Title || '', seoS3P: p.step3P || '',
+      seoS4T: p.step4Title || '', seoS4P: p.step4P || '',
+      seoP1L: p.price1Label || '', seoP1R: p.price1Range || '', seoP1D: p.price1Desc || '',
+      seoP2L: p.price2Label || '', seoP2R: p.price2Range || '', seoP2D: p.price2Desc || '',
+      seoP3L: p.price3Label || '', seoP3R: p.price3Range || '', seoP3D: p.price3Desc || '',
+      seoP4L: p.price4Label || '', seoP4R: p.price4Range || '', seoP4D: p.price4Desc || '',
+      seoF1Q: p.faq1Q || '', seoF1A: p.faq1A || '',
+      seoF2Q: p.faq2Q || '', seoF2A: p.faq2A || '',
+      seoF3Q: p.faq3Q || '', seoF3A: p.faq3A || '',
+      seoF4Q: p.faq4Q || '', seoF4A: p.faq4A || '',
+      seoF5Q: p.faq5Q || '', seoF5A: p.faq5A || '',
+      seoCtaH: p.ctaH2 || '',
+      seoCtaP: p.ctaP || '',
+      seoFooter: (p.footerLinks || []).map(function(l){ return l.href + '|' + l.label; }).join('\n')
+    };
+    Object.keys(fields).forEach(function(id) {
+      var el = document.getElementById(id);
+      if (el) el.value = fields[id];
+    });
+    window._seoModalPrefill = null;
+  })();
 
 function collectSeoData() {
   var footerRaw = (g('seoFooter') && g('seoFooter').value) || '';
@@ -4474,46 +4516,5 @@ window.loadApproachDetail = function(approachId) {
   });
 };
 
-<script>
-  (function() {
-    var p = window._seoModalPrefill || {};
-    var fields = {
-      seoSlug: p.slug ? p.slug + '-copy' : '',
-      seoTitle: p.title || '',
-      seoMetaDesc: p.metaDescription || '',
-      seoMetaKw: p.metaKeywords || '',
-      seoService: p.service || '',
-      seoCity: p.city || '',
-      seoState: p.state || '',
-      seoStatsLabel: p.statsLabel || '',
-      seoStatsPrice: p.statsPrice || '',
-      seoEyebrow: p.heroEyebrow || '',
-      seoH1: p.heroH1 || '',
-      seoH1Span: p.heroH1Span || '',
-      seoHeroP: p.heroP || '',
-      seoS1T: p.step1Title || '', seoS1P: p.step1P || '',
-      seoS2T: p.step2Title || '', seoS2P: p.step2P || '',
-      seoS3T: p.step3Title || '', seoS3P: p.step3P || '',
-      seoS4T: p.step4Title || '', seoS4P: p.step4P || '',
-      seoP1L: p.price1Label || '', seoP1R: p.price1Range || '', seoP1D: p.price1Desc || '',
-      seoP2L: p.price2Label || '', seoP2R: p.price2Range || '', seoP2D: p.price2Desc || '',
-      seoP3L: p.price3Label || '', seoP3R: p.price3Range || '', seoP3D: p.price3Desc || '',
-      seoP4L: p.price4Label || '', seoP4R: p.price4Range || '', seoP4D: p.price4Desc || '',
-      seoF1Q: p.faq1Q || '', seoF1A: p.faq1A || '',
-      seoF2Q: p.faq2Q || '', seoF2A: p.faq2A || '',
-      seoF3Q: p.faq3Q || '', seoF3A: p.faq3A || '',
-      seoF4Q: p.faq4Q || '', seoF4A: p.faq4A || '',
-      seoF5Q: p.faq5Q || '', seoF5A: p.faq5A || '',
-      seoCtaH: p.ctaH2 || '',
-      seoCtaP: p.ctaP || '',
-      seoFooter: (p.footerLinks || []).map(function(l){return l.href+'|'+l.label;}).join('\\n')
-    };
-    Object.keys(fields).forEach(function(id) {
-      var el = document.getElementById(id);
-      if (el) el.value = fields[id];
-    });
-    window._seoModalPrefill = null;
-  })();
-  <\/script>
    
 })();
