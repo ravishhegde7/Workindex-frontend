@@ -4235,6 +4235,11 @@ window.submitSeoPage = function() {
     toast('Error', 'e');
   });
 };
+
+window.closeSeoModal = function() {
+  var m = document.getElementById('seoCreateModal');
+  if (m) m.remove();
+};
    
 window.goBackToTicket = function() {
   var tid = _tkId;
