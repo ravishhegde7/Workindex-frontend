@@ -4240,6 +4240,12 @@ window.closeSeoModal = function() {
   var m = document.getElementById('seoCreateModal');
   if (m) m.remove();
 };
+
+window.copySeoPage = function(id) {
+  var page = _seoPages.filter(function(p) { return p._id === id; })[0];
+  if (!page) { toast('Page not found', 'e'); return; }
+  openSeoModal(page); // pass existing data to pre-fill
+};
    
 window.goBackToTicket = function() {
   var tid = _tkId;
