@@ -1481,11 +1481,7 @@ async function viewExpertProfile(expertId, loggedIn = false) {
       local:  '📍 Local (in-person)',
       both:   '🌐 Both online & in-person'
     };
-    const serviceLabels = {
-      itr: 'ITR Filing', gst: 'GST Services',
-      accounting: 'Accounting', audit: 'Audit',
-      photography: 'Photography', development: 'Development'
-    };
+    const serviceLabels = WI_SERVICES.labels;
 
     const modal = document.createElement('div');
     modal.id = 'expertProfileModal';
