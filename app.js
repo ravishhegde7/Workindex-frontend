@@ -5319,14 +5319,7 @@ async function lookupClientLocationPincode(value) {
 }
 // ─── EXPERT SEARCH AUTOCOMPLETE ───
 const SEARCH_SUGGESTIONS = {
-  services: [
-    { label: 'ITR Filing', value: 'itr', type: 'service' },
-    { label: 'GST Services', value: 'gst', type: 'service' },
-    { label: 'Accounting', value: 'accounting', type: 'service' },
-    { label: 'Audit', value: 'audit', type: 'service' },
-    { label: 'Photography', value: 'photography', type: 'service' },
-    { label: 'Development', value: 'development', type: 'service' }
-  ]
+  services: WI_SERVICES.list.map(s => ({ label: s.label, value: s.value, type: 'service' }))
 };
 
 let searchTimeout = null;
