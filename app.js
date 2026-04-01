@@ -6734,15 +6734,8 @@ function getItemsForSection(section) {
 }
 // ─── EXPERT SERVICE FILTER MODAL ───
 function showServiceFilterModal(onComplete) {
-  const services = [
-    { value: 'itr',         label: 'ITR Filing',    icon: '📄' },
-    { value: 'gst',         label: 'GST Services',  icon: '🧾' },
-    { value: 'accounting',  label: 'Accounting',    icon: '📊' },
-    { value: 'audit',       label: 'Audit',         icon: '🔍' },
-    { value: 'photography', label: 'Photography',   icon: '📷' },
-    { value: 'development', label: 'Development',   icon: '💻' },
-  ];
-
+  const services = WI_SERVICES.list;
+   
   // Pre-select from profile if available
   const saved = state.user?.profile?.servicesOffered || [];
 
