@@ -5409,15 +5409,7 @@ function landingSearch() {
   const service = document.getElementById('landingServiceInput')?.value.trim().toLowerCase();
   const location = document.getElementById('landingLocationInput')?.value.trim();
 
-  const serviceMap = {
-    'itr': 'itr', 'itr filing': 'itr', 'tax': 'itr',
-    'gst': 'gst', 'gst services': 'gst',
-    'accounting': 'accounting', 'bookkeeping': 'accounting',
-    'audit': 'audit',
-    'photography': 'photography', 'photo': 'photography',
-    'development': 'development', 'dev': 'development', 'web': 'development'
-  };
-
+  const serviceMap = WI_SERVICES.searchAliases;
   const mappedService = serviceMap[service] || null;
 
   // Store so findProfessionals page can pick it up
