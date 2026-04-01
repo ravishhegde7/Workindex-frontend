@@ -3350,7 +3350,7 @@ function openCompareModal() {
   var existing = document.getElementById('compareModal');
   if (existing) existing.remove();
 
-  var svcColors = { itr:'#8b5cf6', gst:'#3b82f6', accounting:'#10b981', audit:'#f59e0b', photography:'#ec4899', development:'#06b6d4' };
+  const svcColors = WI_SERVICES.colors;
 
   var rows = [
     { label: '💰 Quote',        fn: function(a) { return a.quote ? '<strong style="color:var(--primary);font-size:16px;">₹' + Number(a.quote).toLocaleString('en-IN') + '</strong>' : '<span style="color:var(--text-muted);">—</span>'; } },
