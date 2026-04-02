@@ -4587,8 +4587,8 @@ function renderServiceCategoriesPage() {
       '<div class="tw"><table><thead><tr>' +
         '<th>Icon</th><th>Value (key)</th><th>Label</th><th>Color</th><th>Credits</th><th>Questions</th><th>Status</th><th>Actions</th>' +
       '</tr></thead><tbody>' +
-      (rows || '<tr><td colspan="8" style="text-align:center;padding:30px;color:#606078">No categories yet.
-       '</tbody></table></div>' +
+      (rows || '<tr><td colspan="8" style="text-align:center;padding:30px;color:#606078">No categories yet.</td></tr>') +
+      '</tbody></table></div>' +
     '</div>';
     // Render special category cards (common + expert)
   renderSpecialCategoryCards();
