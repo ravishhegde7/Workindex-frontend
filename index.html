@@ -1948,11 +1948,48 @@ function startQuestionnaire() {
   setTimeout(() => renderQuestion(), 50);
 }
 
-// ─── RENDER CURRENT QUESTION ───
+function _lookupQuestion(stepId) {
+    const q = WI_SERVICES.questionnaire;
+ 
+    // Service selection step
+    if (q.serviceSelection.id === stepId) return q.serviceSelection;
+ 
+    // Expert onboarding steps
+    const expertStep = q.expert.find(s => s.id === stepId);
+    if (expertStep) {
+      if (expertStep.useServiceList) {
+        return {
+          ...expertStep,
+          options: WI_SERVICES.list.map(s => ({
+            value: s.value,
+            label: s.label,
+            icon: s.icon,
+            desc: s.label
+          }))
+        };
+      }
+      return expertStep;
+    }
+ 
+    // Service-specific steps
+    for (const svcSteps of Object.values(q.byService)) {
+      const found = svcSteps.find(s => s.id === stepId);
+      if (found) return found;
+    }
+ 
+    // Common steps
+    for (const step of Object.values(q.common)) {
+      if (step.id === stepId) return step;
+    }
+ 
+    console.error('[WorkIndex] _lookupQuestion: step not found:', stepId);
+    return null;
+  }
+  
 // ─── RENDER CURRENT QUESTION ───
 function renderQuestion() {
   const stepKey = qState.sequence[qState.step];
-  const question = BARK_Q_FORMS[stepKey];
+  const question = _lookupQuestion(stepKey);
   
   if (!question) {
     console.error('Question not found:', stepKey);
