@@ -4571,9 +4571,11 @@ function renderServiceCategoriesPage() {
     '<div class="card">' +
       '<div class="ch" style="justify-content:space-between;flex-wrap:wrap;gap:10px">' +
         '<h3>⚙️ Service Categories <span style="font-size:13px;color:#606078;font-weight:400">(' + _serviceCategories.length + ' total)</span></h3>' +
-        '<div style="display:flex;gap:8px;">' +
+        '<div style="display:flex;gap:8px;flex-wrap:wrap;">' +
           '<button class="btn bgho" onclick="syncCategoriesToGitHub()" style="padding:8px 14px;font-size:13px">🔄 Force Sync GitHub</button>' +
-          '<button class="btn bywn" onclick="seedDefaultCategories()" style="padding:8px 14px;font-size:13px">🌱 Seed Defaults</button>' +
+          '<button class="btn bywn" onclick="seedDefaultCategories()" style="padding:8px 14px;font-size:13px">🌱 Seed Services</button>' +
+          '<button class="btn bywn" style="padding:8px 14px;font-size:13px;background:rgba(99,102,241,0.15);color:#6366f1;border-color:rgba(99,102,241,0.4)" onclick="seedCommonSteps()">🔗 Seed Common Steps</button>' +
+          '<button class="btn bywn" style="padding:8px 14px;font-size:13px;background:rgba(245,158,11,0.15);color:#f59e0b;border-color:rgba(245,158,11,0.4)" onclick="seedExpertSteps()">⭐ Seed Expert Steps</button>' +
           '<button class="btn bpri" onclick="openCreateCategoryModal()" style="padding:8px 18px">+ Add Category</button>' +
         '</div>' +
       '</div>' +
