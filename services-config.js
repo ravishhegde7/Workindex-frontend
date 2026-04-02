@@ -12,10 +12,16 @@
  *   type:'address'  → fields as OBJECT (not array): { fieldKey: {label,placeholder,required,type?} }
  *   type:'pincode'  → placeholder
  *   type:'text'     → placeholder
+ *
+ * FIX APPLIED (2026-04):
+ *   serviceSelection now has an explicit options[] array instead of relying
+ *   on useServiceList:true, because _lookupQuestion() only expands useServiceList
+ *   for expert[] steps — NOT for serviceSelection. Without options[], renderQuestion()
+ *   crashed silently (question.options.forEach on undefined) → blank screen / Step 1 of 1.
  */
-
+ 
 const WI_SERVICES = {
-
+ 
   list: [
     { value: 'itr',         label: 'ITR Filing',    icon: '📄', color: '#8b5cf6' },
     { value: 'gst',         label: 'GST Services',  icon: '🧾', color: '#3b82f6' },
@@ -24,11 +30,11 @@ const WI_SERVICES = {
     { value: 'photography', label: 'Photography',   icon: '📷', color: '#ec4899' },
     { value: 'development', label: 'Development',   icon: '💻', color: '#06b6d4' },
   ],
-
+ 
   get labels() { const m={}; this.list.forEach(s=>m[s.value]=s.label); return m; },
   get colors() { const m={}; this.list.forEach(s=>m[s.value]=s.color); return m; },
   get icons()  { const m={}; this.list.forEach(s=>m[s.value]=s.icon);  return m; },
-
+ 
   searchAliases: {
     'itr':'itr','itr filing':'itr','income tax':'itr','tax':'itr',
     'gst':'gst','gst services':'gst',
@@ -37,10 +43,10 @@ const WI_SERVICES = {
     'photography':'photography','photo':'photography',
     'development':'development','dev':'development','web':'development','website':'development',
   },
-
+ 
   creditCost:    { itr:20, gst:20, accounting:20, audit:20, photography:10, development:15 },
   maxApproaches: { itr:5,  gst:5,  accounting:5,  audit:5,  photography:5,  development:5  },
-
+ 
   answerTagFormatters: {
     itrAnnualIncome:        v => 'Income: ' + v.replace('above','> ').replace('below','< '),
     itrTaxpayerType:        v => v.charAt(0).toUpperCase() + v.slice(1),
@@ -58,19 +64,31 @@ const WI_SERVICES = {
     auditType:              v => v.replace(/_/g,' ') + ' audit',
     auditTurnover:          v => 'Turnover: ' + v,
   },
-
+ 
   questionnaire: {
-
+ 
+    // ─── SERVICE SELECTION (Step 0 for clients) ────────────────────────────
+    // FIX: options[] is explicitly defined here.
+    // DO NOT use only useServiceList:true — _lookupQuestion() does NOT expand
+    // useServiceList for serviceSelection (only for expert[] steps).
     serviceSelection: {
       id: 'service', key: 'service',
       type: 'single', required: true,
       title: 'What service do you need?',
       subtitle: 'Select the category that best matches your requirement',
-      useServiceList: true,
+      options: [
+        { value: 'itr',         label: 'ITR Filing',    icon: '📄', desc: 'Income tax return filing with a verified CA' },
+        { value: 'gst',         label: 'GST Services',  icon: '🧾', desc: 'Registration, filing & compliance by GST experts' },
+        { value: 'accounting',  label: 'Accounting',    icon: '📊', desc: 'Monthly bookkeeping & financial record management' },
+        { value: 'audit',       label: 'Audit Services',icon: '🔍', desc: 'Statutory, internal & tax audits by certified auditors' },
+        { value: 'photography', label: 'Photography',   icon: '📷', desc: 'Weddings, events, products & commercial shoots' },
+        { value: 'development', label: 'Development',   icon: '💻', desc: 'Apps, websites & custom software by vetted developers' },
+      ],
     },
-
+ 
+    // ─── SERVICE-SPECIFIC STEPS ────────────────────────────────────────────
     byService: {
-
+ 
       itr: [
         { id:'itr_taxpayer_type', key:'itrTaxpayerType', type:'single', required:true,
           title:'What is your taxpayer type?', subtitle:'Select the option that best describes you',
@@ -115,7 +133,7 @@ const WI_SERVICES = {
             {value:'unsure',     label:'Not sure',   icon:'🤔', desc:'Let my CA decide the best option'},
           ]},
       ],
-
+ 
       gst: [
         { id:'gst_service_type', key:'gstServiceType', type:'single', required:true,
           title:'What GST service do you need?',
@@ -152,7 +170,7 @@ const WI_SERVICES = {
             {value:'no',            label:'No, need new one',    icon:'🆕'},
           ]},
       ],
-
+ 
       accounting: [
         { id:'accounting_business_type', key:'accountingBusinessType', type:'single', required:true,
           title:'What type of business do you have?',
@@ -188,7 +206,7 @@ const WI_SERVICES = {
             {value:'above500', label:'Above 500', icon:'📊'},
           ]},
       ],
-
+ 
       audit: [
         { id:'audit_type', key:'auditType', type:'single', required:true,
           title:'What type of audit do you need?',
@@ -225,7 +243,7 @@ const WI_SERVICES = {
             {value:'flexible',  label:'Flexible',                  icon:'🔵'},
           ]},
       ],
-
+ 
       photography: [
         { id:'photography_type', key:'photographyType', type:'single', required:true,
           title:'What type of photography do you need?',
@@ -260,7 +278,7 @@ const WI_SERVICES = {
             {value:'no',  label:'No, photos only',    icon:'📷'},
           ]},
       ],
-
+ 
       development: [
         { id:'dev_project_type', key:'devProjectType', type:'single', required:true,
           title:'What type of project do you need?',
@@ -306,11 +324,12 @@ const WI_SERVICES = {
             {value:'maybe', label:'Decide later',         icon:'🤔'},
           ]},
       ],
-
+ 
     },
-
+ 
+    // ─── COMMON STEPS (shared across all services) ────────────────────────
     common: {
-
+ 
       serviceLocationType: {
         id:'service_location_type', key:'serviceLocationType',
         type:'single', required:true,
@@ -322,12 +341,14 @@ const WI_SERVICES = {
           {value:'professional-office', label:"At professional's office", icon:'🏢', desc:'I visit their office'},
         ],
       },
-
+ 
       fullAddress: {
         id:'full_address', key:'fullAddress',
         type:'address', required:true,
         title:'Enter your address',
         subtitle:'So we can find professionals near you',
+        // IMPORTANT: fields must be a plain OBJECT with named keys (not an array)
+        // renderQuestion() uses Object.entries(question.fields)
         fields: {
           building: {label:'Flat / Building / House No.', placeholder:'e.g. 4B, Sunrise Apartments', required:true},
           area:     {label:'Area / Street / Locality',    placeholder:'e.g. Koramangala 5th Block',  required:true},
@@ -337,19 +358,20 @@ const WI_SERVICES = {
           landmark: {label:'Landmark (optional)',         placeholder:'e.g. Near Indiranagar metro',  required:false},
         },
       },
-
+ 
       clientLocation: {
         id:'client_location', key:'clientLocation',
         type:'address', required:true,
         title:'Where are you based?',
         subtitle:'Helps match you with professionals in your region',
+        // IMPORTANT: fields must be a plain OBJECT with named keys (not an array)
         fields: {
           pincode: {label:'Pincode', placeholder:'e.g. 560095',    required:true},
           city:    {label:'City',    placeholder:'e.g. Bengaluru', required:true},
           state:   {label:'State',   placeholder:'Select state',    required:true, type:'select'},
         },
       },
-
+ 
       urgency: {
         id:'urgency', key:'urgency',
         type:'single', required:true,
@@ -362,7 +384,7 @@ const WI_SERVICES = {
           {value:'flexible',  label:'Flexible / No rush',             icon:'🔵'},
         ],
       },
-
+ 
       budget: {
         id:'budget', key:'budget',
         type:'slider', required:false,
@@ -370,7 +392,7 @@ const WI_SERVICES = {
         subtitle:'Professionals will send quotes based on this',
         min:1000, max:100000, step:500, format:'₹{value}', defaultValue:5000,
       },
-
+ 
       description: {
         id:'description', key:'description',
         type:'textarea', required:true,
@@ -380,7 +402,7 @@ const WI_SERVICES = {
         minLength:20, maxLength:1000,
         validation:'Minimum 20 characters required',
       },
-
+ 
       preferredProfessional: {
         id:'preferred_professional', key:'preferredProfessional',
         type:'single', required:false,
@@ -391,7 +413,7 @@ const WI_SERVICES = {
           {value:'no_preference', label:'No preference',              icon:'🤷', desc:'Best quote wins'},
         ],
       },
-
+ 
       contactMethod: {
         id:'contact_method', key:'contactMethod',
         type:'single', required:true,
@@ -403,12 +425,14 @@ const WI_SERVICES = {
           {value:'any',           label:'Any method is fine',     icon:'✅'},
         ],
       },
-
+ 
     },
-
+ 
+    // ─── EXPERT ONBOARDING STEPS ───────────────────────────────────────────
     expert: [
       { id:'expert_services', key:'servicesOffered', type:'multi', required:true,
         title:'What services do you offer?', subtitle:'Select all that apply',
+        // useServiceList:true is handled by _lookupQuestion() for expert steps
         useServiceList: true },
       { id:'expert_specialization', key:'specialization', type:'single', required:true,
         title:'What is your primary specialization?',
@@ -471,9 +495,9 @@ const WI_SERVICES = {
         placeholder:'e.g. I am a Chartered Accountant with 8 years of experience specialising in income tax, GST, and startup accounting...',
         minLength:50, maxLength:500, validation:'Minimum 50 characters required' },
     ],
-
+ 
   },
-
+ 
 };
-
+ 
 Object.freeze(WI_SERVICES);
