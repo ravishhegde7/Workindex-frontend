@@ -1992,7 +1992,7 @@ function renderQuestion() {
   const question = _lookupQuestion(stepKey);
   
   if (!question) {
-    console.error('Question not found:', stepKey);
+    console.error('[WorkIndex] renderQuestion: null question for step:', stepKey);
     return;
   }
   
