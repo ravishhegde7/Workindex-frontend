@@ -1948,38 +1948,46 @@ function startQuestionnaire() {
   setTimeout(() => renderQuestion(), 50);
 }
 
-function _lookupQuestion(stepId) {
+ // ── Question lookup: finds a step by its id across WI_SERVICES ──
+  function _lookupQuestion(stepId) {
     const q = WI_SERVICES.questionnaire;
+    if (!q) { console.error('[WorkIndex] WI_SERVICES.questionnaire not loaded'); return null; }
  
-    // Service selection step
-    if (q.serviceSelection.id === stepId) return q.serviceSelection;
+    // Step 0: service selection
+    if (q.serviceSelection && q.serviceSelection.id === stepId) return q.serviceSelection;
  
     // Expert onboarding steps
-    const expertStep = q.expert.find(s => s.id === stepId);
-    if (expertStep) {
-      if (expertStep.useServiceList) {
-        return {
-          ...expertStep,
-          options: WI_SERVICES.list.map(s => ({
-            value: s.value,
-            label: s.label,
-            icon: s.icon,
-            desc: s.label
-          }))
-        };
+    if (q.expert) {
+      const expertStep = q.expert.find(s => s.id === stepId);
+      if (expertStep) {
+        if (expertStep.useServiceList) {
+          return {
+            ...expertStep,
+            options: WI_SERVICES.list.map(s => ({
+              value: s.value,
+              label: s.label,
+              icon:  s.icon,
+              desc:  s.label
+            }))
+          };
+        }
+        return expertStep;
       }
-      return expertStep;
     }
  
-    // Service-specific steps
-    for (const svcSteps of Object.values(q.byService)) {
-      const found = svcSteps.find(s => s.id === stepId);
-      if (found) return found;
+    // Service-specific steps (byService)
+    if (q.byService) {
+      for (const svcSteps of Object.values(q.byService)) {
+        const found = svcSteps.find(s => s.id === stepId);
+        if (found) return found;
+      }
     }
  
     // Common steps
-    for (const step of Object.values(q.common)) {
-      if (step.id === stepId) return step;
+    if (q.common) {
+      for (const step of Object.values(q.common)) {
+        if (step && step.id === stepId) return step;
+      }
     }
  
     console.error('[WorkIndex] _lookupQuestion: step not found:', stepId);
