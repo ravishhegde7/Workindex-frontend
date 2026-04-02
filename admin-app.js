@@ -4708,6 +4708,8 @@ function buildSingleQuestionBlock(q, idx, prefix) {
       ? '<div><label style="font-size:11px;color:#606078;display:block;margin-bottom:3px;">Placeholder text</label><input type="text" id="' + prefix + 'qph_' + idx + '" value="' + esc(q.placeholder||'Enter 6-digit pincode') + '" style="width:100%;padding:8px 10px;border:1px solid #2a2a38;border-radius:6px;background:#0f0f13;color:#f0f0f4;font-size:13px;box-sizing:border-box;"></div>'
       : '<div><label style="font-size:11px;color:#606078;display:block;margin-bottom:3px;">Placeholder text</label><input type="text" id="' + prefix + 'qph_' + idx + '" value="' + esc(q.placeholder||'') + '" style="width:100%;padding:8px 10px;border:1px solid #2a2a38;border-radius:6px;background:#0f0f13;color:#f0f0f4;font-size:13px;box-sizing:border-box;"></div>'
     ) +
+     var qsubEl = g(prefix + 'qsub_' + idx);
+  if (qsubEl && qsubEl.value.trim()) q.subtitle = qsubEl.value.trim();
  (q.type === 'textarea'
       ? '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:8px;">' +
           '<div><label style="font-size:11px;color:#606078;display:block;margin-bottom:3px;">Min Length</label><input type="number" id="' + prefix + 'qMinLen_' + idx + '" value="' + (q.minLength||0) + '" style="width:100%;padding:7px 10px;border:1px solid #2a2a38;border-radius:6px;background:#0f0f13;color:#f0f0f4;font-size:12px;box-sizing:border-box;"></div>' +
