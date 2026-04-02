@@ -4547,7 +4547,7 @@ function renderServiceCategoriesPage() {
   var sec = g('sec-serviceCategories');
   if (!sec) return;
  
-  var rows = _serviceCategories.map(function(c) {
+  var rows = _serviceCategories.filter(function(c) { return !c.value.startsWith('_'); }).map(function(c) {
     var statusBadge = c.isActive
       ? '<span class="badge bgr">Active</span>'
       : '<span class="badge brd">Inactive</span>';
