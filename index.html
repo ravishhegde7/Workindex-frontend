@@ -2730,7 +2730,10 @@ function checkCanProceed() {
   } else if (question.type === 'textarea') {
     canProceed = answer && answer.trim().length >= (question.minLength || 0);
   } else if (question.type === 'address') {
-    const fields = question.fields;
+    const fields = Object.keys(question.fields).length > 0 ? question.fields : {
+      building: { required: true }, area: { required: true },
+      city: { required: true }, state: { required: true }, pincode: { required: true }
+    };
     canProceed = answer && Object.keys(fields).filter(k => fields[k].required).every(k => answer[k] && answer[k].trim().length > 0);
   } else {
     canProceed = answer !== undefined && answer !== null && (typeof answer === 'string' ? answer.trim().length > 0 : true);
