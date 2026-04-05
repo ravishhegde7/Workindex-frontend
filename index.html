@@ -1909,7 +1909,10 @@ function buildQuestionSequence() {
     // Service-specific steps
     const service = answers.service;
     if (service && q.byService[service]) {
-      q.byService[service].forEach(step => seq.push(step.id));
+      q.byService[service].forEach(step => {
+        // Skip service-specific urgency — common urgency handles it at the end
+        if (step.key !== 'urgency') seq.push(step.id);
+      });
     }
  
     // Common: location type
