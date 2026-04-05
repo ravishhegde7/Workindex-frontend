@@ -1915,20 +1915,22 @@ function buildQuestionSequence() {
     // Common: location type
     seq.push(q.common.service_location_type.id);
  
-    // Conditional address
-    const locType = answers.serviceLocationType;
+    // Conditional address — uses correct snake_case key
+    const locType = answers.service_location_type;
     if (locType === 'my-location' || locType === 'professional-office') {
-  seq.push(q.common.full_address.id);
-} else if (locType === 'online') {
-  seq.push(q.common.clientLocation.id);
-}
+      seq.push(q.common.full_address.id);
+    } else if (locType === 'online') {
+      seq.push(q.common.clientLocation.id);
+    }
  
     // Remaining common steps
-    if (locType === 'my-location' || locType === 'professional-office') {
-  seq.push(q.common.full_address.id);
-} else if (locType === 'online') {
-  seq.push(q.common.clientLocation.id);
-}
+    seq.push(
+      q.common.urgency.id,
+      q.common.budget.id,
+      q.common.description.id,
+      q.common.preferred_professional.id,
+      q.common.contact_method.id
+    );
  
     return seq;
   }
