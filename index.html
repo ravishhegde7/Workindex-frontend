@@ -2146,8 +2146,16 @@ function renderQuestion() {
       "West Bengal"
     ];
 
+    // Fallback fields if DB hasn't saved addressFields yet
+    const addressFields = Object.keys(question.fields).length > 0 ? question.fields : {
+      building: { label: 'Flat / Building / Area', placeholder: 'e.g. 12B, Sunrise Apartments', required: true },
+      area:     { label: 'Area / Locality', placeholder: 'e.g. Koramangala', required: true },
+      city:     { label: 'City', placeholder: 'e.g. Bengaluru', required: true },
+      state:    { label: 'State', placeholder: '', type: 'select', required: true },
+      pincode:  { label: 'Pincode', placeholder: '560034', required: true }
+    };
     html += '<div style="display: flex; flex-direction: column; gap: 16px;">';
-    Object.entries(question.fields).forEach(([fieldKey, field]) => {
+    Object.entries(addressFields).forEach(([fieldKey, field]) => {
       const value = (qState.answers[question.key] || {})[fieldKey] || '';
       const questionKey = question.key;
       const isSelect = field.type === 'select';
