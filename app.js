@@ -4144,13 +4144,19 @@ function calculateProfileStrength(user, profile) {
   };
 
   // ── BASIC INFO (40%) ──
+  // Support both old BARK keys and new WI keys
+  const bio = profile.bio || profile.expert_bio || '';
+  const specialization = profile.specialization || profile.expert_specialization || '';
+  const city = profile.city || profile.expert_city || '';
+  const pincode = profile.pincode || profile.expert_pincode || '';
+
   if (user.profilePhoto)                        { scores.basic.earned += 10; scores.basic.items.push({ done: true,  label: 'Profile photo' }); }
   else                                          {                             scores.basic.items.push({ done: false, label: 'Profile photo' }); }
-  if (profile.bio && profile.bio.length >= 30)  { scores.basic.earned += 10; scores.basic.items.push({ done: true,  label: 'Bio (30+ chars)' }); }
+  if (bio && bio.length >= 30)                  { scores.basic.earned += 10; scores.basic.items.push({ done: true,  label: 'Bio (30+ chars)' }); }
   else                                          {                             scores.basic.items.push({ done: false, label: 'Bio (30+ chars)' }); }
-  if (profile.specialization)                   { scores.basic.earned += 10; scores.basic.items.push({ done: true,  label: 'Specialization' }); }
+  if (specialization)                           { scores.basic.earned += 10; scores.basic.items.push({ done: true,  label: 'Specialization' }); }
   else                                          {                             scores.basic.items.push({ done: false, label: 'Specialization' }); }
-  if (profile.city && profile.pincode)          { scores.basic.earned += 10; scores.basic.items.push({ done: true,  label: 'Location (city + pincode)' }); }
+  if (city && pincode)                          { scores.basic.earned += 10; scores.basic.items.push({ done: true,  label: 'Location (city + pincode)' }); }
   else                                          {                             scores.basic.items.push({ done: false, label: 'Location (city + pincode)' }); }
 
   // ── PROFESSIONAL DETAILS (40%) ──
