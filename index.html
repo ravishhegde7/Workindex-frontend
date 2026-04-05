@@ -1896,37 +1896,32 @@ function buildQuestionSequence() {
     const answers = qState.answers;
     const role = qState.role || state.user?.role || selectedRole;
     const q = WI_SERVICES.questionnaire;
- 
+
     if (role === 'expert') {
       return q.expert.map(step => step.id);
     }
- 
+
     const seq = [];
- 
-    // Step 0: service selection
     seq.push(q.serviceSelection.id);
- 
-    // Service-specific steps
+
     const service = answers.service;
     if (service && q.byService[service]) {
       q.byService[service].forEach(step => {
-        // Skip service-specific urgency — common urgency handles it at the end
+        // skip steps whose key is 'urgency' — common section handles it
         if (step.key !== 'urgency') seq.push(step.id);
       });
     }
- 
-    // Common: location type
+
     seq.push(q.common.service_location_type.id);
- 
-    // Conditional address — uses correct snake_case key
+
+    // uses service_location_type key (snake_case matches the answer key)
     const locType = answers.service_location_type;
     if (locType === 'my-location' || locType === 'professional-office') {
       seq.push(q.common.full_address.id);
     } else if (locType === 'online') {
       seq.push(q.common.clientLocation.id);
     }
- 
-    // Remaining common steps
+
     seq.push(
       q.common.urgency.id,
       q.common.budget.id,
@@ -1934,7 +1929,7 @@ function buildQuestionSequence() {
       q.common.preferred_professional.id,
       q.common.contact_method.id
     );
- 
+
     return seq;
   }
   
