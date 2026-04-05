@@ -176,28 +176,45 @@ const WI_SERVICES = {
                   ]
             },
             {
-                  "id": "itrUrgency",
-                  "key": "urgency",
+                  "id": "itrIncomeSources",
+                  "key": "itrIncomeSources",
+                  "type": "multi",
+                  "required": true,
+                  "title": "Sources of income",
+                  "subtitle": "Select all that apply",
+                  "options": [
+                        { "value": "salary", "label": "Salary" },
+                        { "value": "business", "label": "Business income" },
+                        { "value": "rental", "label": "Rental income" },
+                        { "value": "capital", "label": "Capital gains" },
+                        { "value": "foreign", "label": "Foreign income" },
+                        { "value": "interest", "label": "Interest income" },
+                        { "value": "other", "label": "Other" }
+                  ]
+            },
+            {
+                  "id": "itrFilingType",
+                  "key": "itrFilingType",
                   "type": "single",
                   "required": true,
-                  "title": "When do you need it filed?",
+                  "title": "Filing requirement",
+                  "subtitle": "What type of return do you need?",
                   "options": [
-                        {
-                              "value": "immediate",
-                              "label": "🔴 Immediately (within 24 hours)"
-                        },
-                        {
-                              "value": "2-3days",
-                              "label": "🟠 Within 2–3 days"
-                        },
-                        {
-                              "value": "week",
-                              "label": "🟡 Within a week"
-                        },
-                        {
-                              "value": "flexible",
-                              "label": "🔵 Flexible / Before deadline"
-                        }
+                        { "value": "current", "label": "Current year return" },
+                        { "value": "previous", "label": "Previous year return" },
+                        { "value": "revised", "label": "Revised return" },
+                        { "value": "notice", "label": "Tax notice handling" }
+                  ]
+            },
+            {
+                  "id": "itrTaxPlanning",
+                  "key": "itrTaxPlanning",
+                  "type": "single",
+                  "required": true,
+                  "title": "Need tax planning advice?",
+                  "options": [
+                        { "value": "yes", "label": "✅ Yes, I need tax planning advice" },
+                        { "value": "no", "label": "❌ No, just file my return" }
                   ]
             }
       ],
@@ -232,57 +249,64 @@ const WI_SERVICES = {
                   ]
             },
             {
+                  "id": "gstBusinessType",
+                  "key": "gstBusinessType",
+                  "type": "single",
+                  "required": true,
+                  "title": "Business type",
+                  "subtitle": "Select your business structure",
+                  "options": [
+                        { "value": "proprietorship", "label": "Proprietorship" },
+                        { "value": "partnership", "label": "Partnership" },
+                        { "value": "llp", "label": "LLP" },
+                        { "value": "pvt_ltd", "label": "Private Limited Company" },
+                        { "value": "opc", "label": "OPC (One Person Company)" },
+                        { "value": "other", "label": "Other" }
+                  ]
+            },
+            {
                   "id": "gstTurnover",
                   "key": "gstTurnover",
                   "type": "single",
                   "required": true,
                   "title": "What is your monthly business turnover?",
                   "options": [
-                        {
-                              "value": "below5L",
-                              "label": "Below ₹5 Lakhs"
-                        },
-                        {
-                              "value": "5L-20L",
-                              "label": "₹5 – ₹20 Lakhs"
-                        },
-                        {
-                              "value": "20L-50L",
-                              "label": "₹20 – ₹50 Lakhs"
-                        },
-                        {
-                              "value": "above50L",
-                              "label": "Above ₹50 Lakhs"
-                        }
+                        { "value": "below5L", "label": "Below ₹5 Lakhs" },
+                        { "value": "5L-20L", "label": "₹5 – ₹20 Lakhs" },
+                        { "value": "20L-50L", "label": "₹20 – ₹50 Lakhs" },
+                        { "value": "above50L", "label": "Above ₹50 Lakhs" }
                   ]
             },
             {
-                  "id": "gstUrgency",
-                  "key": "urgency",
+                  "id": "gstExisting",
+                  "key": "gstExisting",
                   "type": "single",
                   "required": true,
-                  "title": "When do you need this?",
+                  "title": "Existing GSTIN?",
+                  "subtitle": "Do you already have a GST registration?",
                   "options": [
-                        {
-                              "value": "immediate",
-                              "label": "🔴 Immediately"
-                        },
-                        {
-                              "value": "2-3days",
-                              "label": "🟠 Within 2–3 days"
-                        },
-                        {
-                              "value": "week",
-                              "label": "🟡 This week"
-                        },
-                        {
-                              "value": "flexible",
-                              "label": "🔵 Flexible"
-                        }
+                        { "value": "yes", "label": "✅ Yes, I have GSTIN" },
+                        { "value": "no", "label": "❌ No, need new registration" }
                   ]
             }
       ],
       "accounting": [
+            {
+                  "id": "accountingBusinessType",
+                  "key": "accountingBusinessType",
+                  "type": "single",
+                  "required": true,
+                  "title": "Business type",
+                  "subtitle": "Select your business structure",
+                  "options": [
+                        { "value": "proprietorship", "label": "Proprietorship" },
+                        { "value": "partnership", "label": "Partnership" },
+                        { "value": "llp", "label": "LLP" },
+                        { "value": "pvt_ltd", "label": "Private Limited Company" },
+                        { "value": "opc", "label": "OPC" },
+                        { "value": "other", "label": "Other" }
+                  ]
+            },
             {
                   "id": "accountingServiceType",
                   "key": "accountingServiceType",
@@ -315,18 +339,25 @@ const WI_SERVICES = {
                   "required": true,
                   "title": "How often do you need accounting support?",
                   "options": [
-                        {
-                              "value": "monthly",
-                              "label": "📅 Monthly (ongoing)"
-                        },
-                        {
-                              "value": "quarterly",
-                              "label": "🗓️ Quarterly"
-                        },
-                        {
-                              "value": "annual",
-                              "label": "📆 One-time / Annual"
-                        }
+                        { "value": "monthly", "label": "📅 Monthly (ongoing)" },
+                        { "value": "quarterly", "label": "🗓️ Quarterly" },
+                        { "value": "annual", "label": "📆 One-time / Annual" }
+                  ]
+            },
+            {
+                  "id": "accountingSoftware",
+                  "key": "accountingSoftware",
+                  "type": "single",
+                  "required": true,
+                  "title": "Accounting software used",
+                  "subtitle": "Which software do you currently use?",
+                  "options": [
+                        { "value": "tally", "label": "Tally" },
+                        { "value": "zoho", "label": "Zoho Books" },
+                        { "value": "quickbooks", "label": "QuickBooks" },
+                        { "value": "busy", "label": "Busy" },
+                        { "value": "none", "label": "None / Manual" },
+                        { "value": "other", "label": "Other" }
                   ]
             },
             {
@@ -382,29 +413,42 @@ const WI_SERVICES = {
                   ]
             },
             {
+                  "id": "auditOrgType",
+                  "key": "auditOrgType",
+                  "type": "single",
+                  "required": true,
+                  "title": "Organization type",
+                  "subtitle": "Select your organization structure",
+                  "options": [
+                        { "value": "proprietorship", "label": "Proprietorship" },
+                        { "value": "partnership", "label": "Partnership" },
+                        { "value": "llp", "label": "LLP" },
+                        { "value": "pvt_ltd", "label": "Private Limited Company" },
+                        { "value": "public", "label": "Public Limited Company" },
+                        { "value": "other", "label": "Other" }
+                  ]
+            },
+            {
                   "id": "auditTurnover",
                   "key": "auditTurnover",
                   "type": "single",
                   "required": true,
                   "title": "What is your annual business turnover?",
                   "options": [
-                        {
-                              "value": "below1Cr",
-                              "label": "Below ₹1 Crore"
-                        },
-                        {
-                              "value": "1Cr-5Cr",
-                              "label": "₹1 – ₹5 Crore"
-                        },
-                        {
-                              "value": "5Cr-20Cr",
-                              "label": "₹5 – ₹20 Crore"
-                        },
-                        {
-                              "value": "above20Cr",
-                              "label": "Above ₹20 Crore"
-                        }
+                        { "value": "below1Cr", "label": "Below ₹1 Crore" },
+                        { "value": "1Cr-5Cr", "label": "₹1 – ₹5 Crore" },
+                        { "value": "5Cr-20Cr", "label": "₹5 – ₹20 Crore" },
+                        { "value": "above20Cr", "label": "Above ₹20 Crore" }
                   ]
+            },
+            {
+                  "id": "auditDeadline",
+                  "key": "auditDeadline",
+                  "type": "date",
+                  "required": true,
+                  "title": "Audit deadline",
+                  "subtitle": "When do you need the audit completed?",
+                  "placeholder": "Select date"
             }
       ],
       "photography": [
@@ -438,28 +482,37 @@ const WI_SERVICES = {
                   ]
             },
             {
+                  "id": "photographyEventDate",
+                  "key": "photographyEventDate",
+                  "type": "date",
+                  "required": true,
+                  "title": "Event date",
+                  "subtitle": "When is your event / photoshoot?",
+                  "placeholder": "Select date"
+            },
+            {
                   "id": "photographyDuration",
-                  "key": "urgency",
+                  "key": "photographyDuration",
                   "type": "single",
                   "required": true,
                   "title": "How long is the shoot?",
                   "options": [
-                        {
-                              "value": "1-2hours",
-                              "label": "1–2 hours"
-                        },
-                        {
-                              "value": "half-day",
-                              "label": "Half day (3–5 hours)"
-                        },
-                        {
-                              "value": "full-day",
-                              "label": "Full day"
-                        },
-                        {
-                              "value": "multi-day",
-                              "label": "Multiple days"
-                        }
+                        { "value": "few-hours", "label": "Few hours" },
+                        { "value": "half-day", "label": "Half day (3–5 hours)" },
+                        { "value": "full-day", "label": "Full day" },
+                        { "value": "multiple", "label": "Multiple days" }
+                  ]
+            },
+            {
+                  "id": "photographyVideography",
+                  "key": "photographyVideography",
+                  "type": "single",
+                  "required": true,
+                  "title": "Need videography also?",
+                  "subtitle": "Do you also need video recording services?",
+                  "options": [
+                        { "value": "yes", "label": "🎥 Yes, include videography" },
+                        { "value": "no", "label": "📷 No, photography only" }
                   ]
             }
       ],
@@ -502,28 +555,58 @@ const WI_SERVICES = {
                   ]
             },
             {
+                  "id": "devProjectStage",
+                  "key": "devProjectStage",
+                  "type": "single",
+                  "required": true,
+                  "title": "Project stage",
+                  "subtitle": "What stage is your project at?",
+                  "options": [
+                        { "value": "idea", "label": "Idea stage" },
+                        { "value": "requirements", "label": "Requirements defined" },
+                        { "value": "design-ready", "label": "Design ready" },
+                        { "value": "partial", "label": "Partially developed" },
+                        { "value": "upgrade", "label": "Existing system upgrade" }
+                  ]
+            },
+            {
+                  "id": "devPlatform",
+                  "key": "devPlatform",
+                  "type": "multi",
+                  "required": true,
+                  "title": "Platform needed",
+                  "subtitle": "Which platforms should the app support?",
+                  "options": [
+                        { "value": "android", "label": "Android" },
+                        { "value": "ios", "label": "iOS" },
+                        { "value": "web", "label": "Web" },
+                        { "value": "cross-platform", "label": "Cross-platform" },
+                        { "value": "not-sure", "label": "Not sure yet" }
+                  ]
+            },
+            {
                   "id": "devTimeline",
-                  "key": "urgency",
+                  "key": "devTimeline",
                   "type": "single",
                   "required": true,
                   "title": "What is your project timeline?",
                   "options": [
-                        {
-                              "value": "immediate",
-                              "label": "🔴 ASAP (within 1 week)"
-                        },
-                        {
-                              "value": "2-3days",
-                              "label": "🟠 Within 2–4 weeks"
-                        },
-                        {
-                              "value": "month",
-                              "label": "🟡 1–3 months"
-                        },
-                        {
-                              "value": "flexible",
-                              "label": "🔵 Flexible"
-                        }
+                        { "value": "asap", "label": "🔴 ASAP (within 1 week)" },
+                        { "value": "1-2months", "label": "🟠 1–2 months" },
+                        { "value": "3-6months", "label": "🟡 3–6 months" },
+                        { "value": "flexible", "label": "🔵 Flexible" }
+                  ]
+            },
+            {
+                  "id": "devMaintenance",
+                  "key": "devMaintenance",
+                  "type": "single",
+                  "required": true,
+                  "title": "Need ongoing maintenance?",
+                  "subtitle": "Do you need support after project completion?",
+                  "options": [
+                        { "value": "yes", "label": "✅ Yes, need maintenance support" },
+                        { "value": "no", "label": "❌ No, just build and handover" }
                   ]
             }
       ]
@@ -559,7 +642,13 @@ const WI_SERVICES = {
         "required": true,
         "title": "Enter your address",
         "subtitle": "So we can find professionals near you",
-        "fields": {}
+        "fields": {
+            "building": { "label": "House / Building", "placeholder": "e.g. Sunshine Apartments", "required": true },
+            "area": { "label": "Area / Locality", "placeholder": "e.g. Koramangala", "required": true },
+            "city": { "label": "City", "placeholder": "e.g. Bengaluru", "required": true },
+            "state": { "label": "State", "placeholder": "Select your state", "required": true, "type": "select" },
+            "pincode": { "label": "PIN Code", "placeholder": "e.g. 560034", "required": true }
+        }
     },
     "clientLocation": {
         "id": "client_location",
@@ -568,7 +657,11 @@ const WI_SERVICES = {
         "required": true,
         "title": "Where are you based?",
         "subtitle": "Helps match you with professionals in your region",
-        "fields": {}
+        "fields": {
+            "city": { "label": "City", "placeholder": "e.g. Bengaluru", "required": true },
+            "state": { "label": "State", "placeholder": "Select your state", "required": true, "type": "select" },
+            "pincode": { "label": "Pincode", "placeholder": "e.g. 560034", "required": true }
+        }
     },
     "urgency": {
         "id": "urgency",
