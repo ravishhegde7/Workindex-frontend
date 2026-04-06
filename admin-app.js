@@ -4761,9 +4761,9 @@ function buildSingleQuestionBlock(q, idx, prefix) {
           '<div><label style="font-size:11px;color:#606078;display:block;margin-bottom:3px;">Default ₹</label><input type="number" id="' + prefix + 'qslDef_' + idx + '" value="' + (q.sliderDefault||5000) + '" style="width:100%;padding:7px 10px;border:1px solid #2a2a38;border-radius:6px;background:#0f0f13;color:#f0f0f4;font-size:12px;box-sizing:border-box;"></div>' +
           '<div style="grid-column:1/-1"><label style="font-size:11px;color:#606078;display:block;margin-bottom:3px;">Format string (use {value})</label><input type="text" id="' + prefix + 'qslFmt_' + idx + '" value="' + esc(q.sliderFormat||'₹{value}') + '" placeholder="₹{value}" style="width:100%;padding:7px 10px;border:1px solid #2a2a38;border-radius:6px;background:#0f0f13;color:#f0f0f4;font-size:12px;box-sizing:border-box;"></div>' +
         '</div>'
-      : q.type === 'address'
+      : (q.type === 'address' || q.type === 'address-simple')
       ? '<div>' +
-          '<div style="font-size:11px;color:#606078;margin-bottom:8px;">Address fields are fixed (building, area, pincode, city, state, landmark). The ID determines which address variant is used: <code style="color:#FC8019">full_address</code> = full address, <code style="color:#FC8019">client_location</code> = city/state/pincode only.</div>' +
+          '<div style="font-size:11px;color:#606078;margin-bottom:8px;">Address fields are fixed. The ID determines which variant is used: <code style="color:#FC8019">full_address</code> = full address (building/area/city/state/pincode), <code style="color:#FC8019">client_location</code> = city/state/pincode only.</div>' +
           '<div style="background:rgba(252,128,25,0.05);border:1px solid rgba(252,128,25,0.2);border-radius:6px;padding:10px;font-size:12px;color:#a0a0b8;">Fields auto-generated from ID. Set ID to <strong style="color:#FC8019">full_address</strong> or <strong style="color:#FC8019">client_location</strong>.</div>' +
         '</div>'
       : q.type === 'pincode'
