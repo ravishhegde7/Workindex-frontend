@@ -1919,7 +1919,9 @@ function buildQuestionSequence() {
     if (locType === 'my-location' || locType === 'professional-office') {
       seq.push(q.common.full_address.id);
     } else if (locType === 'online') {
-      seq.push(q.common.clientLocation.id);
+      // client_location is the key in common object (matches q.id)
+      const clientLocStep = q.common.client_location || q.common.clientLocation;
+      if (clientLocStep) seq.push(clientLocStep.id);
     }
 
     seq.push(
