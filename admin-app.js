@@ -4526,6 +4526,7 @@ var Q_TYPES = [
   { value: 'radio',          label: '⚪ Single Choice (Radio)' },
   { value: 'checkbox',       label: '☑️ Multiple Choice (Checkbox)' },
   { value: 'text',           label: '✏️ Short Text Input' },
+     { value: 'date',     label: '📅 Date Picker' },
   { value: 'textarea',       label: '📝 Long Text (Textarea)' },
   { value: 'select',         label: '🔽 Dropdown Select' },
   { value: 'address',        label: '📍 Address (Full — building, area, city, state, pincode)' },
