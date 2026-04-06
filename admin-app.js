@@ -4523,14 +4523,15 @@ var _editingCategoryId = null;
  
 // Question type definitions
 var Q_TYPES = [
-  { value: 'radio',    label: '⚪ Single Choice (Radio)' },
-  { value: 'checkbox', label: '☑️ Multiple Choice (Checkbox)' },
-  { value: 'text',     label: '✏️ Short Text Input' },
-  { value: 'textarea', label: '📝 Long Text (Textarea)' },
-  { value: 'select',   label: '🔽 Dropdown Select' },
-  { value: 'address',  label: '📍 Address (Full — building, area, city, state, pincode)' },
-  { value: 'slider',   label: '🎚️ Budget Slider (₹ range)' },
-  { value: 'pincode',  label: '🔢 Pincode Input' },
+  { value: 'radio',          label: '⚪ Single Choice (Radio)' },
+  { value: 'checkbox',       label: '☑️ Multiple Choice (Checkbox)' },
+  { value: 'text',           label: '✏️ Short Text Input' },
+  { value: 'textarea',       label: '📝 Long Text (Textarea)' },
+  { value: 'select',         label: '🔽 Dropdown Select' },
+  { value: 'address',        label: '📍 Address (Full — building, area, city, state, pincode)' },
+  { value: 'address-simple', label: '📍 Address (Simple — city, state, pincode only)' },
+  { value: 'slider',         label: '🎚️ Budget Slider (₹ range)' },
+  { value: 'pincode',        label: '🔢 Pincode Input' },
 ];
  
 window.loadServiceCategories = function() {
