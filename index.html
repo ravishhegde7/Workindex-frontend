@@ -1847,36 +1847,6 @@
   </div>
 </div>
 
-<!-- Payment Modal (UPI Mockup) -->
-<div id="paymentModal" class="modal-overlay" onclick="closePaymentModal(event)">
-  <div class="modal-sheet" onclick="event.stopPropagation()">
-    <div class="modal-handle"></div>
-    <div class="modal-header">
-      <h3 class="modal-title">Complete Payment</h3>
-      <p class="modal-subtitle">Scan QR or pay via UPI</p>
-    </div>
-    <div class="modal-body" style="text-align: center;">
-      <div style="width: 200px; height: 200px; margin: 20px auto; background: var(--bg-gray); border: 2px solid var(--border); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 64px;">
-        📱
-      </div>
-      <div style="margin: 20px 0;">
-        <div style="font-size: 32px; font-weight: 700; color: var(--text);" id="paymentAmount">₹2,700</div>
-        <div style="font-size: 14px; color: var(--text-muted);" id="paymentCredits">100 Credits</div>
-      </div>
-      <div style="background: var(--bg-gray); padding: 16px; border-radius: 12px; margin: 20px 0;">
-        <div style="font-size: 13px; color: var(--text-muted); margin-bottom: 8px;">UPI ID</div>
-        <div style="font-size: 16px; font-weight: 600; color: var(--text);">workindex@upi</div>
-      </div>
-      <div style="font-size: 13px; color: var(--text-light); line-height: 1.6;">
-        This is a demo payment. In production, you'll use real UPI payment gateway.
-      </div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn-outline" onclick="closePaymentModal()" style="flex: 1;">Cancel</button>
-      <button class="btn-primary" onclick="confirmPayment()" style="flex: 1;">I've Paid</button>
-    </div>
-  </div>
-</div>
 
 <!-- External JavaScript -->
 
@@ -3379,7 +3349,9 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
   
 <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script src="/services-config.js"></script>
-  <script src="/app.js"></script>
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script src="/app.js"></script>
+  
 <!-- BLOCK / REPORT MODAL -->
 <div id="blockReportModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1002; display:none; align-items:flex-end; justify-content:center;">
   <div style="background:var(--bg); width:100%; max-width:500px; border-radius:20px 20px 0 0; padding:24px 20px 40px;">
