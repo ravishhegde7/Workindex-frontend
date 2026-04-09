@@ -408,6 +408,59 @@
               <div id="visitStates" style="display:flex;flex-direction:column;gap:6px;max-height:200px;overflow-y:auto;">
                 <div style="font-size:13px;color:#606078;">Loading...</div>
               </div>
+
+              <!-- See More toggle -->
+              <div style="margin-top:16px;text-align:center;">
+                <button id="visitSeeMoreBtn" onclick="toggleVisitDetails()" style="padding:7px 20px;border:1px solid rgba(252,128,25,0.4);border-radius:8px;background:rgba(252,128,25,0.08);color:#FC8019;font-size:13px;font-weight:600;cursor:pointer;">
+                  📊 See More Analytics ▾
+                </button>
+              </div>
+
+              <!-- Extended analytics (hidden by default) -->
+              <div id="visitExtended" style="display:none;margin-top:16px;border-top:1px solid #1e1e2e;padding-top:16px;">
+
+                <!-- Unique vs Returning -->
+                <div style="font-size:11px;font-weight:700;color:#606078;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;">👤 Unique vs Returning</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:20px;">
+                  <div style="background:#18181d;border-radius:10px;padding:12px;text-align:center;">
+                    <div style="font-size:18px;font-weight:800;color:#FC8019;" id="visitUnique">—</div>
+                    <div style="font-size:11px;color:#606078;margin-top:2px;">Unique IPs</div>
+                  </div>
+                  <div style="background:#18181d;border-radius:10px;padding:12px;text-align:center;">
+                    <div style="font-size:18px;font-weight:800;color:#22c55e;" id="visitNew">—</div>
+                    <div style="font-size:11px;color:#606078;margin-top:2px;">New Visitors</div>
+                  </div>
+                  <div style="background:#18181d;border-radius:10px;padding:12px;text-align:center;">
+                    <div style="font-size:18px;font-weight:800;color:#a855f7;" id="visitReturning">—</div>
+                    <div style="font-size:11px;color:#606078;margin-top:2px;">Returning</div>
+                  </div>
+                </div>
+
+                <!-- Browser breakdown -->
+                <div style="font-size:11px;font-weight:700;color:#606078;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;">🌐 Browser Type</div>
+                <div id="visitBrowsers" style="display:flex;flex-direction:column;gap:6px;margin-bottom:20px;">
+                  <div style="font-size:13px;color:#606078;">Loading...</div>
+                </div>
+
+                <!-- Traffic source / referrer -->
+                <div style="font-size:11px;font-weight:700;color:#606078;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;">🔗 Traffic Source</div>
+                <div id="visitSources" style="display:flex;flex-direction:column;gap:6px;margin-bottom:20px;">
+                  <div style="font-size:13px;color:#606078;">Loading...</div>
+                </div>
+
+                <!-- Country breakdown -->
+                <div style="font-size:11px;font-weight:700;color:#606078;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;">🌍 Country Breakdown</div>
+                <div id="visitCountries" style="display:flex;flex-direction:column;gap:6px;max-height:180px;overflow-y:auto;margin-bottom:20px;">
+                  <div style="font-size:13px;color:#606078;">Loading...</div>
+                </div>
+
+                <!-- Hourly activity -->
+                <div style="font-size:11px;font-weight:700;color:#606078;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;">🕐 Most Active Hours (IST)</div>
+                <div id="visitHourly" style="display:flex;flex-direction:column;gap:4px;">
+                  <div style="font-size:13px;color:#606078;">Loading...</div>
+                </div>
+
+              </div>
             </div>
           </div>
           
