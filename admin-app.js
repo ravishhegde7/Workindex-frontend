@@ -625,25 +625,39 @@ emailNotifications: loadEmailNotifications,
    /* ═══ PROFILE STRENGTH ═══════════════════════════════════════════════════ */
 function calculateAdminProfileStrength(u) {
   var pr = u.profile || {};
+
+  // ── Normalize questionnaire keys (same as app.js renderExpertProfile) ──
+  var bio            = pr.bio            || pr.expert_bio            || '';
+  var specialization = pr.specialization || pr.expert_specialization || u.specialization || '';
+  var city           = pr.city           || pr.expert_city           || (u.location && u.location.city) || '';
+  var pincode        = pr.pincode        || pr.expert_pincode        || (u.location && u.location.pincode) || '';
+  var experience     = pr.experience     || pr.expert_experience     || u.yearsOfExperience || '';
+  var gstNumber      = pr.gstNumber      || '';
+  var licenseNumber  = pr.licenseNumber  || '';
+  var certNum        = pr.certificationNumber || '';
+  var education      = pr.education      || '';
+  var portfolio      = pr.portfolio      || '';
+  var profAddress    = pr.professionalAddress || '';
+
   var items = [
-    { label: 'Profile photo',        done: !!u.profilePhoto,                                              pts: 10 },
-    { label: 'Bio (30+ chars)',       done: !!(pr.bio && pr.bio.length >= 30),                            pts: 10 },
-    { label: 'Specialization',       done: !!(pr.specialization || u.specialization),                    pts: 10 },
-    { label: 'City + Pincode',       done: !!(pr.city && pr.pincode),                                    pts: 10 },
-    { label: 'GST / License / Cert', done: !!(pr.gstNumber || pr.licenseNumber || pr.certificationNumber), pts: 8  },
-    { label: 'Education',            done: !!(pr.education && pr.education.trim()),                      pts: 8  },
-    { label: 'Portfolio / Proof',    done: !!(pr.portfolio && pr.portfolio.trim()),                      pts: 8  },
-    { label: 'Experience',           done: !!(pr.experience || u.yearsOfExperience),                     pts: 8  },
-    { label: 'Professional address', done: !!(pr.professionalAddress && pr.professionalAddress.trim()),  pts: 8  },
-    { label: 'At least 1 review',   done: (u.reviewCount || 0) >= 1,                                    pts: 5  },
-    { label: 'At least 1 approach', done: (u.totalApproaches || 0) >= 1,                                pts: 5  },
-    { label: 'KYC verified',         done: !!(u.kyc && u.kyc.status === 'approved'),                     pts: 10 },
+    { label: 'Profile photo',        done: !!u.profilePhoto,                     pts: 10 },
+    { label: 'Bio (30+ chars)',       done: !!(bio && bio.length >= 30),          pts: 10 },
+    { label: 'Specialization',       done: !!specialization,                     pts: 10 },
+    { label: 'City + Pincode',       done: !!(city && pincode),                  pts: 10 },
+    { label: 'GST / License / Cert', done: !!(gstNumber || licenseNumber || certNum), pts: 8  },
+    { label: 'Education',            done: !!(education && education.trim()),     pts: 8  },
+    { label: 'Portfolio / Proof',    done: !!(portfolio && portfolio.trim()),     pts: 8  },
+    { label: 'Experience',           done: !!experience,                         pts: 8  },
+    { label: 'Professional address', done: !!(profAddress && profAddress.trim()), pts: 8  },
+    { label: 'At least 1 review',   done: (u.reviewCount || 0) >= 1,            pts: 5  },
+    { label: 'At least 1 approach', done: (u.totalApproaches || 0) >= 1,        pts: 5  },
+    { label: 'KYC verified',         done: !!(u.kyc && u.kyc.status === 'approved'), pts: 10 },
   ];
+
   var score = 0;
   items.forEach(function(c) { if (c.done) score += c.pts; });
   return { score: Math.min(score, 100), items: items };
 }
-
 function renderAdminStrengthMeter(u) {
   var result  = calculateAdminProfileStrength(u);
   var score   = result.score;
