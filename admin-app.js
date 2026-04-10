@@ -1540,16 +1540,62 @@ var kycBtn = kycCount > 0
   }
 
   /* ═══ PAYMENTS ═══════════════════════════════════════════════════════════ */
+  var _pyStatus = 'all';
+
   function loadPayments() {
     setT('pyTbl', spin());
-    api('payments/failed' + qs({})).then(function(d) {
-      var payments = d.payments || [];
-      if (!payments.length) { setT('pyTbl', '<tr><td colspan="6" style="text-align:center;padding:30px;color:#606078">No failed payments found</td></tr>'); return; }
-      setT('pyTbl', payments.map(function(p) {
-        var u = p.user || {};
-        return '<tr><td>' + uLnk(u._id||'', u.name||'-') + '<br><small style="color:#606078">' + esc(u.email||'') + '</small></td><td style="color:#ef4444">&#8377;' + (p.amount||0) + '</td><td style="font-size:12px">' + esc(p.gateway||'-') + '</td><td style="font-size:12px;color:#f59e0b">' + esc(p.failureReason||p.reason||'-') + '</td><td style="font-size:12px;color:#a0a0b8">' + fmtT(p.createdAt) + '</td><td><span class="btn bgho" data-uid="' + (u._id||'') + '">Profile</span></td></tr>';
-      }).join(''));
-    }).catch(function() { setT('pyTbl', '<tr><td colspan="6" style="text-align:center;padding:30px;color:#606078">Payments API not available</td></tr>'); });
+
+    // Wire up filter dropdown
+    var filterSel = g('pyStatusFilter');
+    if (filterSel && !filterSel._wired) {
+      filterSel._wired = true;
+      filterSel.onchange = function() { _pyStatus = this.value; loadPayments(); };
+    }
+
+    var statusParam = (_pyStatus && _pyStatus !== 'all') ? '&status=' + _pyStatus : '';
+    api('payments?limit=200' + statusParam + (dF ? '&from=' + dF : '') + (dT ? '&to=' + dT : ''))
+      .then(function(d) {
+        var payments = d.payments || [];
+        var pc = g('pyCount'); if (pc) pc.textContent = payments.length + ' records';
+
+        if (!payments.length) {
+          setT('pyTbl', '<tr><td colspan="9" style="text-align:center;padding:30px;color:#606078">No payments found</td></tr>');
+          return;
+        }
+
+        var statusMap = {
+          success:  '<span class="badge bgr">✅ Success</span>',
+          failed:   '<span class="badge brd">❌ Failed</span>',
+          pending:  '<span class="badge byw">⏳ Pending</span>',
+          refunded: '<span class="badge bpu">💸 Refunded</span>'
+        };
+
+        setT('pyTbl', payments.map(function(p) {
+          var u = p.user || {};
+          var meta = p.metadata || {};
+
+          var statusBadge = statusMap[p.paymentStatus] || '<span class="badge bgy">' + esc(p.paymentStatus||'-') + '</span>';
+          var creditedVia = meta.creditedVia ? '<div style="font-size:10px;color:#a855f7;">via ' + esc(meta.creditedVia) + '</div>' : '';
+          var amtColor = p.paymentStatus === 'success' ? '#22c55e' : p.paymentStatus === 'failed' ? '#ef4444' : '#f59e0b';
+          var rpPay = meta.razorpayPaymentId ? '<div style="font-size:10px;color:#606078;font-family:monospace" title="' + esc(meta.razorpayPaymentId) + '">pay:…' + meta.razorpayPaymentId.slice(-8) + '</div>' : '';
+          var rpOrd = meta.razorpayOrderId   ? '<div style="font-size:10px;color:#606078;font-family:monospace" title="' + esc(meta.razorpayOrderId) + '">ord:…' + meta.razorpayOrderId.slice(-8) + '</div>' : '';
+          var failReason = meta.failureReason ? '<div style="font-size:11px;color:#f59e0b;margin-top:2px">' + esc(meta.failureReason.substring(0,50)) + '</div>' : '';
+
+          return '<tr>' +
+            '<td>' + uLnk(u._id||'', u.name||'-') + '<br><small style="color:#606078">' + esc(u.email||'') + '</small><br><small style="color:#606078">' + esc(u.phone||'') + '</small></td>' +
+            '<td><span style="color:' + amtColor + ';font-weight:700;">₹' + (p.amount||0).toLocaleString('en-IN') + '</span></td>' +
+            '<td style="color:#f59e0b;font-weight:600;font-size:15px;">' + (p.credits||0) + '</td>' +
+            '<td>' + statusBadge + creditedVia + '</td>' +
+            '<td style="font-size:12px;color:#3b82f6;font-weight:600">' + esc(p.paymentMethod||'razorpay') + '</td>' +
+            '<td>' + rpPay + rpOrd + failReason + '</td>' +
+            '<td style="font-size:12px;color:#606078">' + esc(meta.packId||'-') + '</td>' +
+            '<td style="font-size:12px;color:#a0a0b8">' + fmtT(p.createdAt) + '</td>' +
+            '<td><span class="btn bgho" style="font-size:12px;padding:5px 8px" data-uid="' + esc(u._id||'') + '">Profile</span></td>' +
+          '</tr>';
+        }).join(''));
+      }).catch(function() {
+        setT('pyTbl', '<tr><td colspan="9" style="text-align:center;padding:30px;color:#606078">Error loading payments</td></tr>');
+      });
   }
 
   /* ═══ COMMUNICATION ══════════════════════════════════════════════════════ */
