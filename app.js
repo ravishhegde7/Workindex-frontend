@@ -286,12 +286,9 @@ function enterDashboard() {
   fetch(`${API_URL}/auth/me`, {
     headers: { 'Authorization': `Bearer ${state.token}` }
   }).then(r => r.json()).then(data => {
-    console.log('[/me raw response]', JSON.stringify(data));         // ← NEW
-    console.log('[/me isRestricted from server]', data?.user?.isRestricted); // ← NEW
     if (data.success && data.user) {
       state.user = { ...state.user, ...data.user };
       localStorage.setItem('user', JSON.stringify(state.user));
-      console.log('[state.user after merge]', state.user.isRestricted, state.user.warnings);
     }
   }).catch(err => console.error('[/me failed]', err)).finally(() => {
     setTimeout(() => showWarningPopupIfNeeded(), 600);
@@ -1436,7 +1433,6 @@ async function viewExpertProfile(expertId, loggedIn = false) {
     if (!data.success) { showToast('Could not load profile', 'error'); return; }
 
     const expert = data.expert || data.user;
-    console.log('Expert data:', JSON.stringify(expert));
     const profile = expert.profile || {};
 
     const specialization = profile.specialization || expert.specialization || 'Professional';
