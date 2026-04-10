@@ -775,8 +775,7 @@ async function submitRating() {
   const review = document.getElementById('reviewText').value.trim();
   const wouldRecommend = document.getElementById('wouldRecommend').checked;
   
-  // ✅ ADD DEBUG
-  console.log('Submitting rating with:', { expertId, requestId, approachId, rating });
+  
   
   if (rating === 0) {
     showToast('Please select a rating', 'warning');
