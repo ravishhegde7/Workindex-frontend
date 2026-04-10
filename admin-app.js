@@ -1586,9 +1586,9 @@ var kycBtn = kycCount > 0
             '<td><span style="color:' + amtColor + ';font-weight:700;">₹' + (p.amount||0).toLocaleString('en-IN') + '</span></td>' +
             '<td style="color:#f59e0b;font-weight:600;font-size:15px;">' + (p.credits||0) + '</td>' +
             '<td>' + statusBadge + creditedVia + '</td>' +
-            '<td style="font-size:12px;color:#3b82f6;font-weight:600">' + esc(p.paymentMethod||'razorpay') + '</td>' +
+            '<td style="font-size:12px;color:#3b82f6;font-weight:600">' + esc(meta.paymentMethod||p.paymentMethod||'razorpay') + '</td>' +
+            '<td style="font-size:12px;color:#a0a0b8">' + esc(meta.paymentInstrument||'-') + '</td>' +
             '<td>' + rpPay + rpOrd + failReason + '</td>' +
-            '<td style="font-size:12px;color:#606078">' + esc(meta.packId||'-') + '</td>' +
             '<td style="font-size:12px;color:#a0a0b8">' + fmtT(p.createdAt) + '</td>' +
             '<td><span class="btn bgho" style="font-size:12px;padding:5px 8px" data-uid="' + esc(u._id||'') + '">Profile</span></td>' +
           '</tr>';
