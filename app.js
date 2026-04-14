@@ -263,7 +263,7 @@ async function register(formData) {
   localStorage.setItem('user', JSON.stringify(state.user));
   
   showToast('Registration successful!', 'success');
-  startQuestionnaire(); // ← NEW: Go to questionnaire instead
+   startQuestionnaire(state.user.role); // ← NEW: Go to questionnaire instead
 }  else {
       showToast(data.message || 'Registration failed', 'error');
     }
