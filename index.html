@@ -3253,7 +3253,7 @@ function switchTermsTab(tab) {
 
 // ─── NEW REQUEST ─────────────────────────────────────────
 function showNewRequestForm() {
-  startQuestionnaire();
+    startQuestionnaire(state.user?.role);
 }
 
 // Attach terms modal backdrop close — runs after DOM ready
