@@ -1906,23 +1906,28 @@ function buildQuestionSequence() {
   }
   
 // ─── START QUESTIONNAIRE ───
-function startQuestionnaire() {
-  const role = state.user?.role || selectedRole;
+function startQuestionnaire(forceRole) {
+  const role = forceRole || (state.user && state.user.role) || selectedRole;
   qState = {
     step: 0,
-    sequence: ['service'],
+    sequence: [],
     answers: {},
     role: role
   };
 
-  // For experts: build the expert sequence immediately, skip service picker entirely
   if (role === 'expert') {
-    qState.sequence = buildQuestionSequence();
+    // Build expert sequence directly without going through buildQuestionSequence
+    // which relies on answers.service being set
+    const expertSteps = WI_SERVICES.questionnaire.expert;
+    qState.sequence = expertSteps.map(function(s) { return s.id; });
+    qState.step = 0;
+  } else {
+    qState.sequence = ['service'];
     qState.step = 0;
   }
 
   showPage('questionnaire');
-  setTimeout(() => renderQuestion(), 50);
+  setTimeout(function() { renderQuestion(); }, 50);
 }
   
  // ── Question lookup: finds a step by its id across WI_SERVICES ──
@@ -2988,7 +2993,7 @@ async function handleVerifySignupOTP() {
         showPage('questionnaire');
         renderQuestion();
       } else {
-        startQuestionnaire();
+        startQuestionnaire(data.user.role);
       }
     } else {
       showToast(data.message || 'Invalid code', 'error');
