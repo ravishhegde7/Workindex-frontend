@@ -1987,6 +1987,16 @@ function startQuestionnaire(forceRole) {
   
 // ─── RENDER CURRENT QUESTION ───
 function renderQuestion() {
+  // Guard: if expert role but sequence got corrupted, rebuild it
+  if (qState.role === 'expert' && 
+      (qState.sequence.length === 0 || qState.sequence[0] === 'service')) {
+    const expertSteps = WI_SERVICES && WI_SERVICES.questionnaire && WI_SERVICES.questionnaire.expert;
+    if (expertSteps && expertSteps.length) {
+      qState.sequence = expertSteps.map(function(s) { return s.id; });
+      qState.step = 0;
+    }
+  }
+
   const stepKey = qState.sequence[qState.step];
   const question = _lookupQuestion(stepKey);
   
