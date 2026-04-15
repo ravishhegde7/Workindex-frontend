@@ -2144,32 +2144,25 @@ function renderQuestion() {
       "West Bengal"
     ];
 
-    // Fallback fields if DB hasn't saved addressFields yet
     const addressFields = Object.keys(question.fields).length > 0 ? question.fields : {
       building: { label: 'Flat / Building / Area', placeholder: 'e.g. 12B, Sunrise Apartments', required: true },
       area:     { label: 'Area / Locality', placeholder: 'e.g. Koramangala', required: true },
-      city:     { label: 'City', placeholder: 'e.g. Bengaluru', required: true },
-      state:    { label: 'State', placeholder: '', type: 'select', required: true },
-      pincode:  { label: 'Pincode', placeholder: '560034', required: true }
+      pincode:  { label: 'Pincode', placeholder: '560034', required: true, autoFillTrigger: true },
+      city:     { label: 'City', placeholder: 'e.g. Bengaluru', required: true, autoFilled: true },
+      state:    { label: 'State', placeholder: '', type: 'select', required: true, autoFilled: true }
     };
+
     html += '<div style="display: flex; flex-direction: column; gap: 16px;">';
     Object.entries(addressFields).forEach(([fieldKey, field]) => {
       const value = (qState.answers[question.key] || {})[fieldKey] || '';
       const questionKey = question.key;
       const isSelect = field.type === 'select';
-      const isPincode = fieldKey === 'pincode';
-      let extraHandler = '';
-      let extraDiv = '';
+      const isPincodeTrigger = field.autoFillTrigger === true;
+      const isAutoFilled = field.autoFilled === true;
 
-      if (isPincode) {
-        if (questionKey === 'fullAddress') {
-          extraHandler = `lookupAddressPincode(this.value);`;
-          extraDiv = `<div id="addressPincodeResult"></div>`;
-        } else if (questionKey === 'clientLocation') {
-          extraHandler = `lookupClientLocationPincode(this.value);`;
-          extraDiv = `<div id="clientLocationPincodeResult"></div>`;
-        }
-      }
+      // Determine autofill status for visual treatment
+      const currentVal = (qState.answers[question.key] || {})[fieldKey] || '';
+      const wasAutoFilled = isAutoFilled && currentVal && (qState.answers[question.key] || {})[fieldKey + '_autofilled'];
 
       if (isSelect) {
         const options = INDIA_STATES.map(s =>
@@ -2177,17 +2170,59 @@ function renderQuestion() {
         ).join('');
         html += `
           <div>
-            <label style="display: block; font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 8px;">${field.label}</label>
+            <label style="display: block; font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 8px;">
+              ${field.label}
+              ${isAutoFilled ? `<span id="autofill_badge_${questionKey}_${fieldKey}" style="display:${currentVal ? 'inline' : 'none'}; font-size:11px; color:#10b981; font-weight:700; margin-left:6px;">✓ autofilled</span>` : ''}
+            </label>
             <select
               id="q_${questionKey}_${fieldKey}"
-              style="width: 100%; padding: 14px; border: 2px solid var(--border); border-radius: 10px; font-size: 15px; background: var(--bg); color: var(--text);"
-              onchange="updateAddressField('${questionKey}', '${fieldKey}', this.value)">
+              style="width: 100%; padding: 14px; border: 2px solid ${currentVal && isAutoFilled ? '#10b981' : 'var(--border)'}; border-radius: 10px; font-size: 15px; background: ${currentVal && isAutoFilled ? 'rgba(16,185,129,0.04)' : 'var(--bg)'}; color: var(--text); transition: border-color 0.3s, background 0.3s;"
+              onchange="updateAddressField('${questionKey}', '${fieldKey}', this.value); clearAutoFillBadge('${questionKey}', '${fieldKey}')">
               <option value="">Select state...</option>
               ${options}
             </select>
           </div>
         `;
+      } else if (isPincodeTrigger) {
+        html += `
+          <div>
+            <label style="display: block; font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 8px;">${field.label}</label>
+            <div style="position:relative;">
+              <input type="text"
+                id="q_${questionKey}_${fieldKey}"
+                value="${value}"
+                placeholder="${field.placeholder}"
+                maxlength="6"
+                inputmode="numeric"
+                style="width: 100%; padding: 14px; border: 2px solid var(--border); border-radius: 10px; font-size: 15px; box-sizing:border-box;"
+                oninput="
+                  this.value = this.value.replace(/\\D/g,'');
+                  updateAddressField('${questionKey}', '${fieldKey}', this.value);
+                  if(this.value.length === 6) triggerPincodeAutofill('${questionKey}', this.value);
+                ">
+              <div id="pincode_spinner_${questionKey}" style="display:none; position:absolute; right:14px; top:50%; transform:translateY(-50%); font-size:12px; color:var(--text-muted);">⏳ Looking up...</div>
+            </div>
+            <div id="pincode_error_${questionKey}" style="display:none; margin-top:6px; font-size:12px; color:#ef4444;"></div>
+          </div>
+        `;
+      } else if (isAutoFilled) {
+        // City or state (text, non-select) that gets autofilled
+        html += `
+          <div>
+            <label style="display: block; font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 8px;">
+              ${field.label}
+              <span id="autofill_badge_${questionKey}_${fieldKey}" style="display:${currentVal ? 'inline' : 'none'}; font-size:11px; color:#10b981; font-weight:700; margin-left:6px;">✓ autofilled</span>
+            </label>
+            <input type="text"
+              id="q_${questionKey}_${fieldKey}"
+              value="${value}"
+              placeholder="${field.placeholder}"
+              style="width: 100%; padding: 14px; border: 2px solid ${currentVal ? '#10b981' : 'var(--border)'}; border-radius: 10px; font-size: 15px; background: ${currentVal ? 'rgba(16,185,129,0.04)' : 'var(--bg)'}; transition: border-color 0.3s, background 0.3s; box-sizing:border-box;"
+              oninput="updateAddressField('${questionKey}', '${fieldKey}', this.value); clearAutoFillBadge('${questionKey}', '${fieldKey}')">
+          </div>
+        `;
       } else {
+        // Normal non-autofill field (building, area, landmark)
         html += `
           <div>
             <label style="display: block; font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 8px;">${field.label}</label>
@@ -2196,10 +2231,8 @@ function renderQuestion() {
               data-address-field="${fieldKey}"
               value="${value}"
               placeholder="${field.placeholder}"
-              ${isPincode ? 'maxlength="6" inputmode="numeric"' : ''}
-              style="width: 100%; padding: 14px; border: 2px solid var(--border); border-radius: 10px; font-size: 15px;"
-              oninput="updateAddressField('${questionKey}', '${fieldKey}', this.value); ${extraHandler}">
-            ${extraDiv}
+              style="width: 100%; padding: 14px; border: 2px solid var(--border); border-radius: 10px; font-size: 15px; box-sizing:border-box;"
+              oninput="updateAddressField('${questionKey}', '${fieldKey}', this.value)">
           </div>
         `;
       }
