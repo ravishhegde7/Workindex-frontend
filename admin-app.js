@@ -4780,6 +4780,7 @@ function renderServiceCategoriesPage() {
           '<button class="btn bywn" onclick="seedDefaultCategories()" style="padding:8px 14px;font-size:13px">🌱 Seed Services</button>' +
           '<button class="btn bywn" style="padding:8px 14px;font-size:13px;background:rgba(99,102,241,0.15);color:#6366f1;border-color:rgba(99,102,241,0.4)" onclick="seedCommonSteps()">🔗 Seed Common Steps</button>' +
           '<button class="btn bywn" style="padding:8px 14px;font-size:13px;background:rgba(245,158,11,0.15);color:#f59e0b;border-color:rgba(245,158,11,0.4)" onclick="seedExpertSteps()">⭐ Seed Expert Steps</button>' +
+          '<button class="btn brdn" style="padding:8px 14px;font-size:13px" onclick="resetExpertSteps()">🗑 Reset Expert</button>' +
           '<button class="btn bpri" onclick="openCreateCategoryModal()" style="padding:8px 18px">+ Add Category</button>' +
         '</div>' +
       '</div>' +
