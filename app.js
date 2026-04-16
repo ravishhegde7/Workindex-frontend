@@ -4335,12 +4335,20 @@ function renderExpertProfile() {
   // Normalize new WI questionnaire keys to profile display keys
   if (!profile.bio && profile.expert_bio)                       profile.bio = profile.expert_bio;
   if (!profile.specialization && profile.expert_specialization) profile.specialization = profile.expert_specialization;
-  if (!profile.city && profile.expert_city)                     profile.city = profile.expert_city;
-  if (!profile.pincode && profile.expert_pincode)               profile.pincode = profile.expert_pincode;
+  // Support both flat keys and nested address object from expert_location_details
+const locDetails = profile.expert_location_details;
+if (locDetails && typeof locDetails === 'object') {
+  if (!profile.city)    profile.city    = locDetails.city    || profile.expert_city    || '';
+  if (!profile.pincode) profile.pincode = locDetails.pincode || profile.expert_pincode || '';
+  if (!profile.state)   profile.state   = locDetails.state   || profile.expert_state   || '';
+} else {
+  if (!profile.city    && profile.expert_city)    profile.city    = profile.expert_city;
+  if (!profile.pincode && profile.expert_pincode) profile.pincode = profile.expert_pincode;
+  if (!profile.state   && profile.expert_state)   profile.state   = profile.expert_state;
+}
   if (!profile.experience && profile.expert_experience)         profile.experience = profile.expert_experience;
   if (!profile.servicesOffered && profile.expert_services)      profile.servicesOffered = profile.expert_services;
   if (!profile.serviceLocationType && profile.expert_location)  profile.serviceLocationType = profile.expert_location;
-  if (!profile.state && profile.expert_state)                   profile.state = profile.expert_state;
   const kyc     = user.kyc    || {};
 
   const profileTab = document.getElementById('expertProfileTab');
