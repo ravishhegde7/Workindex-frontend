@@ -5160,6 +5160,12 @@ var qsubEl = g(prefix + 'qsub_' + idx);
         city:    { label: 'City',    placeholder: 'e.g. Bengaluru', required: true, autoFilled: true },
         state:   { label: 'State',   placeholder: 'Select state',    required: true, type: 'select', autoFilled: true }
       };
+    } else if (qidVal === 'expert_location_details') {
+      q.addressFields = {
+        pincode: { label: 'Pincode', placeholder: 'e.g. 560095',    required: true, autoFillTrigger: true },
+        city:    { label: 'City',    placeholder: 'e.g. Bengaluru', required: true, autoFilled: true },
+        state:   { label: 'State',   placeholder: 'Select state',    required: true, type: 'select', autoFilled: true }
+      };
     }
   }
 
