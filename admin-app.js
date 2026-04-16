@@ -1924,6 +1924,12 @@ g('invAmt').value = inrAmt > 0 ? inrAmt : '';
     state = (pr.state || '').trim() || null;
   }
 
+  // 4b. expert_location_details (new pincode-autofill address object)
+  if (!city && pr.expert_location_details && typeof pr.expert_location_details === 'object') {
+    city  = (pr.expert_location_details.city  || '').trim() || null;
+    state = (pr.expert_location_details.state || '').trim() || null;
+  }
+
   // 5. top-level user location field (fallback)
   if (!city && u.location) {
     city  = (u.location.city  || '').trim() || null;
