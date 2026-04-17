@@ -1967,6 +1967,39 @@ function renderClientRequests() {
     if (vals[2]) vals[2].textContent = completed;
   }
 
+  // ── Filter bar (always render, even if empty) ──
+  var currentFilter = (state.requestFilter || 'all');
+  var filterDefs = [
+    { key: 'all',       label: 'All',       icon: '📋' },
+    { key: 'pending',   label: 'Pending',   icon: '⏳' },
+    { key: 'active',    label: 'Active',    icon: '🟢' },
+    { key: 'completed', label: 'Completed', icon: '✅' },
+    { key: 'cancelled', label: 'Cancelled', icon: '❌' }
+  ];
+  var existingFilterBar = document.getElementById('requestFilterBar');
+  if (!existingFilterBar) {
+    var filterBar = document.createElement('div');
+    filterBar.id = 'requestFilterBar';
+    filterBar.style.cssText = 'display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;';
+    container.parentNode.insertBefore(filterBar, container);
+  }
+  document.getElementById('requestFilterBar').innerHTML = filterDefs.map(function(f) {
+    var isActive = f.key === currentFilter;
+    return '<button onclick="state.requestFilter=\'' + f.key + '\';renderClientRequests();" style="' +
+      'padding:7px 16px;border-radius:20px;border:1.5px solid ' + (isActive ? 'var(--primary)' : 'var(--border)') + ';' +
+      'background:' + (isActive ? 'var(--primary)' : 'var(--bg)') + ';' +
+      'color:' + (isActive ? '#fff' : 'var(--text-muted)') + ';' +
+      'font-size:12px;font-weight:700;cursor:pointer;transition:all 0.2s;white-space:nowrap;">' +
+      f.icon + ' ' + f.label + '</button>';
+  }).join('');
+
+  // ── Apply filter ──
+  var filteredRequests = currentFilter === 'all'
+    ? allRequests
+    : currentFilter === 'active'
+      ? allRequests.filter(function(r) { return r.status === 'active' || r.status === 'pending'; })
+      : allRequests.filter(function(r) { return r.status === currentFilter; });
+
   if (!allRequests.length) {
     container.innerHTML = '<div style="text-align:center;padding:48px 20px;">' +
       '<svg width="80" height="80" viewBox="0 0 80 80" fill="none" style="margin-bottom:16px;opacity:0.5;">' +
@@ -1981,7 +2014,11 @@ function renderClientRequests() {
       '</div>';
     return;
   }
-
+ if (!filteredRequests.length) {
+    container.innerHTML = '<div style="text-align:center;padding:48px 20px;color:var(--text-muted);font-size:14px;">' +
+      'No <strong>' + currentFilter + '</strong> requests found.</div>';
+    return;
+  }
   var svcColors = { itr:'#8b5cf6', gst:'#3b82f6', accounting:'#10b981', audit:'#f59e0b', photography:'#ec4899', development:'#06b6d4' };
   var stMap = {
     pending:   { label:'Pending',   color:'#f59e0b', bg:'rgba(245,158,11,0.1)',  icon:'⏳' },
