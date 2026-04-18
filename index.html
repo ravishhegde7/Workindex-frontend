@@ -1588,7 +1588,28 @@
       <h3 class="settings-section-title">Account Details</h3>
       <div style="padding: 12px 0; border-bottom: 1px solid var(--border);">
         <div style="font-size: 13px; color: var(--text-muted); margin-bottom: 4px;">Phone</div>
-        <div style="font-size: 15px; font-weight: 600;" id="profilePhone">+91 9876543210</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+          <div style="font-size:15px;font-weight:600;" id="profilePhone">Not provided</div>
+          <button onclick="toggleClientPhoneEdit()"
+            style="padding:5px 12px;border:1.5px solid var(--primary);border-radius:8px;background:transparent;color:var(--primary);font-size:12px;font-weight:600;cursor:pointer;flex-shrink:0;">
+            ✏️ Edit
+          </button>
+        </div>
+        <div id="clientPhoneEditArea" style="display:none;margin-top:10px;">
+          <div style="display:flex;gap:8px;">
+            <span style="padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;font-weight:600;background:var(--bg-gray);color:var(--text-muted);flex-shrink:0;">+91</span>
+            <input type="tel" id="clientPhoneEditInput" placeholder="10-digit mobile number"
+              maxlength="10" inputmode="numeric"
+              style="flex:1;padding:10px 12px;border:1.5px solid var(--primary);border-radius:8px;font-size:14px;background:var(--bg);color:var(--text);"
+              oninput="this.value=this.value.replace(/\D/g,'')">
+          </div>
+          <div style="display:flex;gap:8px;margin-top:8px;">
+            <button onclick="saveClientPhoneEdit()"
+              style="flex:1;padding:10px;background:var(--primary);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;">Save</button>
+            <button onclick="toggleClientPhoneEdit()"
+              style="flex:1;padding:10px;border:1.5px solid var(--border);border-radius:8px;background:transparent;color:var(--text);font-size:13px;cursor:pointer;">Cancel</button>
+          </div>
+        </div>
       </div>
       <div style="padding: 12px 0;">
         <div style="font-size: 13px; color: var(--text-muted); margin-bottom: 4px;">Member Since</div>
