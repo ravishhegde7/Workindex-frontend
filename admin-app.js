@@ -633,6 +633,8 @@ function calculateAdminProfileStrength(u) {
   var city           = pr.city           || pr.expert_city           || (locDet && locDet.city)    || (u.location && u.location.city)    || '';
   var pincode        = pr.pincode        || pr.expert_pincode        || (locDet && locDet.pincode) || (u.location && u.location.pincode) || '';
   var experience     = pr.experience     || pr.expert_experience     || u.yearsOfExperience || '';
+   var businessType   = pr.businessType   || pr.expert_business_type  || '';
+  var teamSize       = pr.teamSize       || pr.expert_team_size       || '';
   var gstNumber      = pr.gstNumber      || '';
   var licenseNumber  = pr.licenseNumber  || '';
   var certNum        = pr.certificationNumber || '';
@@ -1864,6 +1866,7 @@ g('invAmt').value = inrAmt > 0 ? inrAmt : '';
   function renderActTbl(users) {
     setT('acTbl', users.map(function(u) {
       var bb = u.isBanned ? '<button class="btn bgrn" data-act="unban" data-uid="' + u._id + '" data-nm="' + esc(u.name) + '">Unban</button>' : '<button class="btn brdn" data-act="ban" data-uid="' + u._id + '" data-nm="' + esc(u.name) + '">Ban</button>';
+      var delb = '<button class="btn brdn" style="background:rgba(139,0,0,0.25);border-color:rgba(139,0,0,0.6)" data-act="delete" data-uid="' + u._id + '" data-nm="' + esc(u.name) + '">🗑 Delete</button>';
       var fb = u.isFlagged ? '<button class="btn bgho" data-act="unflag" data-uid="' + u._id + '" data-nm="' + esc(u.name) + '">Unflag</button>' : '<button class="btn bgho" data-act="flag" data-uid="' + u._id + '" data-nm="' + esc(u.name) + '">Flag</button>';
       var rb = u.isRestricted
         ? '<button class="btn bgrn" data-act="unrestrict" data-uid="' + u._id + '" data-nm="' + esc(u.name) + '">Unrestrict</button>'
