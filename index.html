@@ -3844,11 +3844,7 @@ function showGooglePhoneScreen(user) {
         onclick="submitGooglePhone('${user._id}')">
         Save & Continue →
       </button>
-      <button style="width:100%; padding:10px; background:none; border:none;
-                     color:var(--text-muted); font-size:14px; cursor:pointer;"
-        onclick="skipGooglePhone()">
-        Skip for now
-      </button>
+      
     </div>
   `;
 
@@ -3876,7 +3872,8 @@ async function submitGooglePhone(userId) {
       showToast('Phone saved!', 'success');
     }
   } catch (e) {
-    // Non-fatal — continue regardless
+   showToast('Could not save phone. Please try again.', 'error');
+    return;  
   }
 
   proceedAfterGoogleSignup();
