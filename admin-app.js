@@ -288,8 +288,8 @@
           .then(function(d) { toast(d.message || 'Restricted'); searchActions(); })
           .catch(function() { toast('Error', 'e'); });
       } else if (act === 'delete') {
-        if (!confirm('PERMANENTLY DELETE ' + nm + '?\n\nThis will remove them from the database and cannot be undone.')) return;
-        var confirmName = prompt('Type the user\'s name to confirm deletion:');
+        if (!confirm('PERMANENTLY DELETE ' + nm + '? This cannot be undone.')) return;
+        var confirmName = prompt('Type the user name to confirm deletion:');
         if (confirmName !== nm) { toast('Name did not match — deletion cancelled', 'e'); return; }
         api('users/' + uid, 'DELETE').then(function(d) {
           if (d.success) { toast('User deleted permanently'); searchActions(); }
