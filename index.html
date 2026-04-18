@@ -3579,7 +3579,16 @@ const GOOGLE_CLIENT_ID = '385283993547-m41gp8puiq8a71f2856tu0bbskn7qir1.apps.goo
  
 // State for Google OTP flow
 let _gOtpEmail = null;  // email address waiting for OTP verification
- 
+
+function handleOTPVerify() {
+  // Route to correct handler depending on whether this is a Google OTP flow
+  if (_gOtpEmail) {
+    handleGoogleVerifyOTP();
+  } else {
+    handleVerifySignupOTP();
+  }
+}
+  
 // ── Render Google button into a container ──────────────────────────────────
 function renderGoogleButton(containerId, context) {
   if (!window.google || !window.google.accounts) return;
