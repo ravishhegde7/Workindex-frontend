@@ -3156,6 +3156,16 @@ if (/[^a-zA-Z\s\.\-']/.test(name)) {
   if (!/^[0-9]{10}$/.test(phone)) {
     showToast('Enter a valid 10-digit phone number', 'error'); return;
   }
+  if (!/^[6-9]/.test(phone)) {
+    showToast('Phone number must start with 6, 7, 8 or 9', 'error'); return;
+  }
+  if (/^(\d)\1{9}$/.test(phone)) {
+    showToast('Enter a valid phone number', 'error'); return;
+  }
+  var _invalidSeq = ['1234567890','0987654321','1234554321'];
+  if (_invalidSeq.indexOf(phone) !== -1) {
+    showToast('Enter a valid phone number', 'error'); return;
+  }
   if (password.length < 6) {
     showToast('Password must be at least 6 characters', 'error'); return;
   }
