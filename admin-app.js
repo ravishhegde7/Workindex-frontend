@@ -785,6 +785,8 @@ p0 += '</div>';
 if (u.role === 'expert') {
   var spec = u.specialization||pr.specialization, comp = u.companyName||pr.companyName||pr.company;
   var exp = u.yearsOfExperience||pr.yearsOfExperience||pr.experience, avail = u.availability||pr.availability;
+   var businessType = pr.businessType || pr.expert_business_type || '';
+var teamSize = pr.teamSize || pr.expert_team_size || '';
   var website = u.websiteUrl||pr.websiteUrl||pr.website;
   if (spec||comp||exp||avail||website) {
     p0 += '<div style="background:#18181d;border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:0">';
@@ -794,7 +796,9 @@ if (u.role === 'expert') {
     if (comp)    proRows.push(['Company', esc(comp), '#f0f0f4']);
     if (exp)     proRows.push(['Experience', esc(String(exp)) + ' yrs', '#f0f0f4']);
     if (avail)   proRows.push(['Availability', esc(avail), '#22c55e']);
-    proRows.forEach(function(row, i) {
+    if (businessType) proRows.push(['Business Type',  esc(businessType),'#f0f0f4']);
+    if (teamSize)     proRows.push(['Team Size',       esc(teamSize),    '#f0f0f4']);
+     proRows.forEach(function(row, i) {
       p0 += '<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;' + (i<proRows.length-1||website?'border-bottom:1px solid #222230':'') + '"><span style="font-size:12px;color:#606078">' + row[0] + '</span><span style="font-size:13px;color:' + row[2] + ';font-weight:600">' + row[1] + '</span></div>';
     });
     if (website) p0 += '<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0"><span style="font-size:12px;color:#606078">Website</span><a href="' + esc(website) + '" target="_blank" style="font-size:13px;color:#FC8019;text-decoration:none;max-width:65%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(website) + '</a></div>';
