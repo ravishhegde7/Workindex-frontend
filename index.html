@@ -3187,6 +3187,13 @@ async function handleVerifySignupOTP() {
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
       showToast('Account created!', 'success');
+
+      // Google users need to add phone before questionnaire
+    if (data.needsPhone) {
+      showGooglePhoneScreen(data.user);
+      return;
+    }
+      
       if (state.pendingServiceFlow && data.user.role === 'client') {
         const svc = state.pendingServiceFlow;
         state.pendingServiceFlow = null;
