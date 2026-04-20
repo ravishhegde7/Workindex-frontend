@@ -532,7 +532,7 @@
 @keyframes reviewScroll { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
 #reviewTrack { display: flex; gap: 20px; width: max-content; animation: reviewScroll 36s linear infinite; }
 #reviewTrack:hover { animation-play-state: paused; }
-.rv-card { width: 300px; flex-shrink: 0; border-radius: 16px; padding: 22px; display: flex; flex-direction: column; gap: 14px; background: var(--bg); border: 1.5px solid var(--border); transition: transform 0.2s, box-shadow 0.2s; }
+.rv-card { width: 300px; flex-shrink: 0; border-radius: 16px; padding: 22px; display: flex; flex-direction: column; gap: 14px; background: #ffffff; border: 1.5px solid var(--border); box-shadow: 0 2px 12px rgba(0,0,0,0.07); transition: transform 0.2s, box-shadow 0.2s; }
 .rv-card:hover { transform: translateY(-4px); box-shadow: 0 8px 28px rgba(252,128,25,0.15); border-color: #FC8019; }
 .rv-avatar { width: 46px; height: 46px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 700; flex-shrink: 0; border: 2px solid rgba(252,128,25,0.25); }
 .rv-name { font-size: 15px; font-weight: 700; color: var(--text); margin: 0 0 2px; }
@@ -542,7 +542,7 @@
 .rv-chip { display: inline-block; background: rgba(252,128,25,0.1); color: #d46a0a; font-size: 11px; font-weight: 700; padding: 4px 12px; border-radius: 20px; align-self: flex-start; border: 1px solid rgba(252,128,25,0.2); }
 </style>
 
-<div style="padding: 60px 0 40px; overflow: hidden; background: #fff;">
+<div style="padding: 60px 0 40px; overflow: hidden; background: #f5f5f5;">
   <div style="text-align: center; margin-bottom: 36px; padding: 0 20px;">
     <h2 style="font-size: 30px; font-weight: 800; color: var(--text); margin: 0 0 8px;">What our customers say</h2>
     <p style="font-size: 15px; color: var(--text-muted); margin: 0;">Hear from professionals and clients who use WorkIndex</p>
