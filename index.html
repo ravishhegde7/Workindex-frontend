@@ -532,14 +532,14 @@
 @keyframes reviewScroll { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
 #reviewTrack { display: flex; gap: 20px; width: max-content; animation: reviewScroll 36s linear infinite; }
 #reviewTrack:hover { animation-play-state: paused; }
-.rv-card { width: 300px; flex-shrink: 0; border-radius: 16px; padding: 22px; display: flex; flex-direction: column; gap: 14px; background: #ffffff; border: 1.5px solid var(--border); box-shadow: 0 2px 12px rgba(0,0,0,0.07); transition: transform 0.2s, box-shadow 0.2s; }
+.rv-card { width: 300px; flex-shrink: 0; border-radius: 16px; padding: 22px; display: flex; flex-direction: column; gap: 14px; background: #ffffff; border: 1.5px solid #e0e0e0; box-shadow: 0 4px 16px rgba(0,0,0,0.10); transition: transform 0.2s, box-shadow 0.2s; }
 .rv-card:hover { transform: translateY(-4px); box-shadow: 0 8px 28px rgba(252,128,25,0.15); border-color: #FC8019; }
 .rv-avatar { width: 46px; height: 46px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 700; flex-shrink: 0; border: 2px solid rgba(252,128,25,0.25); }
-.rv-name { font-size: 15px; font-weight: 700; color: var(--text); margin: 0 0 2px; }
-.rv-loc { font-size: 12px; color: var(--text-muted); margin: 0; }
-.rv-quote { font-size: 13px; color: var(--text-muted); line-height: 1.65; margin: 0; flex: 1; }
+.rv-name { font-size: 15px; font-weight: 800; color: #111111; margin: 0 0 2px; }
+.rv-loc { font-size: 12px; color: #666666; margin: 0; }
+.rv-quote { font-size: 14px; color: #333333; line-height: 1.65; margin: 0; flex: 1; }
 .rv-quote strong { color: #FC8019; font-weight: 600; }
-.rv-chip { display: inline-block; background: rgba(252,128,25,0.1); color: #d46a0a; font-size: 11px; font-weight: 700; padding: 4px 12px; border-radius: 20px; align-self: flex-start; border: 1px solid rgba(252,128,25,0.2); }
+.rv-chip { display: inline-block; background: #FC8019; color: #ffffff; font-size: 12px; font-weight: 700; padding: 6px 14px; border-radius: 20px; align-self: flex-start; border: none; }
 </style>
 
 <div style="padding: 60px 0 40px; overflow: hidden; background: #f5f5f5;">
@@ -549,8 +549,8 @@
   </div>
 
   <div style="overflow: hidden; position: relative;">
-    <div style="position:absolute;top:0;bottom:0;left:0;width:80px;background:linear-gradient(to right,#fff,transparent);z-index:2;pointer-events:none;"></div>
-    <div style="position:absolute;top:0;bottom:0;right:0;width:80px;background:linear-gradient(to left,#fff,transparent);z-index:2;pointer-events:none;"></div>
+    <div style="position:absolute;top:0;bottom:0;left:0;width:80px;background:linear-gradient(to right,#f5f5f5,transparent);z-index:2;pointer-events:none;"></div>
+    <div style="position:absolute;top:0;bottom:0;right:0;width:80px;background:linear-gradient(to left,#f5f5f5,transparent);z-index:2;pointer-events:none;"></div>
 
     <div id="reviewTrack">
 
@@ -559,7 +559,7 @@
           <div class="rv-avatar" style="background:#E6F1FB;color:#185FA5;">RK</div>
           <div><p class="rv-name">Rajesh Kumar</p><p class="rv-loc">ITR Filing · Bengaluru</p></div>
         </div>
-        <div style="font-size:16px;letter-spacing:1px;"><span style="color:#FC8019;">★★★★★</span></div>
+        <div style="font-size:18px;letter-spacing:2px;"><span style="color:#FC8019;">★★★★★</span></div>
         <p class="rv-quote">"Filed my ITR through WorkIndex — <strong>super smooth process</strong> and quick support. Highly reliable platform."</p>
         <span class="rv-chip">📄 ITR Filing</span>
       </div>
@@ -569,7 +569,7 @@
           <div class="rv-avatar" style="background:#E1F5EE;color:#0F6E56;">AN</div>
           <div><p class="rv-name">Ananya Naik</p><p class="rv-loc">GST Registration · Pune</p></div>
         </div>
-        <div style="font-size:16px;letter-spacing:1px;"><span style="color:#FC8019;">★★★★</span><span style="color:#ddd;">★</span></div>
+        <div style="font-size:18px;letter-spacing:2px;"><span style="color:#FC8019;">★★★★</span><span style="color:#cccccc;">★</span></div>
         <p class="rv-quote">"Got my GST registration done <strong>without any hassle</strong>. The expert handled everything end-to-end and kept me updated throughout."</p>
         <span class="rv-chip">🏢 GST Services</span>
       </div>
@@ -579,7 +579,7 @@
           <div class="rv-avatar" style="background:#FAEEDA;color:#854F0B;">PN</div>
           <div><p class="rv-name">Priya Nair</p><p class="rv-loc">Accounting · Kochi</p></div>
         </div>
-        <div style="font-size:16px;letter-spacing:1px;"><span style="color:#FC8019;">★★★★★</span></div>
+        <div style="font-size:18px;letter-spacing:2px;"><span style="color:#FC8019;">★★★★★</span></div>
         <p class="rv-quote">"Very professional and transparent. They <strong>simplified my monthly bookkeeping</strong> and gave useful financial insights too."</p>
         <span class="rv-chip">📊 Accounting</span>
       </div>
@@ -589,7 +589,7 @@
           <div class="rv-avatar" style="background:#FBEAF0;color:#993556;">NV</div>
           <div><p class="rv-name">Neha Verma</p><p class="rv-loc">Web Development · Delhi</p></div>
         </div>
-        <div style="font-size:16px;letter-spacing:1px;"><span style="color:#FC8019;">★★★★★</span></div>
+        <div style="font-size:18px;letter-spacing:2px;"><span style="color:#FC8019;">★★★★★</span></div>
         <p class="rv-quote">"Built my business website through WorkIndex. <strong>Quality and communication were excellent!</strong> They understood my requirements perfectly."</p>
         <span class="rv-chip">💻 Development</span>
       </div>
@@ -599,7 +599,7 @@
           <div class="rv-avatar" style="background:#EAF3DE;color:#3B6D11;">AP</div>
           <div><p class="rv-name">Amit Patel</p><p class="rv-loc">GST Filing · Ahmedabad</p></div>
         </div>
-        <div style="font-size:16px;letter-spacing:1px;"><span style="color:#FC8019;">★★★★</span><span style="color:#ddd;">★</span></div>
+        <div style="font-size:18px;letter-spacing:2px;"><span style="color:#FC8019;">★★★★</span><span style="color:#cccccc;">★</span></div>
         <p class="rv-quote">"Quick and efficient GST filing service. <strong>Saved me a lot of time</strong> — definitely using it again."</p>
         <span class="rv-chip">🏢 GST Services</span>
       </div>
@@ -609,7 +609,7 @@
           <div class="rv-avatar" style="background:#EEEDFE;color:#534AB7;">SR</div>
           <div><p class="rv-name">Sneha Reddy</p><p class="rv-loc">ITR Filing · Hyderabad</p></div>
         </div>
-        <div style="font-size:16px;letter-spacing:1px;"><span style="color:#FC8019;">★★★★★</span></div>
+        <div style="font-size:18px;letter-spacing:2px;"><span style="color:#FC8019;">★★★★★</span></div>
         <p class="rv-quote">"Great experience with ITR filing. The expert <strong>guided me properly</strong> and answered all my doubts. Completed on time, no confusion at all."</p>
         <span class="rv-chip">📄 ITR Filing</span>
       </div>
@@ -619,7 +619,7 @@
           <div class="rv-avatar" style="background:#FAECE7;color:#993C1D;">VS</div>
           <div><p class="rv-name">Vikram Singh</p><p class="rv-loc">Accounting · Mumbai</p></div>
         </div>
-        <div style="font-size:16px;letter-spacing:1px;"><span style="color:#FC8019;">★★★★</span><span style="color:#ddd;">★</span></div>
+        <div style="font-size:18px;letter-spacing:2px;"><span style="color:#FC8019;">★★★★</span><span style="color:#cccccc;">★</span></div>
         <p class="rv-quote">"WorkIndex helped me find <strong>the right professional</strong> for my startup accounting. Trustworthy experts and smooth coordination."</p>
         <span class="rv-chip">📊 Accounting</span>
       </div>
@@ -631,7 +631,7 @@
           <div class="rv-avatar" style="background:#E6F1FB;color:#185FA5;">RK</div>
           <div><p class="rv-name">Rajesh Kumar</p><p class="rv-loc">ITR Filing · Bengaluru</p></div>
         </div>
-        <div style="font-size:16px;letter-spacing:1px;"><span style="color:#FC8019;">★★★★★</span></div>
+        <div style="font-size:18px;letter-spacing:2px;"><span style="color:#FC8019;">★★★★★</span></div>
         <p class="rv-quote">"Filed my ITR through WorkIndex — <strong>super smooth process</strong> and quick support. Highly reliable platform."</p>
         <span class="rv-chip">📄 ITR Filing</span>
       </div>
@@ -641,7 +641,7 @@
           <div class="rv-avatar" style="background:#E1F5EE;color:#0F6E56;">AN</div>
           <div><p class="rv-name">Ananya Naik</p><p class="rv-loc">GST Registration · Pune</p></div>
         </div>
-        <div style="font-size:16px;letter-spacing:1px;"><span style="color:#FC8019;">★★★★</span><span style="color:#ddd;">★</span></div>
+        <div style="font-size:18px;letter-spacing:2px;"><span style="color:#FC8019;">★★★★</span><span style="color:#cccccc;">★</span></div>
         <p class="rv-quote">"Got my GST registration done <strong>without any hassle</strong>. The expert handled everything end-to-end and kept me updated throughout."</p>
         <span class="rv-chip">🏢 GST Services</span>
       </div>
@@ -651,7 +651,7 @@
           <div class="rv-avatar" style="background:#FAEEDA;color:#854F0B;">PN</div>
           <div><p class="rv-name">Priya Nair</p><p class="rv-loc">Accounting · Kochi</p></div>
         </div>
-        <div style="font-size:16px;letter-spacing:1px;"><span style="color:#FC8019;">★★★★★</span></div>
+        <div style="font-size:18px;letter-spacing:2px;"><span style="color:#FC8019;">★★★★★</span></div>
         <p class="rv-quote">"Very professional and transparent. They <strong>simplified my monthly bookkeeping</strong> and gave useful financial insights too."</p>
         <span class="rv-chip">📊 Accounting</span>
       </div>
@@ -661,7 +661,7 @@
           <div class="rv-avatar" style="background:#FBEAF0;color:#993556;">NV</div>
           <div><p class="rv-name">Neha Verma</p><p class="rv-loc">Web Development · Delhi</p></div>
         </div>
-        <div style="font-size:16px;letter-spacing:1px;"><span style="color:#FC8019;">★★★★★</span></div>
+        <div style="font-size:18px;letter-spacing:2px;"><span style="color:#FC8019;">★★★★★</span></div>
         <p class="rv-quote">"Built my business website through WorkIndex. <strong>Quality and communication were excellent!</strong> They understood my requirements perfectly."</p>
         <span class="rv-chip">💻 Development</span>
       </div>
@@ -671,7 +671,7 @@
           <div class="rv-avatar" style="background:#EAF3DE;color:#3B6D11;">AP</div>
           <div><p class="rv-name">Amit Patel</p><p class="rv-loc">GST Filing · Ahmedabad</p></div>
         </div>
-        <div style="font-size:16px;letter-spacing:1px;"><span style="color:#FC8019;">★★★★</span><span style="color:#ddd;">★</span></div>
+        <div style="font-size:18px;letter-spacing:2px;"><span style="color:#FC8019;">★★★★</span><span style="color:#cccccc;">★</span></div>
         <p class="rv-quote">"Quick and efficient GST filing service. <strong>Saved me a lot of time</strong> — definitely using it again."</p>
         <span class="rv-chip">🏢 GST Services</span>
       </div>
@@ -681,7 +681,7 @@
           <div class="rv-avatar" style="background:#EEEDFE;color:#534AB7;">SR</div>
           <div><p class="rv-name">Sneha Reddy</p><p class="rv-loc">ITR Filing · Hyderabad</p></div>
         </div>
-        <div style="font-size:16px;letter-spacing:1px;"><span style="color:#FC8019;">★★★★★</span></div>
+        <div style="font-size:18px;letter-spacing:2px;"><span style="color:#FC8019;">★★★★★</span></div>
         <p class="rv-quote">"Great experience with ITR filing. The expert <strong>guided me properly</strong> and answered all my doubts. Completed on time, no confusion at all."</p>
         <span class="rv-chip">📄 ITR Filing</span>
       </div>
@@ -691,7 +691,7 @@
           <div class="rv-avatar" style="background:#FAECE7;color:#993C1D;">VS</div>
           <div><p class="rv-name">Vikram Singh</p><p class="rv-loc">Accounting · Mumbai</p></div>
         </div>
-        <div style="font-size:16px;letter-spacing:1px;"><span style="color:#FC8019;">★★★★</span><span style="color:#ddd;">★</span></div>
+        <div style="font-size:18px;letter-spacing:2px;"><span style="color:#FC8019;">★★★★</span><span style="color:#cccccc;">★</span></div>
         <p class="rv-quote">"WorkIndex helped me find <strong>the right professional</strong> for my startup accounting. Trustworthy experts and smooth coordination."</p>
         <span class="rv-chip">📊 Accounting</span>
       </div>
