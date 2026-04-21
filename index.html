@@ -3412,6 +3412,7 @@ async function handleVerifySignupOTP() {
         showPage('questionnaire');
         renderQuestion();
       } else if (data.user.role === 'expert') {
+                console.log('[OTP] expert role detected, calling showExpertWelcomeModal');
         showExpertWelcomeModal();
       } else {
         startQuestionnaire(data.user.role);
