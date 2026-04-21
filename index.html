@@ -3881,6 +3881,8 @@ async function handleGoogleCredential(response, context) {
  
 // ── Show OTP verification screen for new Google users ──────────────────────
 function showGoogleOTPScreen(email) {
+    _gOtpEmail = email; // re-assign here as safety net
+
   // Re-use signupStep2 UI — same look as normal OTP screen
   document.getElementById('signupStep1').style.display = 'none';
   document.getElementById('signupStep2').style.display = 'block';
