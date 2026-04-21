@@ -6958,6 +6958,7 @@ function getItemsForSection(section) {
 }
 
 function showExpertWelcomeModal() {
+     console.log('[WelcomeModal] function called');
   const existing = document.getElementById('expertWelcomeModal');
   if (existing) existing.remove();
 
