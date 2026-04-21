@@ -3177,6 +3177,7 @@ async function submitQuestionnaire() {
         showToast('Profile completed successfully!', 'success');
         showPage('expertDash');
         loadExpertData();
+                setTimeout(() => showExpertWelcomeModal(), 800);
       } else {
         showToast(data.message || 'Failed to update profile', 'error');
       }
