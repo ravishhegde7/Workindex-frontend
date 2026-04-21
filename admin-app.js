@@ -4004,8 +4004,13 @@ function loadEmailNotifications() {
     var logs = (logsData.success && logsData.logs) ? logsData.logs : [];
     var total = logsData.total || logs.length;
 
-    sec.innerHTML = buildEmailNotificationsUI(_emailSettings, logs, total);
-
+    sec.innerHTML = buildEmailNotificationsUI(_emailSettings);
+    // Feed logs through pagination system instead of rendering inline
+    _pageData['emailLogs'] = logs;
+    _pages['emailLogs'] = 1;
+    var tc = g('emailLogTotal'); if (tc) tc.textContent = (total || logs.length) + ' total';
+    renderEmailLogsPage();
+     
     // Wire toggle changes
     sec.querySelectorAll('.email-toggle').forEach(function(toggle) {
       toggle.addEventListener('change', function() {
@@ -4106,7 +4111,7 @@ function renderEmailLogsPage() {
   pagHTML('emailLogs', 'emailLogsTbody');
 }
    
-function buildEmailNotificationsUI(settings, logs, total) {
+function buildEmailNotificationsUI(settings) {
   var groups = [
     {
       label: '👤 Client Emails',
@@ -4165,7 +4170,7 @@ function buildEmailNotificationsUI(settings, logs, total) {
 
   var logsHTML = '<div class="ch">' +
     '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;">' +
-      '<div style="font-size:15px;font-weight:700;color:#f0f0f4">📬 Email Log <span id="emailLogTotal" style="font-size:12px;color:#606078;margin-left:6px">' + total + ' total</span></div>' +
+      '<div style="font-size:15px;font-weight:700;color:#f0f0f4">📬 Email Log <span id="emailLogTotal" style="font-size:12px;color:#606078;margin-left:6px">0 total</span></div>' +
       '<div style="display:flex;gap:8px;flex-wrap:wrap;">' +
         '<select id="emailLogCat" style="padding:6px 10px;background:#18181d;border:1px solid #2a2a38;border-radius:6px;color:#a0a0b8;font-size:13px;">' +
           '<option value="all">All Categories</option>' +
@@ -4191,24 +4196,12 @@ function buildEmailNotificationsUI(settings, logs, total) {
         '<th style="padding:10px 12px;text-align:left;">Status</th>' +
         '<th style="padding:10px 12px;text-align:left;">Time</th>' +
       '</tr></thead>' +
-      '<tbody id="emailLogsTbody">' + (function() {
-        if (!logs.length) return '<tr><td colspan="6" style="text-align:center;padding:30px;color:#606078">No emails sent yet</td></tr>';
-        return logs.map(function(l) {
-          var statusBadge = l.status === 'sent' ? '<span class="badge bgr">Sent</span>' : '<span class="badge brd">Failed</span>';
-          var catColor = { client: '#3b82f6', expert: '#FC8019', admin: '#a855f7' };
-          var catBadge = '<span class="badge" style="background:' + (catColor[l.category]||'#606078') + '20;color:' + (catColor[l.category]||'#606078') + ';">' + (l.category||'—') + '</span>';
-          var date = l.createdAt ? new Date(l.createdAt).toLocaleString('en-IN',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) : '—';
-          return '<tr><td style="font-size:12px;color:#f0f0f4">' + esc(l.to) + '<br><small style="color:#606078">' + esc(l.toName||'') + '</small></td>' +
-            '<td>' + catBadge + '</td>' +
-            '<td style="font-size:12px;color:#a0a0b8">' + esc((l.type||'').replace(/_/g,' ')) + '</td>' +
-            '<td style="font-size:12px;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(l.reason||l.subject||'—') + '</td>' +
-            '<td>' + statusBadge + '</td>' +
-            '<td style="font-size:12px;color:#606078">' + date + '</td></tr>';
-        }).join('');
-      })() +
+      '<tbody id="emailLogsTbody">' +
+        '<tr><td colspan="6" style="text-align:center;padding:20px"><div class="spin"></div></td></tr>' +
       '</tbody>' +
     '</table></div></div>';
 
+   
   return '<div style="max-width:860px;">' + togglesHTML + logsHTML + '</div>';
 }
 /* ═══ EXPERT INVITE ADMIN ACTIONS ═══════════════════════════════════════ */
