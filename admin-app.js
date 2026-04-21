@@ -1509,13 +1509,82 @@ if (t.isExpertRefund && t.relatedApproachId) {
     var page = pagSlice('posts', _pageData['posts'] || []);
     var existing = document.getElementById('pag-posts');
     if (existing) existing.remove();
+
+    // Bulk toolbar
+    var poTbl = document.getElementById('poTbl');
+    var poParent = poTbl ? poTbl.closest('table') : null;
+    var poToolbar = document.getElementById('poBulkToolbar');
+    if (!poToolbar && poParent) {
+      poToolbar = document.createElement('div');
+      poToolbar.id = 'poBulkToolbar';
+      poToolbar.style.cssText = 'display:none;align-items:center;gap:10px;padding:10px 0;margin-bottom:8px;';
+      poToolbar.innerHTML =
+        '<span id="poSelCount" style="font-size:13px;color:#a0a0b8;">0 selected</span>' +
+        '<button class="btn brdn" style="font-size:12px;padding:6px 14px;" onclick="bulkDeletePosts()">🗑 Delete Selected</button>' +
+        '<button class="btn bgho" style="font-size:12px;padding:6px 14px;" onclick="clearPostSelection()">Clear</button>';
+      poParent.parentNode.insertBefore(poToolbar, poParent);
+    }
+
+    // Select-all in thead
+    var poThead = poTbl ? poTbl.closest('table').querySelector('thead tr') : null;
+    if (poThead && !poThead.querySelector('.po-chk-all')) {
+      var poTh = document.createElement('th');
+      poTh.innerHTML = '<input type="checkbox" class="po-chk-all" onchange="toggleAllPosts(this)" style="accent-color:#FC8019;width:15px;height:15px;cursor:pointer;" title="Select all">';
+      poThead.insertBefore(poTh, poThead.firstChild);
+    }
+
     setT('poTbl', page.map(function(p) {
       var cname = p.client ? esc(p.client.name||'-') : '-';
       var cr = p.creditsRequired || p.creditsSpent || p.credits || 0;
-      return '<tr><td style="font-size:13px;font-weight:600">' + esc((p.title||'-').substring(0,40)) + '</td><td>' + uLnk(p.client?p.client._id:'', cname, '#3b82f6') + '</td><td style="font-size:12px">' + esc(p.service||p.category||'-') + '</td><td style="color:#f59e0b">' + (p.budget||'-') + '</td><td>' + bdg(p.status||'open') + '</td><td style="color:#FC8019;font-weight:600">' + cr + '</td><td style="font-size:12px;color:#a0a0b8">' + fmt(p.createdAt) + '</td><td><button class="btn bgho" data-edit-post="' + p._id + '">Edit</button></td></tr>';
+      return '<tr><td><input type="checkbox" class="po-chk" data-pid="' + p._id + '" onchange="onPostCheck()" style="accent-color:#FC8019;width:15px;height:15px;cursor:pointer;"></td><td style="font-size:13px;font-weight:600">' + esc((p.title||'-').substring(0,40)) + '</td><td>' + uLnk(p.client?p.client._id:'', cname, '#3b82f6') + '</td><td style="font-size:12px">' + esc(p.service||p.category||'-') + '</td><td style="color:#f59e0b">' + (p.budget||'-') + '</td><td>' + bdg(p.status||'open') + '</td><td style="color:#FC8019;font-weight:600">' + cr + '</td><td style="font-size:12px;color:#a0a0b8">' + fmt(p.createdAt) + '</td><td><button class="btn bgho" data-edit-post="' + p._id + '">Edit</button></td></tr>';
     }).join(''));
     pagHTML('posts', 'poTbl');
   }
+
+  window.onPostCheck = function() {
+    var checked = document.querySelectorAll('.po-chk:checked').length;
+    var toolbar = document.getElementById('poBulkToolbar');
+    var countEl = document.getElementById('poSelCount');
+    if (toolbar) toolbar.style.display = checked > 0 ? 'flex' : 'none';
+    if (countEl) countEl.textContent = checked + ' selected';
+    var all = document.querySelectorAll('.po-chk').length;
+    var allChk = document.querySelector('.po-chk-all');
+    if (allChk) allChk.checked = checked > 0 && checked === all;
+  };
+
+  window.toggleAllPosts = function(masterChk) {
+    document.querySelectorAll('.po-chk').forEach(function(chk) { chk.checked = masterChk.checked; });
+    onPostCheck();
+  };
+
+  window.clearPostSelection = function() {
+    document.querySelectorAll('.po-chk').forEach(function(chk) { chk.checked = false; });
+    var allChk = document.querySelector('.po-chk-all');
+    if (allChk) allChk.checked = false;
+    onPostCheck();
+  };
+
+  window.bulkDeletePosts = function() {
+    var ids = Array.from(document.querySelectorAll('.po-chk:checked')).map(function(c) { return c.dataset.pid; });
+    if (!ids.length) { toast('Nothing selected', 'i'); return; }
+    if (!confirm('Permanently delete ' + ids.length + ' post(s)?')) return;
+    var confirmText = prompt('Type DELETE to confirm:');
+    if (confirmText !== 'DELETE') { toast('Cancelled', 'i'); return; }
+    var done = 0, failed = 0;
+    var next = function() {
+      if (!ids.length) {
+        toast('Deleted ' + done + (failed ? ', ' + failed + ' failed' : '') + ' posts');
+        loadPosts();
+        return;
+      }
+      var id = ids.shift();
+      api('requests/' + id, 'DELETE').then(function(d) {
+        if (d.success) done++; else failed++;
+        next();
+      }).catch(function() { failed++; next(); });
+    };
+    next();
+  };
    
 function openPostModal(pid) {
     _editPostId = pid;
