@@ -300,9 +300,7 @@ function enterDashboard() {
    
   // Show service filter modal for new experts
   if (state.user.role === 'expert') {
-    const hasFilter = (state.user?.profile?.browseServiceFilter?.length > 0) ||
-                  (state.user?.profile?.servicesOffered?.length > 0) ||
-                  (state.user?.servicesOffered?.length > 0);
+    const hasFilter = state.user?.profile?.browseServiceFilter?.length > 0;
     const isNewUser = !localStorage.getItem('hasSeenServiceFilter_' + state.user._id);
     if (isNewUser || !hasFilter) {
       localStorage.setItem('hasSeenServiceFilter_' + state.user._id, 'true');
