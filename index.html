@@ -3413,7 +3413,6 @@ async function handleVerifySignupOTP() {
         showPage('questionnaire');
         renderQuestion();
       } else if (data.user.role === 'expert') {
-                console.log('[OTP] expert role detected, calling showExpertWelcomeModal');
         showExpertWelcomeModal();
       } else {
         startQuestionnaire(data.user.role);
@@ -3950,9 +3949,8 @@ async function handleGoogleVerifyOTP() {
       body:    JSON.stringify({ email: _gOtpEmail, otp }),
     });
  
-    const data = await res.json();
-    
- console.log('Google verify OTP response:', JSON.stringify(data));
+    const data = await res.json();   
+ 
     
     if (!data.success) {
       showToast(data.message || 'Invalid code', 'error');
