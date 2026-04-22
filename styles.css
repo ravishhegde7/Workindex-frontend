@@ -1197,6 +1197,42 @@ body.dark-mode #expertStatHero > div:nth-child(3) {
 .terms-list li strong {
   color: var(--text);
 }
+
+/* ─── EXPLORE MEGA MENU ─── */
+.explore-sub-leaf {
+  padding: 9px 10px;
+  border-radius: 9px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  transition: all 0.15s;
+  display: block;
+}
+.explore-sub-leaf:hover {
+  background: rgba(252, 128, 25, 0.08);
+  color: var(--primary);
+}
+.explore-cat-item:hover,
+.explore-cat-item.active {
+  background: var(--bg-gray);
+}
+body.dark-mode .explore-cat-item:hover,
+body.dark-mode .explore-cat-item.active {
+  background: rgba(255,255,255,0.05);
+}
+#exploreMegaMenu {
+  overflow-y: auto;
+  max-height: 440px;
+}
+@media (max-width: 640px) {
+  #exploreMegaMenu {
+    width: calc(100vw - 32px);
+    left: 50%;
+    transform: translateX(-50%);
+  }
+}
+
 /* Pointer cursor on all clickable nav elements */
 .logo { cursor: pointer; }
 .nav-link { cursor: pointer; }
