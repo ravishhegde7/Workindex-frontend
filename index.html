@@ -311,8 +311,175 @@
       <div class="logo-icon">W</div>
       <span class="logo-text">WorkIndex</span>
     </div>
-    <div style="display: flex; gap: 16px; align-items: center;">
-      <a class="nav-link" onclick="showPage('findProfessionals')">Explore</a>
+    <div style="display: flex; gap: 16px; align-items: center; position: relative;">
+      <!-- Explore Mega Menu Trigger -->
+      <div id="exploreMenuWrapper" style="position:relative;">
+        <button id="exploreMenuBtn" onclick="toggleExploreMenu()"
+          style="display:flex;align-items:center;gap:6px;background:none;border:none;font-size:14px;font-weight:600;color:var(--text);cursor:pointer;padding:6px 4px;font-family:inherit;transition:color 0.2s;">
+          Explore
+          <svg id="exploreChevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="transition:transform 0.2s;"><polyline points="6 9 12 15 18 9"></polyline></svg>
+        </button>
+
+        <!-- Mega dropdown panel -->
+        <div id="exploreMegaMenu"
+          style="display:none;position:absolute;top:calc(100% + 12px);left:50%;transform:translateX(-50%);
+                 background:var(--bg);border:1.5px solid var(--border);border-radius:16px;
+                 box-shadow:0 12px 40px rgba(0,0,0,0.14);z-index:9999;
+                 width:520px;padding:20px;animation:fadeIn 0.15s ease;">
+
+          <div style="display:grid;grid-template-columns:200px 1fr;gap:0;min-height:300px;">
+
+            <!-- LEFT: Main categories -->
+            <div style="border-right:1px solid var(--border);padding-right:14px;">
+              <div style="font-size:10px;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:10px;padding-left:8px;">Services</div>
+              
+              <div class="explore-cat-item" data-cat="compliance" onmouseenter="showExploreSub('compliance')" onclick="showExploreSub('compliance')"
+                style="display:flex;align-items:center;justify-content:space-between;padding:10px 8px;border-radius:10px;cursor:pointer;margin-bottom:3px;transition:all 0.15s;">
+                <div style="display:flex;align-items:center;gap:10px;">
+                  <span style="font-size:18px;">💼</span>
+                  <div>
+                    <div style="font-size:13px;font-weight:700;color:var(--text);">Business & Compliance</div>
+                    <div style="font-size:11px;color:var(--text-muted);">Tax, GST, Audit</div>
+                  </div>
+                </div>
+                <span style="color:var(--text-muted);font-size:14px;">›</span>
+              </div>
+
+              <div class="explore-cat-item" data-cat="accounting" onmouseenter="showExploreSub('accounting')" onclick="showExploreSub('accounting')"
+                style="display:flex;align-items:center;justify-content:space-between;padding:10px 8px;border-radius:10px;cursor:pointer;margin-bottom:3px;transition:all 0.15s;">
+                <div style="display:flex;align-items:center;gap:10px;">
+                  <span style="font-size:18px;">📊</span>
+                  <div>
+                    <div style="font-size:13px;font-weight:700;color:var(--text);">Accounting & Finance</div>
+                    <div style="font-size:11px;color:var(--text-muted);">Bookkeeping, Payroll</div>
+                  </div>
+                </div>
+                <span style="color:var(--text-muted);font-size:14px;">›</span>
+              </div>
+
+              <div class="explore-cat-item" data-cat="digital" onmouseenter="showExploreSub('digital')" onclick="showExploreSub('digital')"
+                style="display:flex;align-items:center;justify-content:space-between;padding:10px 8px;border-radius:10px;cursor:pointer;margin-bottom:3px;transition:all 0.15s;">
+                <div style="display:flex;align-items:center;gap:10px;">
+                  <span style="font-size:18px;">🌐</span>
+                  <div>
+                    <div style="font-size:13px;font-weight:700;color:var(--text);">Digital & Tech</div>
+                    <div style="font-size:11px;color:var(--text-muted);">Web, Apps, Software</div>
+                  </div>
+                </div>
+                <span style="color:var(--text-muted);font-size:14px;">›</span>
+              </div>
+
+              <div class="explore-cat-item" data-cat="creative" onmouseenter="showExploreSub('creative')" onclick="showExploreSub('creative')"
+                style="display:flex;align-items:center;justify-content:space-between;padding:10px 8px;border-radius:10px;cursor:pointer;margin-bottom:3px;transition:all 0.15s;">
+                <div style="display:flex;align-items:center;gap:10px;">
+                  <span style="font-size:18px;">📸</span>
+                  <div>
+                    <div style="font-size:13px;font-weight:700;color:var(--text);">Creative & Media</div>
+                    <div style="font-size:11px;color:var(--text-muted);">Photography, Video</div>
+                  </div>
+                </div>
+                <span style="color:var(--text-muted);font-size:14px;">›</span>
+              </div>
+
+              <!-- Divider + See all link -->
+              <div style="border-top:1px solid var(--border);margin-top:10px;padding-top:10px;">
+                <div onclick="closeExploreMenu(); showPage('findProfessionals');"
+                  style="display:flex;align-items:center;gap:8px;padding:8px 8px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;color:var(--primary);"
+                  onmouseover="this.style.background='rgba(252,128,25,0.06)'" onmouseout="this.style.background='transparent'">
+                  🔍 Browse all experts
+                </div>
+              </div>
+            </div>
+
+            <!-- RIGHT: Subcategory panel -->
+            <div id="exploreSubPanel" style="padding-left:16px;min-height:280px;">
+
+              <!-- Default: show popular -->
+              <div id="explore-sub-default">
+                <div style="font-size:10px;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:10px;">Popular Services</div>
+                <div style="display:flex;flex-direction:column;gap:4px;">
+                  <div onclick="exploreStartFlow('itr', {})" class="explore-sub-leaf" style="padding:9px 10px;border-radius:9px;cursor:pointer;font-size:13px;font-weight:600;color:var(--text);">📄 ITR Filing</div>
+                  <div onclick="exploreStartFlow('gst', {})" class="explore-sub-leaf" style="padding:9px 10px;border-radius:9px;cursor:pointer;font-size:13px;font-weight:600;color:var(--text);">🧾 GST Registration</div>
+                  <div onclick="exploreStartFlow('development', { devProjectType: 'website' })" class="explore-sub-leaf" style="padding:9px 10px;border-radius:9px;cursor:pointer;font-size:13px;font-weight:600;color:var(--text);">🌐 Website Development</div>
+                  <div onclick="exploreStartFlow('photography', { photographyType: 'wedding' })" class="explore-sub-leaf" style="padding:9px 10px;border-radius:9px;cursor:pointer;font-size:13px;font-weight:600;color:var(--text);">💍 Wedding Photography</div>
+                </div>
+              </div>
+
+              <!-- Compliance subcategory -->
+              <div id="explore-sub-compliance" style="display:none;">
+                <div style="font-size:10px;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:10px;">Business & Compliance</div>
+                
+                <div style="margin-bottom:12px;">
+                  <div style="font-size:11px;font-weight:700;color:var(--primary);margin-bottom:6px;padding:0 10px;">📄 ITR Filing</div>
+                  <div onclick="exploreStartFlow('itr', {})" class="explore-sub-leaf">All ITR Filing</div>
+                  <div onclick="exploreStartFlow('itr', { itrTaxpayerType: 'salaried' })" class="explore-sub-leaf">Salaried Employee</div>
+                  <div onclick="exploreStartFlow('itr', { itrTaxpayerType: 'business' })" class="explore-sub-leaf">Business Owner</div>
+                  <div onclick="exploreStartFlow('itr', { itrTaxpayerType: 'freelancer' })" class="explore-sub-leaf">Freelancer / Consultant</div>
+                  <div onclick="exploreStartFlow('itr', { itrTaxpayerType: 'nri' })" class="explore-sub-leaf">NRI Returns</div>
+                </div>
+
+                <div style="margin-bottom:12px;">
+                  <div style="font-size:11px;font-weight:700;color:var(--primary);margin-bottom:6px;padding:0 10px;">🧾 GST Services</div>
+                  <div onclick="exploreStartFlow('gst', {})" class="explore-sub-leaf">All GST Services</div>
+                  <div onclick="exploreStartFlow('gst', { gstServiceType: 'new_registration' })" class="explore-sub-leaf">New Registration</div>
+                  <div onclick="exploreStartFlow('gst', { gstServiceType: 'monthly_filing' })" class="explore-sub-leaf">Monthly Filing</div>
+                  <div onclick="exploreStartFlow('gst', { gstServiceType: 'notice_handling' })" class="explore-sub-leaf">GST Notice / Scrutiny</div>
+                  <div onclick="exploreStartFlow('gst', { gstServiceType: 'itc_reconciliation' })" class="explore-sub-leaf">ITC Reconciliation</div>
+                </div>
+
+                <div>
+                  <div style="font-size:11px;font-weight:700;color:var(--primary);margin-bottom:6px;padding:0 10px;">🔍 Audit</div>
+                  <div onclick="exploreStartFlow('audit', {})" class="explore-sub-leaf">All Audit Services</div>
+                  <div onclick="exploreStartFlow('audit', { auditType: 'statutory_audit' })" class="explore-sub-leaf">Statutory Audit</div>
+                  <div onclick="exploreStartFlow('audit', { auditType: 'tax_audit' })" class="explore-sub-leaf">Tax Audit</div>
+                  <div onclick="exploreStartFlow('audit', { auditType: 'internal_audit' })" class="explore-sub-leaf">Internal Audit</div>
+                  <div onclick="exploreStartFlow('audit', { auditType: 'gst_audit' })" class="explore-sub-leaf">GST Audit</div>
+                </div>
+              </div>
+
+              <!-- Accounting subcategory -->
+              <div id="explore-sub-accounting" style="display:none;">
+                <div style="font-size:10px;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:10px;">Accounting & Finance</div>
+                <div style="font-size:11px;font-weight:700;color:var(--primary);margin-bottom:6px;padding:0 10px;">📊 Accounting</div>
+                <div onclick="exploreStartFlow('accounting', {})" class="explore-sub-leaf">All Accounting</div>
+                <div onclick="exploreStartFlow('accounting', { accountingServiceType: 'bookkeeping' })" class="explore-sub-leaf">Monthly Bookkeeping</div>
+                <div onclick="exploreStartFlow('accounting', { accountingServiceType: 'payroll' })" class="explore-sub-leaf">Payroll Processing</div>
+                <div onclick="exploreStartFlow('accounting', { accountingServiceType: 'annual_accounts' })" class="explore-sub-leaf">Annual Accounts</div>
+                <div onclick="exploreStartFlow('accounting', { accountingServiceType: 'tds_filing' })" class="explore-sub-leaf">TDS Filing</div>
+              </div>
+
+              <!-- Digital subcategory -->
+              <div id="explore-sub-digital" style="display:none;">
+                <div style="font-size:10px;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:10px;">Digital & Tech Services</div>
+                <div style="font-size:11px;font-weight:700;color:var(--primary);margin-bottom:6px;padding:0 10px;">💻 Development</div>
+                <div onclick="exploreStartFlow('development', {})" class="explore-sub-leaf">All Development</div>
+                <div onclick="exploreStartFlow('development', { devProjectType: 'website' })" class="explore-sub-leaf">🌐 Website</div>
+                <div onclick="exploreStartFlow('development', { devProjectType: 'ecommerce' })" class="explore-sub-leaf">🛒 E-Commerce Store</div>
+                <div onclick="exploreStartFlow('development', { devProjectType: 'webapp' })" class="explore-sub-leaf">💻 Web App / SaaS</div>
+                <div onclick="exploreStartFlow('development', { devProjectType: 'mobile-app' })" class="explore-sub-leaf">📱 Mobile App</div>
+                <div onclick="exploreStartFlow('development', { devProjectType: 'api' })" class="explore-sub-leaf">🔌 API / Backend</div>
+                <div onclick="exploreStartFlow('development', { devProjectType: 'redesign' })" class="explore-sub-leaf">🎨 Website Redesign</div>
+                <div onclick="exploreStartFlow('development', { devProjectType: 'maintenance' })" class="explore-sub-leaf">🔧 Maintenance / Bug Fix</div>
+              </div>
+
+              <!-- Creative subcategory -->
+              <div id="explore-sub-creative" style="display:none;">
+                <div style="font-size:10px;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:10px;">Creative & Media</div>
+                <div style="font-size:11px;font-weight:700;color:var(--primary);margin-bottom:6px;padding:0 10px;">📷 Photography</div>
+                <div onclick="exploreStartFlow('photography', {})" class="explore-sub-leaf">All Photography</div>
+                <div onclick="exploreStartFlow('photography', { photographyType: 'wedding' })" class="explore-sub-leaf">💍 Wedding Photography</div>
+                <div onclick="exploreStartFlow('photography', { photographyType: 'portrait' })" class="explore-sub-leaf">🤳 Portrait / Headshots</div>
+                <div onclick="exploreStartFlow('photography', { photographyType: 'product' })" class="explore-sub-leaf">📦 Product / E-Commerce</div>
+                <div onclick="exploreStartFlow('photography', { photographyType: 'corporate' })" class="explore-sub-leaf">🏢 Corporate / Events</div>
+                <div onclick="exploreStartFlow('photography', { photographyType: 'real_estate' })" class="explore-sub-leaf">🏠 Real Estate</div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- End Explore Mega Menu -->
+
       <button class="btn-outline" onclick="showPage('auth')" style="padding: 8px 16px; font-size: 14px;">Login</button>
       <button class="btn-primary" onclick="showPage('auth')" style="padding: 8px 16px; font-size: 14px;">Join</button>
     </div>
