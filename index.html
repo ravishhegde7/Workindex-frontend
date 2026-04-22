@@ -4508,16 +4508,21 @@ function proceedAfterGoogleSignup() {
   if (overlay) overlay.remove();
 
   const user = state.user;
-  if (state.pendingServiceFlow && user.role === 'client') {
-    const svc = state.pendingServiceFlow;
-    state.pendingServiceFlow = null;
-    qState = { step:1, sequence:[], answers:{ service: svc }, role:'client' };
-    qState.sequence = buildQuestionSequence();
-    showPage('questionnaire');
-    renderQuestion();
-  } else {
-    startQuestionnaire(user.role);
-  }
+  if (state.pendingServiceFlow && data.user.role === 'client') {
+      const svc = state.pendingServiceFlow;
+      state.pendingServiceFlow = null;
+      qState = { step:1, sequence:[], answers:{ service: svc }, role:'client' };
+      qState.sequence = buildQuestionSequence();
+      showPage('questionnaire');
+      renderQuestion();
+    } else if (data.user.role === 'expert') {
+      showExpertWelcomeModal();
+    } else if (!state._guestQuestionnaire) {
+      startQuestionnaire(data.user.role);
+    } else {
+      state._guestQuestionnaire = false;
+      await submitQuestionnaire();
+    }
 }
   
 // ── Hook: re-render buttons when auth mode switches ───────────────────────
