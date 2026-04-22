@@ -3158,9 +3158,16 @@ async function submitQuestionnaire() {
   
   showToast('Submitting...', 'info');
   
+  // ── Guest flow: show signup before submitting ──────────────────────
+  if (state._guestQuestionnaire && !state.token) {
+    showGuestSignupModal();
+    return;
+  }
+
   if (role === 'expert') {
     // Update expert profile
     try {
+      
       const res = await fetch(`${API_URL}/users/profile`, {
         method: 'PUT',
         headers: {
