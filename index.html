@@ -3864,6 +3864,126 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 });
+
+// ─── EXPLORE MEGA MENU ───────────────────────────────────────────────────────
+let _exploreMenuOpen = false;
+
+function toggleExploreMenu() {
+  _exploreMenuOpen = !_exploreMenuOpen;
+  const menu    = document.getElementById('exploreMegaMenu');
+  const chevron = document.getElementById('exploreChevron');
+  const btn     = document.getElementById('exploreMenuBtn');
+  if (menu)    menu.style.display    = _exploreMenuOpen ? 'block' : 'none';
+  if (chevron) chevron.style.transform = _exploreMenuOpen ? 'rotate(180deg)' : 'rotate(0deg)';
+  if (btn)     btn.style.color = _exploreMenuOpen ? 'var(--primary)' : 'var(--text)';
+
+  if (_exploreMenuOpen) {
+    // Default: show compliance sub on open
+    showExploreSub('compliance');
+    setTimeout(() => {
+      document.addEventListener('click', _exploreOutsideClick);
+    }, 10);
+  } else {
+    document.removeEventListener('click', _exploreOutsideClick);
+  }
+}
+
+function _exploreOutsideClick(e) {
+  const wrapper = document.getElementById('exploreMenuWrapper');
+  if (wrapper && !wrapper.contains(e.target)) {
+    closeExploreMenu();
+  }
+}
+
+function closeExploreMenu() {
+  _exploreMenuOpen = false;
+  const menu    = document.getElementById('exploreMegaMenu');
+  const chevron = document.getElementById('exploreChevron');
+  const btn     = document.getElementById('exploreMenuBtn');
+  if (menu)    menu.style.display      = 'none';
+  if (chevron) chevron.style.transform = 'rotate(0deg)';
+  if (btn)     btn.style.color         = 'var(--text)';
+  document.removeEventListener('click', _exploreOutsideClick);
+}
+
+function showExploreSub(catKey) {
+  // Highlight active left-side category
+  document.querySelectorAll('.explore-cat-item').forEach(el => {
+    el.classList.toggle('active', el.dataset.cat === catKey);
+  });
+
+  // Hide all sub panels
+  ['default', 'compliance', 'accounting', 'digital', 'creative'].forEach(k => {
+    const el = document.getElementById('explore-sub-' + k);
+    if (el) el.style.display = 'none';
+  });
+
+  // Show target panel
+  const target = document.getElementById('explore-sub-' + catKey);
+  if (target) target.style.display = 'block';
+}
+
+// ── Called when user picks a leaf item in the explore menu ──────────────────
+// preAnswers: object with any question keys already answered by the menu choice
+function exploreStartFlow(serviceKey, preAnswers) {
+  closeExploreMenu();
+
+  if (state.user && state.token) {
+    // Logged in: build questionnaire with pre-answered keys, skipping answered steps
+    qState = {
+      step: 0,
+      sequence: [],
+      answers: { service: serviceKey, ...preAnswers },
+      role: 'client'
+    };
+    qState.sequence = buildQuestionSequence();
+
+    // Advance past any steps already answered by preAnswers
+    while (
+      qState.step < qState.sequence.length - 1 &&
+      _isStepAnswered(qState.sequence[qState.step], qState.answers)
+    ) {
+      qState.step++;
+    }
+    showPage('questionnaire');
+    renderQuestion();
+  } else {
+    // Guest: same but flag for signup at end
+    qState = {
+      step: 0,
+      sequence: [],
+      answers: { service: serviceKey, ...preAnswers },
+      role: 'client'
+    };
+    qState.sequence = buildQuestionSequence();
+    state._guestQuestionnaire = true;
+
+    // Advance past pre-answered steps
+    while (
+      qState.step < qState.sequence.length - 1 &&
+      _isStepAnswered(qState.sequence[qState.step], qState.answers)
+    ) {
+      qState.step++;
+    }
+    showPage('questionnaire');
+    renderQuestion();
+  }
+}
+
+// Helper: checks if a given step's key already has an answer
+function _isStepAnswered(stepId, answers) {
+  if (!stepId || !answers) return false;
+  // 'service' step is always answered when we call exploreStartFlow
+  if (stepId === 'service') return true;
+  const q = _lookupQuestion(stepId);
+  if (!q) return false;
+  const val = answers[q.key];
+  if (val === undefined || val === null) return false;
+  if (typeof val === 'string' && val.trim() === '') return false;
+  if (Array.isArray(val) && val.length === 0) return false;
+  return true;
+}
+  
 </script>
 
      <!-- MY TICKETS PAGE -->
