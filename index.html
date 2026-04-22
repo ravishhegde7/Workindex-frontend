@@ -325,15 +325,96 @@
           style="display:none;position:absolute;top:calc(100% + 12px);left:50%;transform:translateX(-50%);
                  background:var(--bg);border:1.5px solid var(--border);border-radius:16px;
                  box-shadow:0 12px 40px rgba(0,0,0,0.14);z-index:9999;
-                 width:520px;padding:20px;animation:fadeIn 0.15s ease;">
+                 width:300px;padding:0;overflow:hidden;animation:fadeIn 0.15s ease;">
 
-          <div style="display:grid;grid-template-columns:200px 1fr;gap:0;min-height:300px;">
+          <!-- LEVEL 1: Main service categories -->
+          <div id="explore-level-1" style="padding:16px;">
+            <div style="font-size:10px;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:12px;padding-left:4px;">SERVICES</div>
 
-            <!-- LEFT: Main categories -->
-            <div style="border-right:1px solid var(--border);padding-right:14px;">
-              <div style="font-size:10px;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:10px;padding-left:8px;">Services</div>
-              
-              <div class="explore-cat-item" data-cat="compliance" onmouseenter="showExploreSub('compliance')" onclick="showExploreSub('compliance')"
+            <div class="explore-cat-item" onclick="exploreGoLevel2('compliance')"
+              style="display:flex;align-items:center;justify-content:space-between;padding:12px 10px;border-radius:10px;cursor:pointer;margin-bottom:4px;transition:all 0.15s;">
+              <div style="display:flex;align-items:center;gap:10px;">
+                <span style="font-size:20px;">💼</span>
+                <div>
+                  <div style="font-size:13px;font-weight:700;color:var(--text);">Business & Compliance</div>
+                  <div style="font-size:11px;color:var(--text-muted);">Tax, GST, Audit</div>
+                </div>
+              </div>
+              <span style="color:var(--text-muted);font-size:16px;font-weight:700;">›</span>
+            </div>
+
+            <div class="explore-cat-item" onclick="exploreGoLevel2('accounting')"
+              style="display:flex;align-items:center;justify-content:space-between;padding:12px 10px;border-radius:10px;cursor:pointer;margin-bottom:4px;transition:all 0.15s;">
+              <div style="display:flex;align-items:center;gap:10px;">
+                <span style="font-size:20px;">📊</span>
+                <div>
+                  <div style="font-size:13px;font-weight:700;color:var(--text);">Accounting & Finance</div>
+                  <div style="font-size:11px;color:var(--text-muted);">Bookkeeping, Payroll</div>
+                </div>
+              </div>
+              <span style="color:var(--text-muted);font-size:16px;font-weight:700;">›</span>
+            </div>
+
+            <div class="explore-cat-item" onclick="exploreGoLevel2('digital')"
+              style="display:flex;align-items:center;justify-content:space-between;padding:12px 10px;border-radius:10px;cursor:pointer;margin-bottom:4px;transition:all 0.15s;">
+              <div style="display:flex;align-items:center;gap:10px;">
+                <span style="font-size:20px;">🌐</span>
+                <div>
+                  <div style="font-size:13px;font-weight:700;color:var(--text);">Digital & Tech</div>
+                  <div style="font-size:11px;color:var(--text-muted);">Web, Apps, Software</div>
+                </div>
+              </div>
+              <span style="color:var(--text-muted);font-size:16px;font-weight:700;">›</span>
+            </div>
+
+            <div class="explore-cat-item" onclick="exploreGoLevel2('creative')"
+              style="display:flex;align-items:center;justify-content:space-between;padding:12px 10px;border-radius:10px;cursor:pointer;margin-bottom:4px;transition:all 0.15s;">
+              <div style="display:flex;align-items:center;gap:10px;">
+                <span style="font-size:20px;">📸</span>
+                <div>
+                  <div style="font-size:13px;font-weight:700;color:var(--text);">Creative & Media</div>
+                  <div style="font-size:11px;color:var(--text-muted);">Photography, Video</div>
+                </div>
+              </div>
+              <span style="color:var(--text-muted);font-size:16px;font-weight:700;">›</span>
+            </div>
+
+            <div style="border-top:1px solid var(--border);margin-top:10px;padding-top:10px;">
+              <div onclick="closeExploreMenu(); showPage('findProfessionals');"
+                style="display:flex;align-items:center;gap:8px;padding:9px 10px;border-radius:9px;cursor:pointer;font-size:13px;font-weight:600;color:var(--primary);transition:all 0.15s;"
+                onmouseover="this.style.background='rgba(252,128,25,0.06)'" onmouseout="this.style.background='transparent'">
+                🔍 Browse all experts
+              </div>
+            </div>
+          </div>
+
+          <!-- LEVEL 2: Service subcategories (shown after clicking a category) -->
+          <div id="explore-level-2" style="display:none;padding:16px;">
+            <!-- Back button -->
+            <div onclick="exploreGoLevel1()" style="display:flex;align-items:center;gap:8px;padding:8px 4px;cursor:pointer;margin-bottom:12px;border-bottom:1px solid var(--border);padding-bottom:12px;">
+              <span style="font-size:16px;color:var(--text-muted);">←</span>
+              <span style="font-size:13px;font-weight:600;color:var(--text-muted);">Back to Explore</span>
+            </div>
+            <!-- Category title -->
+            <div id="explore-l2-title" style="font-size:14px;font-weight:800;color:var(--text);margin-bottom:14px;display:flex;align-items:center;gap:8px;"></div>
+            <!-- Subcategory list populated by JS -->
+            <div id="explore-l2-list"></div>
+          </div>
+
+          <!-- LEVEL 3: Leaf items (shown after clicking a subcategory) -->
+          <div id="explore-level-3" style="display:none;padding:16px;">
+            <!-- Back button -->
+            <div id="explore-l3-back" onclick="exploreGoLevel2Back()" style="display:flex;align-items:center;gap:8px;padding:8px 4px;cursor:pointer;margin-bottom:12px;border-bottom:1px solid var(--border);padding-bottom:12px;">
+              <span style="font-size:16px;color:var(--text-muted);">←</span>
+              <span id="explore-l3-back-label" style="font-size:13px;font-weight:600;color:var(--text-muted);">Back</span>
+            </div>
+            <!-- Subcategory title -->
+            <div id="explore-l3-title" style="font-size:14px;font-weight:800;color:var(--primary);margin-bottom:12px;"></div>
+            <!-- Leaf items populated by JS -->
+            <div id="explore-l3-list"></div>
+          </div>
+
+        </div>
                 style="display:flex;align-items:center;justify-content:space-between;padding:10px 8px;border-radius:10px;cursor:pointer;margin-bottom:3px;transition:all 0.15s;">
                 <div style="display:flex;align-items:center;gap:10px;">
                   <span style="font-size:18px;">💼</span>
