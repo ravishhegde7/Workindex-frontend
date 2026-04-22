@@ -7434,7 +7434,9 @@ async function handleGuestGoogleCredential(response) {
       state._guestQuestionnaire = false;
       closeGuestSignupModal();
       showToast('Signed in! Posting your request...', 'success');
-      await submitQuestionnaire();
+      setTimeout(async () => {
+        await submitQuestionnaire();
+      }, 300);
     } else if (data.action === 'verify_otp') {
       // Google new user needs OTP — use existing flow
       _gOtpEmail = data.email;
