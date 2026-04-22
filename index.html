@@ -3947,20 +3947,125 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // ─── EXPLORE MEGA MENU ───────────────────────────────────────────────────────
-let _exploreMenuOpen = false;
+let _exploreMenuOpen  = false;
+let _exploreL2CatKey  = null; // which category is active at level 2
+
+// ── Data: level-2 subcategories ──────────────────────────────────────────────
+const EXPLORE_L2 = {
+  compliance: {
+    icon: '💼', label: 'Business & Compliance',
+    items: [
+      { label: '📄 ITR Filing',    key: 'itr' },
+      { label: '🧾 GST Services',  key: 'gst' },
+      { label: '🔍 Audit',         key: 'audit' },
+    ]
+  },
+  accounting: {
+    icon: '📊', label: 'Accounting & Finance',
+    items: [
+      { label: '📊 Accounting', key: 'accounting' },
+    ]
+  },
+  digital: {
+    icon: '🌐', label: 'Digital & Tech',
+    items: [
+      { label: '💻 Development', key: 'development' },
+    ]
+  },
+  creative: {
+    icon: '📸', label: 'Creative & Media',
+    items: [
+      { label: '📷 Photography', key: 'photography' },
+    ]
+  }
+};
+
+// ── Data: level-3 leaf items per service key ─────────────────────────────────
+const EXPLORE_L3 = {
+  itr: {
+    label: '📄 ITR Filing',
+    catKey: 'compliance',
+    items: [
+      { label: 'All ITR Filing',        serviceKey: 'itr', pre: {} },
+      { label: 'Salaried Employee',     serviceKey: 'itr', pre: { itrTaxpayerType: 'salaried' } },
+      { label: 'Business Owner',        serviceKey: 'itr', pre: { itrTaxpayerType: 'business' } },
+      { label: 'Freelancer / Consultant', serviceKey: 'itr', pre: { itrTaxpayerType: 'freelancer' } },
+      { label: 'NRI Returns',           serviceKey: 'itr', pre: { itrTaxpayerType: 'nri' } },
+    ]
+  },
+  gst: {
+    label: '🧾 GST Services',
+    catKey: 'compliance',
+    items: [
+      { label: 'All GST Services',      serviceKey: 'gst', pre: {} },
+      { label: 'New Registration',      serviceKey: 'gst', pre: { gstServiceType: 'new_registration' } },
+      { label: 'Monthly Filing',        serviceKey: 'gst', pre: { gstServiceType: 'monthly_filing' } },
+      { label: 'GST Notice / Scrutiny', serviceKey: 'gst', pre: { gstServiceType: 'notice_handling' } },
+      { label: 'ITC Reconciliation',    serviceKey: 'gst', pre: { gstServiceType: 'itc_reconciliation' } },
+    ]
+  },
+  audit: {
+    label: '🔍 Audit',
+    catKey: 'compliance',
+    items: [
+      { label: 'All Audit Services',    serviceKey: 'audit', pre: {} },
+      { label: 'Statutory Audit',       serviceKey: 'audit', pre: { auditType: 'statutory_audit' } },
+      { label: 'Tax Audit',             serviceKey: 'audit', pre: { auditType: 'tax_audit' } },
+      { label: 'Internal Audit',        serviceKey: 'audit', pre: { auditType: 'internal_audit' } },
+      { label: 'GST Audit',             serviceKey: 'audit', pre: { auditType: 'gst_audit' } },
+    ]
+  },
+  accounting: {
+    label: '📊 Accounting',
+    catKey: 'accounting',
+    items: [
+      { label: 'All Accounting',        serviceKey: 'accounting', pre: {} },
+      { label: 'Monthly Bookkeeping',   serviceKey: 'accounting', pre: { accountingServiceType: 'bookkeeping' } },
+      { label: 'Payroll Processing',    serviceKey: 'accounting', pre: { accountingServiceType: 'payroll' } },
+      { label: 'Annual Accounts',       serviceKey: 'accounting', pre: { accountingServiceType: 'annual_accounts' } },
+      { label: 'TDS Filing',            serviceKey: 'accounting', pre: { accountingServiceType: 'tds_filing' } },
+    ]
+  },
+  development: {
+    label: '💻 Development',
+    catKey: 'digital',
+    items: [
+      { label: 'All Development',       serviceKey: 'development', pre: {} },
+      { label: '🌐 Website',            serviceKey: 'development', pre: { devProjectType: 'website' } },
+      { label: '🛒 E-Commerce Store',   serviceKey: 'development', pre: { devProjectType: 'ecommerce' } },
+      { label: '💻 Web App / SaaS',     serviceKey: 'development', pre: { devProjectType: 'webapp' } },
+      { label: '📱 Mobile App',         serviceKey: 'development', pre: { devProjectType: 'mobile-app' } },
+      { label: '🔌 API / Backend',      serviceKey: 'development', pre: { devProjectType: 'api' } },
+      { label: '🎨 Website Redesign',   serviceKey: 'development', pre: { devProjectType: 'redesign' } },
+      { label: '🔧 Maintenance / Bug Fix', serviceKey: 'development', pre: { devProjectType: 'maintenance' } },
+    ]
+  },
+  photography: {
+    label: '📷 Photography',
+    catKey: 'creative',
+    items: [
+      { label: 'All Photography',       serviceKey: 'photography', pre: {} },
+      { label: '💍 Wedding Photography', serviceKey: 'photography', pre: { photographyType: 'wedding' } },
+      { label: '🤳 Portrait / Headshots', serviceKey: 'photography', pre: { photographyType: 'portrait' } },
+      { label: '📦 Product / E-Commerce', serviceKey: 'photography', pre: { photographyType: 'product' } },
+      { label: '🏢 Corporate / Events', serviceKey: 'photography', pre: { photographyType: 'corporate' } },
+      { label: '🏠 Real Estate',        serviceKey: 'photography', pre: { photographyType: 'real_estate' } },
+    ]
+  }
+};
 
 function toggleExploreMenu() {
   _exploreMenuOpen = !_exploreMenuOpen;
   const menu    = document.getElementById('exploreMegaMenu');
   const chevron = document.getElementById('exploreChevron');
   const btn     = document.getElementById('exploreMenuBtn');
-  if (menu)    menu.style.display    = _exploreMenuOpen ? 'block' : 'none';
+  if (menu)    menu.style.display      = _exploreMenuOpen ? 'block' : 'none';
   if (chevron) chevron.style.transform = _exploreMenuOpen ? 'rotate(180deg)' : 'rotate(0deg)';
-  if (btn)     btn.style.color = _exploreMenuOpen ? 'var(--primary)' : 'var(--text)';
+  if (btn)     btn.style.color         = _exploreMenuOpen ? 'var(--primary)' : 'var(--text)';
 
   if (_exploreMenuOpen) {
-    // Default: show compliance sub on open
-    showExploreSub('compliance');
+    // Always start at level 1
+    exploreGoLevel1();
     setTimeout(() => {
       document.addEventListener('click', _exploreOutsideClick);
     }, 10);
@@ -3987,74 +4092,128 @@ function closeExploreMenu() {
   document.removeEventListener('click', _exploreOutsideClick);
 }
 
-function showExploreSub(catKey) {
-  // Highlight active left-side category
-  document.querySelectorAll('.explore-cat-item').forEach(el => {
-    el.classList.toggle('active', el.dataset.cat === catKey);
-  });
-
-  // Hide all sub panels
-  ['default', 'compliance', 'accounting', 'digital', 'creative'].forEach(k => {
-    const el = document.getElementById('explore-sub-' + k);
-    if (el) el.style.display = 'none';
-  });
-
-  // Show target panel
-  const target = document.getElementById('explore-sub-' + catKey);
-  if (target) target.style.display = 'block';
+function exploreGoLevel1() {
+  document.getElementById('explore-level-1').style.display = 'block';
+  document.getElementById('explore-level-2').style.display = 'none';
+  document.getElementById('explore-level-3').style.display = 'none';
+  _exploreL2CatKey = null;
 }
 
-// ── Called when user picks a leaf item in the explore menu ──────────────────
-// preAnswers: object with any question keys already answered by the menu choice
+function exploreGoLevel2(catKey) {
+  _exploreL2CatKey = catKey;
+  const cat = EXPLORE_L2[catKey];
+  if (!cat) return;
+
+  // Set title
+  document.getElementById('explore-l2-title').innerHTML =
+    `<span style="font-size:20px;">${cat.icon}</span> ${cat.label}`;
+
+  // Populate list
+  const list = document.getElementById('explore-l2-list');
+  list.innerHTML = cat.items.map(item => `
+    <div onclick="exploreGoLevel3('${item.key}')"
+      style="display:flex;align-items:center;justify-content:space-between;padding:11px 10px;
+             border-radius:10px;cursor:pointer;font-size:13px;font-weight:600;color:var(--text);
+             transition:all 0.15s;margin-bottom:3px;"
+      onmouseover="this.style.background='var(--bg-gray)';this.style.color='var(--primary)'"
+      onmouseout="this.style.background='transparent';this.style.color='var(--text)'">
+      <span>${item.label}</span>
+      <span style="color:var(--text-muted);font-size:16px;">›</span>
+    </div>
+  `).join('');
+
+  // If only one subcategory (accounting, development, photography), go straight to level 3
+  if (cat.items.length === 1) {
+    document.getElementById('explore-level-1').style.display = 'none';
+    document.getElementById('explore-level-2').style.display = 'none';
+    exploreGoLevel3(cat.items[0].key);
+    return;
+  }
+
+  document.getElementById('explore-level-1').style.display = 'none';
+  document.getElementById('explore-level-2').style.display = 'block';
+  document.getElementById('explore-level-3').style.display = 'none';
+}
+
+function exploreGoLevel2Back() {
+  // Go back to level 2 from level 3
+  if (_exploreL2CatKey) {
+    const cat = EXPLORE_L2[_exploreL2CatKey];
+    if (cat && cat.items.length > 1) {
+      document.getElementById('explore-level-3').style.display = 'none';
+      document.getElementById('explore-level-2').style.display = 'block';
+      return;
+    }
+  }
+  // Otherwise go back to level 1
+  exploreGoLevel1();
+}
+
+function exploreGoLevel3(serviceKey) {
+  const svc = EXPLORE_L3[serviceKey];
+  if (!svc) return;
+
+  // Set back button label
+  const catKey = svc.catKey;
+  const cat    = EXPLORE_L2[catKey];
+  const backLabel = cat ? cat.label : 'Back to Explore';
+  document.getElementById('explore-l3-back-label').textContent = backLabel;
+
+  // Set title
+  document.getElementById('explore-l3-title').textContent = svc.label;
+
+  // Populate leaf items
+  const list = document.getElementById('explore-l3-list');
+  list.innerHTML = svc.items.map(item => `
+    <div onclick="exploreStartFlow('${item.serviceKey}', ${JSON.stringify(item.pre)})"
+      style="padding:10px 10px;border-radius:9px;cursor:pointer;font-size:13px;font-weight:600;
+             color:var(--text);transition:all 0.15s;margin-bottom:3px;"
+      onmouseover="this.style.background='rgba(252,128,25,0.08)';this.style.color='var(--primary)'"
+      onmouseout="this.style.background='transparent';this.style.color='var(--text)'">
+      ${item.label}
+    </div>
+  `).join('');
+
+  document.getElementById('explore-level-1').style.display = 'none';
+  document.getElementById('explore-level-2').style.display = 'none';
+  document.getElementById('explore-level-3').style.display = 'block';
+}
+
 function exploreStartFlow(serviceKey, preAnswers) {
   closeExploreMenu();
 
   if (state.user && state.token) {
-    // Logged in: build questionnaire with pre-answered keys, skipping answered steps
     qState = {
-      step: 0,
-      sequence: [],
+      step: 0, sequence: [],
       answers: { service: serviceKey, ...preAnswers },
       role: 'client'
     };
     qState.sequence = buildQuestionSequence();
-
-    // Advance past any steps already answered by preAnswers
     while (
       qState.step < qState.sequence.length - 1 &&
       _isStepAnswered(qState.sequence[qState.step], qState.answers)
-    ) {
-      qState.step++;
-    }
+    ) { qState.step++; }
     showPage('questionnaire');
     renderQuestion();
   } else {
-    // Guest: same but flag for signup at end
     qState = {
-      step: 0,
-      sequence: [],
+      step: 0, sequence: [],
       answers: { service: serviceKey, ...preAnswers },
       role: 'client'
     };
     qState.sequence = buildQuestionSequence();
     state._guestQuestionnaire = true;
-
-    // Advance past pre-answered steps
     while (
       qState.step < qState.sequence.length - 1 &&
       _isStepAnswered(qState.sequence[qState.step], qState.answers)
-    ) {
-      qState.step++;
-    }
+    ) { qState.step++; }
     showPage('questionnaire');
     renderQuestion();
   }
 }
 
-// Helper: checks if a given step's key already has an answer
 function _isStepAnswered(stepId, answers) {
   if (!stepId || !answers) return false;
-  // 'service' step is always answered when we call exploreStartFlow
   if (stepId === 'service') return true;
   const q = _lookupQuestion(stepId);
   if (!q) return false;
