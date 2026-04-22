@@ -7382,11 +7382,14 @@ async function verifyGuestOTP() {
       state.user  = data.user;
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
+      // ── Clear guest flag BEFORE calling submit so it doesn't re-trigger modal ──
       state._guestQuestionnaire = false;
       closeGuestSignupModal();
       showToast('Account created! Posting your request...', 'success');
-      // Now submit the questionnaire as logged-in user
-      await submitQuestionnaire();
+      // Small delay so modal closes cleanly before submit runs
+      setTimeout(async () => {
+        await submitQuestionnaire();
+      }, 300);
     } else {
       showToast(data.message || 'Invalid code', 'error');
       if (btn) { btn.disabled = false; btn.textContent = 'Verify & Post Request →'; }
