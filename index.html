@@ -4394,12 +4394,15 @@ async function handleGoogleVerifyOTP() {
       qState.sequence = buildQuestionSequence();
       showPage('questionnaire');
       renderQuestion();
-    } else if (!state._guestQuestionnaire) {
-  startQuestionnaire(data.user.role);
-} else {
-  state._guestQuestionnaire = false;
-  await submitQuestionnaire();
-}
+    } else if (state._guestQuestionnaire) {
+      state._guestQuestionnaire = false;
+      showToast('Account created! Posting your request...', 'success');
+      setTimeout(async () => {
+        await submitQuestionnaire();
+      }, 300);
+    } else {
+      startQuestionnaire(data.user.role);
+    }
  
   } catch (err) {
     showToast('Network error. Please try again.', 'error');
