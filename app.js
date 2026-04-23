@@ -7011,7 +7011,7 @@ function showExpertWelcomeModal() {
             </div>
           </div>`).join('')}
       </div>
-      <button onclick="document.getElementById('expertWelcomeModal').remove(); setTimeout(() => startQuestionnaire('expert'), 300);"
+      <button onclick="document.getElementById('expertWelcomeModal').remove(); showPage('expertDash'); loadExpertData();"
         style="width:100%;padding:15px;background:var(--primary);color:#fff;border:none;border-radius:12px;font-size:16px;font-weight:700;cursor:pointer;">
         Let's Get Started →
       </button>
