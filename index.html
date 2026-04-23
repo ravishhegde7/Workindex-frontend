@@ -4386,7 +4386,12 @@ async function handleGoogleVerifyOTP() {
       showGooglePhoneScreen(data.user);
       return;
     }
- 
+
+    console.log('[GoogleOTP] After verify — data.user.role =', data.user.role);
+    console.log('[GoogleOTP] state._guestQuestionnaire =', state._guestQuestionnaire);
+    console.log('[GoogleOTP] state.pendingServiceFlow =', state.pendingServiceFlow);
+    console.log('[GoogleOTP] qState.answers =', JSON.stringify(qState.answers));
+
     if (state.pendingServiceFlow && data.user.role === 'client') {
       const svc = state.pendingServiceFlow;
       state.pendingServiceFlow = null;
