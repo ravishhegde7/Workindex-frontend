@@ -7441,16 +7441,14 @@ async function handleGuestGoogleCredential(response) {
         await submitQuestionnaire();
       }, 300);
     } else if (data.action === 'verify_otp') {
-      // Google new user needs OTP — use existing flow
+      // Google new user needs OTP — preserve guest flag and answers
       _gOtpEmail = data.email;
+      // Keep _guestQuestionnaire = true so after OTP, submitQuestionnaire() is called
+      state._guestQuestionnaire = true;
       closeGuestSignupModal();
-      // Temporarily show auth page OTP screen
       showPage('auth');
       switchAuthMode('signup');
       showGoogleOTPScreen(data.email);
-      // After OTP verified, handleGoogleVerifyOTP will call startQuestionnaire
-      // We need to re-route it — store pending answers
-      state._pendingGuestAnswers = { ...qState.answers };
     }
   } catch (err) {
     showToast('Network error. Please try again.', 'error');
