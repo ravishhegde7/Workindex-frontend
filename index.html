@@ -1618,27 +1618,45 @@
 
 <!-- QUESTIONNAIRE PAGE -->
 <div id="questionnaire" class="page">
-  <!-- Progress Header -->
-  <div style="background: var(--bg); padding: 16px 20px; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 10;">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-      <div id="qStepText" style="font-size: 14px; font-weight: 600; color: var(--text-muted);">Step 1 of 12</div>
-      <button onclick="exitQuestionnaire()" style="padding: 6px 14px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); font-size: 13px; font-weight: 600; cursor: pointer;">Exit</button>
-    </div>
-    <div style="height: 4px; background: var(--bg-gray); border-radius: 2px; overflow: hidden;">
-      <div id="qProgressFill" style="width: 0%; height: 100%; background: var(--primary); transition: width 0.3s;"></div>
-    </div>
-  </div>
+  <!-- Blurred background overlay -->
+  <div class="q-backdrop"></div>
 
-  <!-- Question Content -->
-  <div id="qContent" style="padding: 24px 20px 120px; min-height: calc(100vh - 200px);"></div>
+  <!-- Modal card -->
+  <div class="q-modal-card">
 
-  <!-- Navigation Buttons -->
-  <div style="position: fixed; bottom: 0; left: 0; right: 0; padding: 16px 20px; background: var(--bg); border-top: 1px solid var(--border); display: flex; gap: 12px; z-index: 10;">
-    <button id="qBackBtn" onclick="qBack()" style="display: none; flex: 1; padding: 14px; border: 1.5px solid var(--border); border-radius: 10px; background: var(--bg); color: var(--text); font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.2s;">← Back</button>
-    <button id="qNextBtn" onclick="qNext()" style="flex: 2; padding: 14px; border: none; border-radius: 10px; background: var(--primary); color: #fff; font-size: 15px; font-weight: 700; cursor: pointer; opacity: 0.5; transition: all 0.2s;" disabled>Continue</button>
+    <!-- Progress Header -->
+    <div class="q-modal-header">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+        <div id="qStepText" style="font-size:13px; font-weight:600; color:var(--text-muted);">Step 1 of 12</div>
+        <button onclick="exitQuestionnaire()"
+          style="padding:5px 14px; border:1px solid var(--border); border-radius:20px; background:transparent; color:var(--text-muted); font-size:13px; font-weight:600; cursor:pointer;">
+          ✕ Exit
+        </button>
+      </div>
+      <!-- Progress bar -->
+      <div style="height:4px; background:var(--border); border-radius:2px; overflow:hidden;">
+        <div id="qProgressFill" style="width:0%; height:100%; background:var(--primary); transition:width 0.4s ease; border-radius:2px;"></div>
+      </div>
+    </div>
+
+    <!-- Question Content -->
+    <div id="qContent" class="q-modal-body"></div>
+
+    <!-- Navigation Buttons -->
+    <div class="q-modal-footer">
+      <button id="qBackBtn" onclick="qBack()"
+        style="display:none; flex:1; padding:14px; border:1.5px solid var(--border); border-radius:12px; background:transparent; color:var(--text); font-size:15px; font-weight:600; cursor:pointer; transition:all 0.2s;">
+        ← Back
+      </button>
+      <button id="qNextBtn" onclick="qNext()"
+        style="flex:2; padding:14px; border:none; border-radius:12px; background:var(--primary); color:#fff; font-size:15px; font-weight:700; cursor:pointer; opacity:0.5; transition:all 0.2s;" disabled>
+        Continue
+      </button>
+    </div>
+
   </div>
 </div>
-
+  
 <!-- CLIENT DASHBOARD -->
 <div id="clientDash" class="page">
   <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-bottom: 1px solid var(--border);">
