@@ -1314,6 +1314,10 @@ body.dark-mode .explore-cat-item.active {
   align-items: center;
   justify-content: center;
   padding: 20px;
+  position: fixed !important;
+  inset: 0 !important;
+  min-height: unset !important;
+  z-index: 500;
 }
 
 /* ── Simple dark overlay — NO blur ── */
