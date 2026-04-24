@@ -1352,6 +1352,10 @@ body.dark-mode .q-modal-card {
   flex-shrink: 0;
 }
 
+#qStepText {
+  display: none !important;
+}
+
 /* ── Scrollable body ── */
 .q-modal-body {
   padding: 24px 24px 16px;
