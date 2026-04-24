@@ -1294,3 +1294,321 @@ body.dark-mode .explore-cat-item.active {
 .hiw-cta-btn:hover { transform:translateY(-2px); box-shadow:0 10px 28px rgba(252,128,25,0.55); }
 .hiw-trust { display:flex; justify-content:center; gap:16px; margin-top:14px; flex-wrap:wrap; }
 .hiw-trust-item { font-size:11.5px; color:rgba(255,255,255,0.45); }
+
+
+/* ═══ QUESTIONNAIRE REDESIGN v2 ═══ */
+
+/* ── Page shell ── */
+#questionnaire {
+  background: #fff;
+  min-height: 100vh;
+}
+body.dark-mode #questionnaire {
+  background: var(--bg);
+}
+
+/* ── Progress header ── */
+#questionnaire > div:first-child {
+  background: #fff;
+  border-bottom: 1px solid var(--border);
+  padding: 14px 20px 0;
+}
+body.dark-mode #questionnaire > div:first-child {
+  background: var(--bg);
+}
+
+/* ── Step counter text ── */
+#qStepText {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  letter-spacing: 0.02em;
+}
+
+/* ── Progress bar track ── */
+#questionnaire > div:first-child > div:last-child {
+  height: 3px;
+  background: #f0f0f0;
+  border-radius: 0;
+  margin-top: 12px;
+}
+body.dark-mode #questionnaire > div:first-child > div:last-child {
+  background: var(--bg-gray);
+}
+
+/* ── Progress fill ── */
+#qProgressFill {
+  height: 100%;
+  background: var(--primary);
+  border-radius: 0;
+  transition: width 0.4s ease;
+}
+
+/* ── Content area ── */
+#qContent {
+  padding: 32px 20px 140px;
+  max-width: 560px;
+  margin: 0 auto;
+}
+
+/* ── Question title block ── */
+#qContent > div:first-child h2 {
+  font-size: 22px !important;
+  font-weight: 800 !important;
+  color: var(--text) !important;
+  line-height: 1.3 !important;
+  margin-bottom: 6px !important;
+}
+
+#qContent > div:first-child p {
+  font-size: 14px !important;
+  color: var(--text-muted) !important;
+  line-height: 1.5 !important;
+}
+
+/* ── Single-select option rows ── */
+.questionnaire-option {
+  display: flex !important;
+  align-items: center !important;
+  padding: 16px 18px !important;
+  border: 1.5px solid var(--border) !important;
+  border-radius: 14px !important;
+  cursor: pointer !important;
+  background: var(--bg) !important;
+  transition: border-color 0.15s, background 0.15s, box-shadow 0.15s !important;
+  margin-bottom: 10px !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04) !important;
+  position: relative !important;
+}
+
+.questionnaire-option:hover {
+  border-color: var(--primary) !important;
+  background: rgba(252,128,25,0.03) !important;
+  box-shadow: 0 2px 8px rgba(252,128,25,0.1) !important;
+}
+
+/* Selected state — driven by inline style, but we reinforce */
+.questionnaire-option[style*="rgba(252, 128, 25"] {
+  box-shadow: 0 2px 12px rgba(252,128,25,0.15) !important;
+}
+
+/* ── Option icon ── */
+.questionnaire-option > div:first-child span[style*="font-size: 28px"],
+.questionnaire-option > div:first-child > span {
+  font-size: 24px !important;
+  width: 42px !important;
+  height: 42px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: var(--bg-gray) !important;
+  border-radius: 10px !important;
+  flex-shrink: 0 !important;
+}
+
+/* ── Option label text ── */
+.questionnaire-option .q-label-main {
+  font-size: 15px !important;
+  font-weight: 600 !important;
+  color: var(--text) !important;
+}
+
+.questionnaire-option .q-label-sub {
+  font-size: 13px !important;
+  color: var(--text-muted) !important;
+  margin-top: 2px !important;
+}
+
+/* ── Radio circle — push to right ── */
+.questionnaire-option > div:last-child {
+  margin-left: auto !important;
+  flex-shrink: 0 !important;
+  width: 22px !important;
+  height: 22px !important;
+  border-radius: 50% !important;
+  border: 2px solid var(--border) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transition: border-color 0.15s, background 0.15s !important;
+}
+
+/* ── Multi-select checkboxes ── */
+.questionnaire-multi-option {
+  display: flex !important;
+  align-items: center !important;
+  padding: 16px 18px !important;
+  border: 1.5px solid var(--border) !important;
+  border-radius: 14px !important;
+  cursor: pointer !important;
+  background: var(--bg) !important;
+  transition: all 0.15s !important;
+  margin-bottom: 10px !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04) !important;
+}
+
+.questionnaire-multi-option:hover {
+  border-color: var(--primary) !important;
+  background: rgba(252,128,25,0.03) !important;
+}
+
+/* ── Service picker grid ── */
+#qContent .questionnaire-option[data-question-key="service"] {
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 20px 12px !important;
+  text-align: center !important;
+  border-radius: 16px !important;
+  min-height: 100px !important;
+}
+
+#qContent .questionnaire-option[data-question-key="service"] > div:last-child {
+  display: none !important;
+}
+
+/* ── Textarea ── */
+#qContent textarea {
+  border-radius: 14px !important;
+  border: 1.5px solid var(--border) !important;
+  font-size: 15px !important;
+  line-height: 1.6 !important;
+  padding: 14px 16px !important;
+  transition: border-color 0.15s !important;
+  background: var(--bg) !important;
+  color: var(--text) !important;
+  resize: vertical !important;
+}
+
+#qContent textarea:focus {
+  border-color: var(--primary) !important;
+  outline: none !important;
+  box-shadow: 0 0 0 3px rgba(252,128,25,0.08) !important;
+}
+
+/* ── Text / number inputs ── */
+#qContent input[type="text"],
+#qContent input[type="tel"],
+#qContent input[type="date"],
+#qContent input[type="number"] {
+  border-radius: 14px !important;
+  border: 1.5px solid var(--border) !important;
+  font-size: 16px !important;
+  padding: 14px 16px !important;
+  transition: border-color 0.15s !important;
+  background: var(--bg) !important;
+  color: var(--text) !important;
+}
+
+#qContent input:focus {
+  border-color: var(--primary) !important;
+  outline: none !important;
+  box-shadow: 0 0 0 3px rgba(252,128,25,0.08) !important;
+}
+
+/* ── Address fields ── */
+#qContent select {
+  border-radius: 14px !important;
+  border: 1.5px solid var(--border) !important;
+  font-size: 15px !important;
+  padding: 13px 16px !important;
+  background: var(--bg) !important;
+  color: var(--text) !important;
+  transition: border-color 0.15s !important;
+}
+
+#qContent select:focus {
+  border-color: var(--primary) !important;
+  outline: none !important;
+}
+
+/* ── Slider ── */
+#qContent input[type="range"] {
+  -webkit-appearance: none !important;
+  width: 100% !important;
+  height: 6px !important;
+  border-radius: 3px !important;
+  background: var(--border) !important;
+  outline: none !important;
+  border: none !important;
+  padding: 0 !important;
+  cursor: pointer !important;
+}
+
+#qContent input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none !important;
+  width: 24px !important;
+  height: 24px !important;
+  border-radius: 50% !important;
+  background: var(--primary) !important;
+  cursor: pointer !important;
+  box-shadow: 0 2px 8px rgba(252,128,25,0.4) !important;
+  border: 2px solid #fff !important;
+}
+
+/* ── Bottom nav buttons ── */
+#qBackBtn {
+  border-radius: 14px !important;
+  font-size: 15px !important;
+  font-weight: 600 !important;
+  border: 1.5px solid var(--border) !important;
+  color: var(--text) !important;
+  background: var(--bg) !important;
+  transition: border-color 0.15s !important;
+}
+
+#qBackBtn:hover {
+  border-color: var(--primary) !important;
+  color: var(--primary) !important;
+}
+
+#qNextBtn {
+  border-radius: 14px !important;
+  font-size: 16px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.01em !important;
+  transition: opacity 0.2s, transform 0.15s !important;
+}
+
+#qNextBtn:not([disabled]):hover {
+  transform: translateY(-1px) !important;
+  box-shadow: 0 6px 20px rgba(252,128,25,0.35) !important;
+}
+
+/* ── Exit button ── */
+#questionnaire > div:first-child button {
+  border-radius: 10px !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  color: var(--text-muted) !important;
+  border: 1px solid var(--border) !important;
+  background: transparent !important;
+  transition: color 0.15s, border-color 0.15s !important;
+}
+
+#questionnaire > div:first-child button:hover {
+  color: var(--text) !important;
+  border-color: var(--text-muted) !important;
+}
+
+/* ── Budget guide card ── */
+#budgetGuideBox {
+  border-radius: 16px !important;
+  overflow: hidden !important;
+}
+
+/* ── Pincode autofill green borders ── */
+#qContent input[style*="#10b981"] {
+  box-shadow: 0 0 0 3px rgba(16,185,129,0.1) !important;
+}
+
+/* ── Dark mode adjustments ── */
+body.dark-mode .questionnaire-option,
+body.dark-mode .questionnaire-multi-option {
+  box-shadow: none !important;
+}
+
+body.dark-mode .questionnaire-option:hover,
+body.dark-mode .questionnaire-multi-option:hover {
+  background: rgba(252,128,25,0.06) !important;
+}
