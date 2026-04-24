@@ -81,6 +81,11 @@ body.dark-mode {
   animation: fadeIn .3s ease; 
 }
 
+#questionnaire {
+  min-height: 100vh;
+  background: transparent !important;
+}
+
 .page.active { 
   display: block; 
 }
