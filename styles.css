@@ -1351,7 +1351,7 @@ body.dark-mode #questionnaire > div:first-child > div:last-child {
 }
 
 /* ── Question title block ── */
-#qContent > div:first-child h2 {
+#qContent h2 {
   font-size: 22px !important;
   font-weight: 800 !important;
   color: var(--text) !important;
@@ -1359,10 +1359,11 @@ body.dark-mode #questionnaire > div:first-child > div:last-child {
   margin-bottom: 6px !important;
 }
 
-#qContent > div:first-child p {
+#qContent > div > p {
   font-size: 14px !important;
   color: var(--text-muted) !important;
   line-height: 1.5 !important;
+  margin-bottom: 24px !important;
 }
 
 /* ── Single-select option rows ── */
@@ -1392,11 +1393,10 @@ body.dark-mode #questionnaire > div:first-child > div:last-child {
 }
 
 /* ── Option icon ── */
-.questionnaire-option > div:first-child span[style*="font-size: 28px"],
-.questionnaire-option > div:first-child > span {
-  font-size: 24px !important;
-  width: 42px !important;
-  height: 42px !important;
+.questionnaire-option span[style*="font-size: 28px"] {
+  font-size: 22px !important;
+  width: 40px !important;
+  height: 40px !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
