@@ -1315,7 +1315,7 @@ body.dark-mode .explore-cat-item.active {
 .q-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.08);
+  background: rgba(0,0,0,0.45);
   z-index: 0;
   pointer-events: none;
 }
