@@ -1297,25 +1297,27 @@ body.dark-mode .explore-cat-item.active {
 
 /* ═══ QUESTIONNAIRE — BARK-STYLE MODAL ═══ */
 
-/* ── Page: hide scrollbar, show backdrop ── */
+/* ── Page: modal layout only when active ── */
 #questionnaire {
-  background: transparent;
+  background: var(--bg-gray);
   min-height: 100vh;
+  position: relative;
+}
+
+#questionnaire.active {
   display: flex !important;
   align-items: center;
   justify-content: center;
   padding: 20px;
-  position: relative;
 }
 
-/* ── Blurred page backdrop ── */
+/* ── Simple dark overlay — NO blur ── */
 .q-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.45);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
+  background: rgba(0,0,0,0.08);
   z-index: 0;
+  pointer-events: none;
 }
 
 /* ── The modal card itself ── */
