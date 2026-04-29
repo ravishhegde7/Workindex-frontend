@@ -3305,8 +3305,9 @@ async function submitQuestionnaire() {
         state.user = { ...state.user, profile: qState.answers };
         localStorage.setItem('user', JSON.stringify(state.user));
         showToast('Profile completed successfully!', 'success');
-        showPage('expertDash');
-        loadExpertData();
+document.getElementById('questionnaire').classList.remove('active');
+showPage('expertDash');
+loadExpertData();
                 setTimeout(() => showExpertWelcomeModal(), 800);
       } else {
         showToast(data.message || 'Failed to update profile', 'error');
