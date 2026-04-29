@@ -3817,12 +3817,16 @@ function showNewRequestForm() {
 function exitQuestionnaire() {
   if (!confirm('Exit questionnaire? Progress will be lost.')) return;
   state._guestQuestionnaire = false;
-  if (state.user && state.user.role) {
-    showPage(state.user.role === 'expert' ? 'expertDash' : 'clientDash');
-  } else {
-    showPage('landing');
+  document.getElementById('questionnaire').classList.remove('active');
+  if (!document.querySelector('.page.active')) {
+    if (state.user && state.user.role) {
+      showPage(state.user.role === 'expert' ? 'expertDash' : 'clientDash');
+    } else {
+      showPage('landing');
+    }
   }
 }
+  
   
 // Attach terms modal backdrop close — runs after DOM ready
 document.addEventListener('DOMContentLoaded', function() {
