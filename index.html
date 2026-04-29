@@ -1624,9 +1624,21 @@
   <!-- Modal card -->
   <div class="q-modal-card">
 
+    <!-- Category Image Banner -->
+    <div id="qCategoryBanner" style="display:none; height:160px; overflow:hidden; position:relative; flex-shrink:0;">
+      <img id="qCategoryImg" src="" alt="" style="width:100%; height:100%; object-fit:cover; object-position:center;">
+      <div style="position:absolute;inset:0;background:linear-gradient(to bottom, rgba(0,0,0,0.08) 0%, rgba(0,0,0,0.45) 100%);"></div>
+      <div style="position:absolute;bottom:14px;left:18px;right:60px;">
+        <div id="qCategoryLabel" style="font-size:18px;font-weight:800;color:#fff;text-shadow:0 1px 6px rgba(0,0,0,0.4);"></div>
+      </div>
+      <!-- Exit button overlaid on image -->
+      <button onclick="exitQuestionnaire()"
+        style="position:absolute;top:12px;right:12px;width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,0.9);border:none;font-size:16px;cursor:pointer;color:#333;display:flex;align-items:center;justify-content:center;font-weight:700;box-shadow:0 2px 8px rgba(0,0,0,0.15);">✕</button>
+    </div>
+
     <!-- Progress Header -->
     <div class="q-modal-header">
-      <div style="display:flex; justify-content:flex-end; align-items:center; margin-bottom:12px;">
+      <div id="qExitRow" style="display:flex; justify-content:flex-end; align-items:center; margin-bottom:12px;">
         <button onclick="exitQuestionnaire()"
           style="padding:5px 14px; border:1px solid var(--border); border-radius:20px; background:transparent; color:var(--text-muted); font-size:13px; font-weight:600; cursor:pointer;">
           ✕ Exit
