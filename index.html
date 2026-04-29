@@ -2248,6 +2248,67 @@ function buildQuestionSequence() {
 
     return seq;
   }
+
+// ─── CATEGORY IMAGE MAP ───
+const Q_CATEGORY_IMAGES = {
+  // Services
+  itr:        { url: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=800&q=80&fit=crop', label: '📄 ITR Filing' },
+  gst:        { url: 'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=800&q=80&fit=crop', label: '🧾 GST Services' },
+  accounting: { url: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&q=80&fit=crop', label: '📊 Accounting' },
+  audit:      { url: 'https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=800&q=80&fit=crop', label: '🔍 Audit Services' },
+  photography:{ url: 'https://images.unsplash.com/photo-1471341971476-ae15ff5dd4ea?w=800&q=80&fit=crop', label: '📸 Photography' },
+  development:{ url: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=800&q=80&fit=crop', label: '💻 Development' },
+  // Development sub-types
+  website:    { url: 'https://images.unsplash.com/photo-1467232004584-a241de8bcf5d?w=800&q=80&fit=crop', label: '🌐 Website' },
+  ecommerce:  { url: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=800&q=80&fit=crop', label: '🛒 E-Commerce Store' },
+  webapp:     { url: 'https://images.unsplash.com/photo-1551650975-87deedd944c3?w=800&q=80&fit=crop', label: '💻 Web Application' },
+  'mobile-app':{ url: 'https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=800&q=80&fit=crop', label: '📱 Mobile App' },
+  api:        { url: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=800&q=80&fit=crop', label: '🔌 API / Backend' },
+  redesign:   { url: 'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=800&q=80&fit=crop', label: '🎨 Website Redesign' },
+  maintenance:{ url: 'https://images.unsplash.com/photo-1573164713988-8665fc963095?w=800&q=80&fit=crop', label: '🔧 Maintenance' },
+  // Photography sub-types
+  wedding:    { url: 'https://images.unsplash.com/photo-1519741497674-611481863552?w=800&q=80&fit=crop', label: '💍 Wedding Photography' },
+  portrait:   { url: 'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=800&q=80&fit=crop', label: '🤳 Portrait / Headshots' },
+  product:    { url: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800&q=80&fit=crop', label: '📦 Product Photography' },
+  corporate:  { url: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&q=80&fit=crop', label: '🏢 Corporate / Events' },
+  real_estate:{ url: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800&q=80&fit=crop', label: '🏠 Real Estate' },
+  // ITR sub-types
+  salaried:   { url: 'https://images.unsplash.com/photo-1521791136064-7986c2920216?w=800&q=80&fit=crop', label: '💼 Salaried Employee' },
+  business:   { url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&q=80&fit=crop', label: '🏢 Business Owner' },
+  freelancer: { url: 'https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=800&q=80&fit=crop', label: '💻 Freelancer' },
+  nri:        { url: 'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=800&q=80&fit=crop', label: '🌍 NRI Returns' },
+};
+
+function updateQBanner(answers) {
+  const banner = document.getElementById('qCategoryBanner');
+  const img    = document.getElementById('qCategoryImg');
+  const label  = document.getElementById('qCategoryLabel');
+  const exitRow = document.getElementById('qExitRow');
+  if (!banner || !img || !label) return;
+
+  // Pick most specific image: sub-type answer first, then service
+  const keys = [
+    answers.devProjectType,
+    answers.photographyType,
+    answers.itrTaxpayerType,
+    answers.service
+  ];
+
+  let match = null;
+  for (const k of keys) {
+    if (k && Q_CATEGORY_IMAGES[k]) { match = Q_CATEGORY_IMAGES[k]; break; }
+  }
+
+  if (match) {
+    img.src = match.url;
+    label.textContent = match.label;
+    banner.style.display = 'block';
+    if (exitRow) exitRow.style.display = 'none';
+  } else {
+    banner.style.display = 'none';
+    if (exitRow) exitRow.style.display = 'flex';
+  }
+}
   
 // ─── START QUESTIONNAIRE ───
 function startQuestionnaire(forceRole) {
