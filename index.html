@@ -2427,6 +2427,9 @@ function renderQuestion() {
   if (progressFill) progressFill.style.width = progress + '%';
   if (stepText) stepText.textContent = `Step ${qState.step + 1} of ${qState.sequence.length}`;
 
+  // Update category banner image
+  updateQBanner(qState.answers);
+
   // Show/hide back button
   if (backBtn) backBtn.style.display = qState.step > 0 ? 'block' : 'none';
   
