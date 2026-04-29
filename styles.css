@@ -1318,7 +1318,9 @@ body.dark-mode .explore-cat-item.active {
   inset: 0 !important;
   min-height: unset !important;
   z-index: 500;
-  background: rgba(0, 0, 0, 0.55) !important;
+  background: rgba(0, 0, 0, 0.35) !important;
+  backdrop-filter: blur(3px) !important;
+  -webkit-backdrop-filter: blur(3px) !important;
 }
 
 /* ── Simple dark overlay — NO blur ── */
@@ -1334,26 +1336,31 @@ body.dark-mode .explore-cat-item.active {
 .q-modal-card {
   position: relative;
   z-index: 1;
-  background: rgba(255,255,255,0.96);
-  border-radius: 16px;
-  box-shadow: 0 8px 40px rgba(0,0,0,0.14);
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 32px rgba(0,0,0,0.18);
   width: 100%;
-  max-width: 580px;
+  max-width: 560px;
   max-height: 90vh;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  animation: qModalIn 0.25s ease;
-  border: 1px solid rgba(255,255,255,0.6);
+  animation: qModalIn 0.22s ease;
+  border: none;
 }
+body.dark-mode .q-modal-card {
+  background: #1e1e1e;
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
 body.dark-mode .q-modal-card {
   background: rgba(30,30,30,0.97);
   border: 1px solid rgba(255,255,255,0.08);
 }
 
 @keyframes qModalIn {
-  from { opacity: 0; transform: scale(0.96) translateY(12px); }
-  to   { opacity: 1; transform: scale(1) translateY(0); }
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 /* ── Header inside card ── */
